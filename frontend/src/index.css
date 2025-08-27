@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* CSS Custom Properties for the primary color */
+:root {
+  --primary-color: #a71f23;
+  --primary-color-rgb: 167, 31, 35;
+}
+
+/* Global styles */
+body {
+  margin: 0;
+  font-family: "Cairo", "Amiri", "Noto Sans Arabic", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+html[dir="rtl"] body {
+  text-align: right;
+}
+
+/* Utility classes for primary color usage throughout the project */
+.text-primary {
+  color: var(--primary-color);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.border-primary {
+  border-color: var(--primary-color);
+}
+
+.hover\:bg-primary:hover {
+  background-color: var(--primary-color);
+}
+
+.hover\:text-primary:hover {
+  color: var(--primary-color);
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: #8a1a1e;
+}
+
+/* RTL-specific adjustments */
+.rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Arabic font improvements */
+.font-arabic {
+  font-family: "Cairo", "Amiri", "Noto Sans Arabic", sans-serif;
+  font-feature-settings: "liga" 1, "calt" 1;
+}
