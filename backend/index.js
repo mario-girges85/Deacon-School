@@ -8,6 +8,7 @@ const userRouter = require("./routes/userRouter");
 const classRouter = require("./routes/classRouter");
 const levelRouter = require("./routes/levelRouter");
 const curriculumRouter = require("./routes/curriculumRouter");
+const scheduleRouter = require("./routes/scheduleRouter");
 
 // Import models and relationships
 const { User, Levels, Classes, Curriculum } = require("./models/relationships");
@@ -222,6 +223,7 @@ app.use("/api/users", userRouter);
 app.use("/api/classes", classRouter);
 app.use("/api/levels", levelRouter);
 app.use("/api", curriculumRouter);
+app.use("/api/schedule", scheduleRouter);
 
 // Serve uploads statically
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
@@ -233,7 +235,7 @@ app.listen(port, async () => {
     // - force: false (default) - won't drop existing tables
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
-    await sequelize.sync({ force: false, alter: false });
+    await sequelize.sync({ force: false, alter: true });
 
     console.log("Database synchronized successfully.");
 

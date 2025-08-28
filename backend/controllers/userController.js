@@ -23,6 +23,7 @@ module.exports.register = async (req, res) => {
       class_id,
       level_id,
       role = "student",
+      subject = undefined,
     } = req.body;
 
     // Validate required fields based on role
@@ -33,8 +34,17 @@ module.exports.register = async (req, res) => {
       requiredFields.push("class_id", "level_id", "code");
     }
     // For teachers and supervisors, no level required at signup. Code is optional
-    else if (["teacher", "supervisor"].includes(role)) {
-      // no extra required fields
+    else if (role === "teacher") {
+      // require subject for teachers only
+      if (!subject || !["taks", "al7an", "coptic"].includes(String(subject))) {
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(400).json({
+          success: false,
+          message: "يجب تحديد تخصص المعلم: taks أو al7an أو coptic",
+        });
+      }
     }
     // Admins: no class/level required, and code is optional
 
@@ -128,6 +138,11 @@ module.exports.register = async (req, res) => {
     // Only add class_id for students
     if (role === "student") {
       userData.class_id = class_id;
+    }
+
+    // Only set subject for teachers
+    if (role === "teacher") {
+      userData.subject = String(subject);
     }
 
     // Add image path if uploaded
@@ -286,6 +301,62 @@ module.exports.login = async (req, res) => {
       success: false,
       message: "server error",
     });
+  }
+};
+
+// Update user profile image
+module.exports.updateUserImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "user id is required" });
+    }
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "image file is required" });
+    }
+
+    const User = require("../models/user");
+    const path = require("path");
+    const fs = require("fs");
+    const { imageToBase64 } = require("../util/userHelpers");
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      // delete uploaded file if user not found
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch {}
+      return res
+        .status(404)
+        .json({ success: false, message: "المستخدم غير موجود" });
+    }
+
+    // Optionally remove previous image file
+    if (user.image) {
+      try {
+        const oldPath = path.join(__dirname, "..", user.image);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      } catch {}
+    }
+
+    user.image = `uploads/profiles/${req.file.filename}`;
+    await user.save();
+
+    const base64 = imageToBase64(user.image);
+    return res.json({
+      success: true,
+      message: "تم تحديث الصورة بنجاح",
+      image: base64,
+    });
+  } catch (error) {
+    console.error("updateUserImage error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "تعذر تحديث الصورة" });
   }
 };
 

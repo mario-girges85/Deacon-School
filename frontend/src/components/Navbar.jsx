@@ -67,6 +67,9 @@ const Navbar = () => {
             <Link to="/bulk-upload" className={getLinkClasses("/bulk-upload")}>
               رفع طلاب (عام)
             </Link>
+            <Link to="/schedule" className={getLinkClasses("/schedule")}>
+              جدول المعلمين
+            </Link>
 
             <>
               <Link to="/users" className={getLinkClasses("/users")}>
@@ -188,6 +191,13 @@ const Navbar = () => {
               onClick={toggleMenu}
             >
               رفع طلاب (عام)
+            </Link>
+            <Link
+              to="/schedule"
+              className={getMobileLinkClasses("/schedule")}
+              onClick={toggleMenu}
+            >
+              جدول المعلمين
             </Link>
 
             <>

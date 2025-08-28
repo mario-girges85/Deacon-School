@@ -82,6 +82,11 @@ const User = sequelize.define(
         notEmpty: true,
       },
     },
+    subject: {
+      type: Sequelize.ENUM("taks", "al7an", "coptic"),
+      allowNull: true, // required only for teachers/supervisors
+      comment: "Teacher subject specialty",
+    },
   },
   {
     timestamps: true,

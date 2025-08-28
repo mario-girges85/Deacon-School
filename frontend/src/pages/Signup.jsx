@@ -15,6 +15,7 @@ const Signup = () => {
     birthday: "",
     gender: "male",
     role: "teacher",
+    subject: "",
     level_id: "",
     code: "",
     image: null,
@@ -65,10 +66,13 @@ const Signup = () => {
     const newErrors = {};
     const { name, phone, password, birthday, gender } = formData;
     if (!name.trim()) newErrors.name = "الاسم مطلوب";
-    if (!/^\d{10,}$/.test(String(phone))) newErrors.phone = "رقم هاتف غير صحيح";
+    if (!/^\d{11}$/.test(String(phone))) newErrors.phone = "رقم هاتف غير صحيح";
     if (!password) newErrors.password = "كلمة المرور مطلوبة";
     if (!birthday) newErrors.birthday = "تاريخ الميلاد مطلوب";
     if (!gender) newErrors.gender = "النوع مطلوب";
+    if (["teacher"].includes(formData.role)) {
+      if (!formData.subject) newErrors.subject = "التخصص مطلوب";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -87,6 +91,7 @@ const Signup = () => {
         "birthday",
         "gender",
         "role",
+        "subject",
         "code",
       ];
       fields.forEach((f) => {
@@ -152,6 +157,7 @@ const Signup = () => {
                   </svg>
                 )}
               </div>
+              {/* Subject selector moved below role selector in the form body */}
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="image"
@@ -288,6 +294,32 @@ const Signup = () => {
                   <option value="supervisor">مشرف</option>
                 </select>
               </div>
+
+              {formData.role === "teacher" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    التخصص (للمعلمين)
+                  </label>
+                  <select
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg text-right ${
+                      errors.subject ? "border-red-500" : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">اختر التخصص</option>
+                    <option value="taks">طقس</option>
+                    <option value="al7an">ألحان</option>
+                    <option value="coptic">قبطي</option>
+                  </select>
+                  {errors.subject && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.subject}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

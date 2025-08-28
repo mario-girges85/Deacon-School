@@ -12,6 +12,13 @@ router.post(
   userController.register
 );
 
+// Update profile image for existing user
+router.put(
+  "/:id/image",
+  profileImageUpload.single("image"),
+  userController.updateUserImage
+);
+
 // Unified bulk import (CSV or Excel). Field name: 'file'. Optional body: classId
 router.post("/bulk-import", upload.single("file"), userController.bulkImport);
 

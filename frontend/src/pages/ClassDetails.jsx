@@ -11,6 +11,7 @@ const ClassDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [teachers, setTeachers] = useState([]);
+  const [classSchedule, setClassSchedule] = useState(null); // { timeSlots, row }
   const [assignments, setAssignments] = useState({
     taks_teacher_id: null,
     al7an_teacher_id: null,
@@ -29,15 +30,15 @@ const ClassDetails = () => {
     try {
       setLoading(true);
 
-      const [classResponse, usersResponse, assignResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/get-users`),
-        axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/classes/${id}/teacher-assignments`
-        ),
-      ]);
+      const [classResponse, usersResponse, scheduleResponse] =
+        await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/get-users`),
+          axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
+            {}
+          ),
+        ]);
 
       if (!classResponse.data?.success) {
         setError("فشل في جلب تفاصيل الفصل");
@@ -66,12 +67,12 @@ const ClassDetails = () => {
         setStudents([]);
       }
 
-      if (assignResponse.data?.success) {
-        setAssignments({
-          taks_teacher_id: assignResponse.data.assignments.taks_teacher_id,
-          al7an_teacher_id: assignResponse.data.assignments.al7an_teacher_id,
-          coptic_teacher_id: assignResponse.data.assignments.coptic_teacher_id,
-        });
+      // Schedule for this class
+      if (scheduleResponse.data?.success) {
+        const timeSlots = scheduleResponse.data.timeSlots || [];
+        const rows = scheduleResponse.data.rows || [];
+        const row = rows.find((r) => r.class?.id === id) || null;
+        setClassSchedule(row ? { timeSlots, row } : null);
       }
     } catch (error) {
       setError("حدث خطأ أثناء جلب تفاصيل الفصل");
@@ -371,94 +372,81 @@ const ClassDetails = () => {
           )}
         </div>
 
-        {/* Teacher Subject Assignments */}
+        {/* Class Schedule */}
         <div className="bg-white rounded-lg shadow-md p-6 mt-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              تعيين المعلمين حسب المادة
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900">جدول الفصل</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                طقس
-              </label>
-              <select
-                value={assignments.taks_teacher_id || ""}
-                onChange={(e) =>
-                  setAssignments((prev) => ({
-                    ...prev,
-                    taks_teacher_id: e.target.value || null,
-                  }))
-                }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">بدون تعيين</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} ({t.role === "teacher" ? "معلم" : "مشرف"})
-                  </option>
-                ))}
-              </select>
+          {!classSchedule ? (
+            <div className="text-gray-500">لا يوجد جدول متاح حاليًا</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border">
+                <thead>
+                  <tr>
+                    {classSchedule.timeSlots.map((ts) => (
+                      <th key={ts.key} className="border px-3 py-2 text-right">
+                        {ts.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {classSchedule.timeSlots.map((ts) => {
+                      const cell = classSchedule.row[ts.key];
+                      const subjectLabel =
+                        cell?.subject === "taks"
+                          ? "طقس"
+                          : cell?.subject === "al7an"
+                          ? "ألحان"
+                          : cell?.subject === "coptic"
+                          ? "قبطي"
+                          : "—";
+                      const teacher = teachers.find(
+                        (t) => t.id === cell?.teacherId
+                      );
+                      const teacherName = teacher ? teacher.name : null;
+                      const teacherImage =
+                        teacher && teacher.image ? teacher.image : null;
+                      return (
+                        <td
+                          key={ts.key}
+                          className="border px-3 py-2 text-right align-top"
+                        >
+                          <div className="font-medium">{subjectLabel}</div>
+                          {teacherName ? (
+                            <div className="mt-1 flex items-center justify-end gap-2 text-xs text-gray-700">
+                              {teacherImage && (
+                                <img
+                                  src={teacherImage}
+                                  alt={teacherName}
+                                  className="w-6 h-6 rounded-full object-cover border"
+                                />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/users/${teacher.id}`)}
+                                className="hover:underline"
+                                title="عرض الملف الشخصي"
+                              >
+                                معلم: {teacherName}
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-red-700">
+                              غير معيّن
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ألحان
-              </label>
-              <select
-                value={assignments.al7an_teacher_id || ""}
-                onChange={(e) =>
-                  setAssignments((prev) => ({
-                    ...prev,
-                    al7an_teacher_id: e.target.value || null,
-                  }))
-                }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">بدون تعيين</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} ({t.role === "teacher" ? "معلم" : "مشرف"})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                قبطي
-              </label>
-              <select
-                value={assignments.coptic_teacher_id || ""}
-                onChange={(e) =>
-                  setAssignments((prev) => ({
-                    ...prev,
-                    coptic_teacher_id: e.target.value || null,
-                  }))
-                }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">بدون تعيين</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} ({t.role === "teacher" ? "معلم" : "مشرف"})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-end">
-            <button
-              onClick={saveAssignments}
-              disabled={savingAssignments}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-white shadow-sm transition-all duration-200 hover:bg-primary-dark disabled:opacity-60"
-            >
-              {savingAssignments ? "جارِ الحفظ..." : "حفظ التعيينات"}
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
