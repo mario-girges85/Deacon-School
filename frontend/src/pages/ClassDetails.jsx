@@ -17,6 +17,7 @@ const ClassDetails = () => {
     coptic_teacher_id: null,
   });
   const [savingAssignments, setSavingAssignments] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -101,6 +102,36 @@ const ClassDetails = () => {
       alert("تعذر حفظ التعيينات");
     } finally {
       setSavingAssignments(false);
+    }
+  };
+
+  const handleDeleteClass = async () => {
+    try {
+      if (
+        !window.confirm(
+          "هل تريد حذف هذا الفصل؟ سيتم إلغاء العملية إذا كان هناك طلاب مرتبطون."
+        )
+      ) {
+        return;
+      }
+      setDeleting(true);
+      await axios
+        .delete(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`)
+        .then(() => {
+          alert("تم حذف الفصل بنجاح");
+          navigate("/classes");
+        })
+        .catch((e) => {
+          const msg =
+            e?.response?.data?.error ||
+            e?.response?.data?.message ||
+            "تعذر حذف الفصل";
+          alert(msg);
+        });
+    } catch (e) {
+      alert("تعذر حذف الفصل");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -205,6 +236,22 @@ const ClassDetails = () => {
                   <path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5Z" />
                 </svg>
                 <span>إضافة طالب واحد</span>
+              </button>
+              <button
+                aria-label="حذف الفصل"
+                onClick={handleDeleteClass}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-red-500/20 transition-all duration-200 hover:shadow-md hover:bg-red-700 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="h-5 w-5"
+                >
+                  <path d="M9 3.75A1.5 1.5 0 0 1 10.5 2.25h3A1.5 1.5 0 0 1 15 3.75V5h3.75a.75.75 0 0 1 0 1.5H17.25l-.79 11.06A2.25 2.25 0 0 1 14.22 20.75H9.78a2.25 2.25 0 0 1-2.24-2.19L6.75 6.5H5.25a.75.75 0 0 1 0-1.5H9V3.75Zm1.5 1.25h3V5h-3V5ZM9.75 9.5a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Zm3 0a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Z" />
+                </svg>
+                <span>{deleting ? "جارِ الحذف..." : "حذف الفصل"}</span>
               </button>
               <button
                 aria-label="إضافة مجموعة طلاب"

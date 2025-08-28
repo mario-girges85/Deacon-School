@@ -43,20 +43,27 @@ const BulkStudentUpload = () => {
   };
 
   const downloadTemplate = () => {
-    // Create Excel template with dropdown lists for role and gender
+    // Create Excel template (Arabic headers) and set phone column as text
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Students Template");
+    const worksheet = workbook.addWorksheet("قالب الطلاب");
 
-    // Add headers
-    const headers = ["name", "phone", "birthday", "gender", "code"]; // role removed, defaults to student
+    // Add headers (Arabic)
+    const headers = ["الاسم", "الهاتف", "تاريخ الميلاد", "الجنس", "الكود"]; // الدور غير مطلوب
 
     worksheet.addRow(headers);
 
-    // Ensure all columns use General format to avoid Excel auto-date conversion
-    worksheet.columns.forEach((column) => {
-      column.width = 15;
+    // Ensure all columns have width; set phone column to text format to preserve leading zeros
+    worksheet.columns.forEach((column, idx) => {
+      column.width = 18;
       column.numFmt = "General";
+      if (idx === 1) {
+        // Column indexes are 1-based in ExcelJS; idx 1 => first column, so phone is idx 2
+      }
     });
+    // Explicitly set phone column (2) format to text
+    const phoneCol = worksheet.getColumn(2);
+    phoneCol.numFmt = "@";
+    phoneCol.alignment = { horizontal: "left" };
 
     // Add data validation for gender column (column D)
     worksheet.dataValidations.add("D2:D1000", {
@@ -80,10 +87,7 @@ const BulkStudentUpload = () => {
       fgColor: { argb: "FFE0E0E0" },
     };
 
-    // Set column widths
-    worksheet.columns.forEach((column) => {
-      column.width = 15;
-    });
+    // Set column widths (already set above)
 
     // Generate and download the file
     workbook.xlsx.writeBuffer().then((buffer) => {
@@ -282,8 +286,9 @@ const BulkStudentUpload = () => {
             تحميل قالب Excel
           </h3>
           <p className="text-gray-600 mb-4">
-            قم بتحميل القالب واملأه ببيانات الطلاب. القالب يحتوي على قوائم
-            منسدلة للجنس لتسهيل الإدخال. الدور يتم تعيينه تلقائياً كطالب.
+            قم بتحميل القالب واملأه ببيانات الطلاب. القالب باللغة العربية، وتم
+            ضبط عمود الهاتف كـ نص للحفاظ على الصفر في بداية الرقم. الدور يتم
+            تعيينه تلقائياً كطالب.
           </p>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <p className="text-yellow-800 text-sm">
@@ -293,8 +298,8 @@ const BulkStudentUpload = () => {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-blue-800 text-sm">
-              <strong>ميزة جديدة:</strong> القالب يحتوي على قوائم منسدلة للجنس
-              والدور لتجنب الأخطاء
+              <strong>ميزة جديدة:</strong> القالب يحتوي على قوائم منسدلة للجنس،
+              وعمود الهاتف مضبوط كنصي للحفاظ على الأصفار البادئة
             </p>
           </div>
           <button
@@ -410,7 +415,7 @@ const BulkStudentUpload = () => {
                               الهاتف
                             </th>
                             <th className="text-right py-2 px-3 font-medium text-green-700">
-                              الرمز
+                              الكود
                             </th>
                             <th className="text-right py-2 px-3 font-medium text-green-700">
                               المعرف
@@ -495,14 +500,14 @@ const BulkStudentUpload = () => {
                                 <div className="text-xs">
                                   <div>الاسم: {item.newData?.name || ""}</div>
                                   <div>الهاتف: {item.newData?.phone || ""}</div>
-                                  <div>الرمز: {item.newData?.code || ""}</div>
+                                  <div>الكود: {item.newData?.code || ""}</div>
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-yellow-900">
                                 <div className="text-xs">
                                   <div>الاسم: {item.existingUser.name}</div>
                                   <div>الهاتف: {item.existingUser.phone}</div>
-                                  <div>الرمز: {item.existingUser.code}</div>
+                                  <div>الكود: {item.existingUser.code}</div>
                                   {item.existingUser.class && (
                                     <div>
                                       الفصل: {item.existingUser.class.location}
@@ -521,7 +526,7 @@ const BulkStudentUpload = () => {
                                 >
                                   {item.conflictType === "phone"
                                     ? "رقم الهاتف"
-                                    : "الرمز التعريفي"}
+                                    : "الكود"}
                                 </span>
                               </td>
                             </tr>
@@ -684,7 +689,7 @@ const BulkStudentUpload = () => {
                 </tr>
                 <tr>
                   <td className="py-2 px-3 text-gray-900">code</td>
-                  <td className="py-2 px-3 text-gray-600">الرمز التعريفي</td>
+                  <td className="py-2 px-3 text-gray-600">الكود</td>
                   <td className="py-2 px-3 text-gray-600">نعم</td>
                   <td className="py-2 px-3 text-gray-600">ST001</td>
                 </tr>

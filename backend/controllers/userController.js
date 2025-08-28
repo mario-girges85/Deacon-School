@@ -50,17 +50,28 @@ module.exports.register = async (req, res) => {
       });
     }
 
+    // Enforce phone format: exactly 11 digits
+    if (!/^\d{11}$/.test(String(phone))) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({
+        success: false,
+        message: "رقم الهاتف يجب أن يتكون من 11 رقمًا",
+      });
+    }
+
     // Check if user already exists
     // Students: check by phone OR code. Staff (admin/teacher/supervisor): check by phone only
     let existingUser;
     if (role === "student") {
       existingUser = await User.findOne({
         where: {
-          [Op.or]: [{ phone: phone }, { code: code }],
+          [Op.or]: [{ phone: String(phone) }, { code: code }],
         },
       });
     } else {
-      existingUser = await User.findOne({ where: { phone } });
+      existingUser = await User.findOne({ where: { phone: String(phone) } });
     }
 
     if (existingUser) {
@@ -102,7 +113,7 @@ module.exports.register = async (req, res) => {
     // Prepare user data
     const userData = {
       name,
-      phone,
+      phone: String(phone),
       password: hashedPassword,
       birthday,
       gender,
@@ -634,11 +645,11 @@ module.exports.bulkImport = async (req, res) => {
         }
 
         // Basic validations
-        if (!/^\d{10,}$/.test(String(rowObj.phone))) {
+        if (!/^\d{11}$/.test(String(rowObj.phone))) {
           results.failed.push({
             row: rowIndex,
             field: "phone",
-            message: "رقم الهاتف غير صحيح",
+            message: "رقم الهاتف يجب أن يتكون من 11 رقمًا",
             data: rowObj,
           });
           return;
@@ -677,12 +688,19 @@ module.exports.bulkImport = async (req, res) => {
           ],
         });
         if (existingUser) {
-          const existingField =
-            existingUser.phone === rowObj.phone ? "phone" : "code";
+          const conflictType =
+            String(existingUser.phone) === String(rowObj.phone)
+              ? "phone"
+              : "code";
           results.existing.push({
             row: rowIndex,
-            reason: `المستخدم موجود بالفعل (${existingField})`,
-            data: rowObj,
+            reason: `المستخدم موجود بالفعل (${conflictType})`,
+            conflictType,
+            newData: {
+              name: String(rowObj.name || ""),
+              phone: String(rowObj.phone || ""),
+              code: String(rowObj.code || ""),
+            },
             existingUser: {
               id: existingUser.id,
               name: existingUser.name,
@@ -705,8 +723,13 @@ module.exports.bulkImport = async (req, res) => {
         let classIdToUse = bodyClassId;
         let levelIdToUse = bodyLevelId;
         if (!classIdToUse) {
-          // Expect 'class' column (location string)
-          const classLocation = rowObj.class || rowObj.class_location || null;
+          // Expect 'class' column (Arabic: الفصل/الموقع) with location string
+          const classLocation =
+            rowObj.class ||
+            rowObj.الفصل ||
+            rowObj.الموقع ||
+            rowObj.class_location ||
+            null;
           if (!classLocation) {
             results.failed.push({
               row: rowIndex,
@@ -765,6 +788,22 @@ module.exports.bulkImport = async (req, res) => {
       }
     };
 
+    // Helper to normalize incoming header names (Arabic -> internal keys)
+    const normalizeHeader = (h) => {
+      const trimmed = String(h || "").trim();
+      const lower = trimmed.toLowerCase();
+      const map = {
+        الاسم: "name",
+        الهاتف: "phone",
+        "تاريخ الميلاد": "birthday",
+        الجنس: "gender",
+        الكود: "code",
+        الفصل: "class",
+        الموقع: "class",
+      };
+      return map[trimmed] || map[lower] || lower; // fallback to lower for English headers
+    };
+
     if (isCsv) {
       const csvContent = req.file.buffer.toString("utf-8");
       const lines = csvContent.split("\n").filter((line) => line.trim());
@@ -774,7 +813,8 @@ module.exports.bulkImport = async (req, res) => {
           message: "الملف فارغ أو يحتوي على صف واحد فقط",
         });
       }
-      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const rawHeaders = lines[0].split(",").map((h) => h.trim());
+      const headers = rawHeaders.map((h) => normalizeHeader(h));
       const requiredHeaders = ["name", "phone", "birthday", "gender", "code"]; // class column optional if body classId is present
       const missingHeaders = requiredHeaders.filter(
         (f) => !headers.includes(f)
@@ -809,9 +849,7 @@ module.exports.bulkImport = async (req, res) => {
           .json({ success: false, message: "لا يمكن قراءة ورقة Excel الأولى" });
       }
       const headerRow = worksheet.getRow(1);
-      const headers = headerRow.values
-        .slice(1)
-        .map((v) => String(v).trim().toLowerCase());
+      const headers = headerRow.values.slice(1).map((v) => normalizeHeader(v));
       const requiredHeaders = ["name", "phone", "birthday", "gender", "code"]; // class column optional if body classId is present
       const missingHeaders = requiredHeaders.filter(
         (f) => !headers.includes(f)
@@ -845,6 +883,7 @@ module.exports.bulkImport = async (req, res) => {
       successful: results.successful.length,
       failed: results.failed.length,
       existing: results.existing.length,
+      skipped: results.existing.length,
     };
 
     return res.status(200).json({

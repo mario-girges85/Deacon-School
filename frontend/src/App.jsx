@@ -14,6 +14,7 @@ import LevelDetails from "./pages/LevelDetails";
 import LevelCurriculum from "./pages/LevelCurriculum";
 import LecturePage from "./pages/LecturePage";
 import BulkStudentUpload from "./pages/BulkStudentUpload";
+import BulkAllStudents from "./pages/BulkAllStudents";
 import AddStudent from "./pages/AddStudent";
 import UserDetails from "./pages/UserDetails";
 
@@ -34,6 +35,7 @@ const App = () => {
           path="/classes/:classId/bulk-upload"
           element={<BulkStudentUpload />}
         />
+        <Route path="/bulk-upload" element={<BulkAllStudents />} />
         <Route path="/classes/:classId/add-student" element={<AddStudent />} />
         <Route path="/levels" element={<Levels />} />
         <Route path="/levels/:levelId" element={<LevelDetails />} />

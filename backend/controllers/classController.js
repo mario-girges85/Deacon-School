@@ -214,6 +214,29 @@ const deleteClass = async (req, res) => {
       });
     }
 
+    // Unlink teachers (many-to-many) and remove subject assignments for this class
+    try {
+      if (typeof classToDelete.setTeachers === "function") {
+        await classToDelete.setTeachers([]);
+      }
+    } catch (e) {
+      console.warn(
+        "Warning: failed to unlink teachers for class",
+        id,
+        e.message
+      );
+    }
+
+    try {
+      await TeacherSubjectAssignment.destroy({ where: { class_id: id } });
+    } catch (e) {
+      console.warn(
+        "Warning: failed to remove subject assignments for class",
+        id,
+        e.message
+      );
+    }
+
     await classToDelete.destroy();
 
     res.json({
