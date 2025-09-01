@@ -40,7 +40,22 @@ const Curriculum = sequelize.define(
     path: {
       type: Sequelize.STRING,
       allowNull: true,
-      comment: "Path to the file for this curriculum item",
+      comment: "Path to the file for this curriculum item (legacy field)",
+    },
+    audio_path: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      comment: "Path to the audio file (mp3) for this curriculum item",
+    },
+    pdf_path: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      comment: "Path to the PDF file for this curriculum item",
+    },
+    video_path: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      comment: "Path to the video file (mkv) for this curriculum item",
     },
   },
   {

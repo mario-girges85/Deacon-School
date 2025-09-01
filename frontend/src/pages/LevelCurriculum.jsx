@@ -52,10 +52,24 @@ const LevelCurriculum = () => {
         const rows = res.data?.curriculum || [];
         const next = { taks: {}, al7an: {}, coptic: {} };
         rows.forEach((r) => {
-          if (r?.path) {
-            const subj = (r.subject || "").toLowerCase();
-            if (next[subj] !== undefined) {
-              next[subj][Number(r.lecture)] = true;
+          const subj = (r.subject || "").toLowerCase();
+          if (next[subj] !== undefined) {
+            const lectureNum = Number(r.lecture);
+            if (!next[subj][lectureNum]) {
+              next[subj][lectureNum] = { audio: false, pdf: false, video: false };
+            }
+            
+            // Check for different file types
+            if (r.audio_path) next[subj][lectureNum].audio = true;
+            if (r.pdf_path) next[subj][lectureNum].pdf = true;
+            if (r.video_path) next[subj][lectureNum].video = true;
+            
+            // Legacy support for old path field
+            if (r.path && !r.audio_path && !r.pdf_path && !r.video_path) {
+              const ext = r.path.toLowerCase().split('.').pop();
+              if (ext === 'mp3') next[subj][lectureNum].audio = true;
+              else if (ext === 'pdf') next[subj][lectureNum].pdf = true;
+              else if (ext === 'mkv') next[subj][lectureNum].video = true;
             }
           }
         });
@@ -72,6 +86,30 @@ const LevelCurriculum = () => {
     () => Array.from({ length: 10 }, (_, i) => i + 1),
     []
   );
+
+  const renderFileIndicators = (subject, lecture) => {
+    const files = filePresence[subject]?.[lecture];
+    if (!files) return null;
+
+    const indicators = [];
+    if (files.audio) {
+      indicators.push(
+        <span key="audio" className="inline-block mr-1 h-2 w-2 rounded-full bg-blue-500" title="ملف صوتي" />
+      );
+    }
+    if (files.pdf) {
+      indicators.push(
+        <span key="pdf" className="inline-block mr-1 h-2 w-2 rounded-full bg-green-500" title="ملف PDF" />
+      );
+    }
+    if (files.video) {
+      indicators.push(
+        <span key="video" className="inline-block mr-1 h-2 w-2 rounded-full bg-purple-500" title="ملف فيديو" />
+      );
+    }
+
+    return indicators;
+  };
 
   if (loading) {
     return (
@@ -121,6 +159,25 @@ const LevelCurriculum = () => {
           </div>
         )}
 
+        {/* File Type Legend */}
+        <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">مؤشرات الملفات:</h3>
+          <div className="flex items-center gap-4 text-xs text-gray-600">
+            <div className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-blue-500"></span>
+              <span>ملف صوتي</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+              <span>ملف PDF</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-purple-500"></span>
+              <span>ملف فيديو</span>
+            </div>
+          </div>
+        </div>
+
         {/* Semesters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {[1, 2].map((s) => (
@@ -162,12 +219,12 @@ const LevelCurriculum = () => {
                           `/levels/${levelId}/curriculum/${subj.key}/semesters/${selectedSemester}/lectures/${lec}`
                         )
                       }
-                      className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded text-right"
+                      className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded text-right flex items-center justify-between"
                     >
-                      المحاضرة {lec}
-                      {filePresence[subj.key]?.[lec] && (
-                        <span className="inline-block mr-2 h-2 w-2 rounded-full bg-green-500 align-middle" />
-                      )}
+                      <span>المحاضرة {lec}</span>
+                      <div className="flex items-center">
+                        {renderFileIndicators(subj.key, lec)}
+                      </div>
                     </button>
                   ))}
                 </div>

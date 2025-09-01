@@ -19,7 +19,18 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname || "").toLowerCase();
     const safeSubject = (subject || "").toLowerCase();
     const ts = Date.now();
-    const base = `${levelId}_${safeSubject}_s${semester}_l${lecture}_${ts}`;
+    
+    // Determine file type for better naming
+    let fileType = "file";
+    if (ext === ".mp3" || file.mimetype === "audio/mpeg") {
+      fileType = "audio";
+    } else if (ext === ".pdf" || file.mimetype === "application/pdf") {
+      fileType = "pdf";
+    } else if (ext === ".mkv" || file.mimetype === "video/x-matroska" || file.mimetype === "video/webm") {
+      fileType = "video";
+    }
+    
+    const base = `${levelId}_${safeSubject}_s${semester}_l${lecture}_${fileType}_${ts}`;
     cb(null, base + ext);
   },
 });
@@ -47,10 +58,18 @@ const fileFilter = function (req, file, cb) {
   return cb(err, false);
 };
 
+// Single file upload (for backward compatibility)
 const uploadCurriculum = multer({
   storage,
   limits: { fileSize: 200 * 1024 * 1024 }, // up to 200MB
   fileFilter,
 });
 
-module.exports = uploadCurriculum;
+// Multiple files upload (for new functionality)
+const uploadMultipleCurriculum = multer({
+  storage,
+  limits: { fileSize: 200 * 1024 * 1024 }, // up to 200MB
+  fileFilter,
+}).array('files', 3); // Allow up to 3 files (audio, pdf, video)
+
+module.exports = { uploadCurriculum, uploadMultipleCurriculum };
