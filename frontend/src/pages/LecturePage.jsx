@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import HymnSelectionPanel from "../components/HymnSelectionPanel";
+import CurriculumHymnCard from "../components/CurriculumHymnCard";
 
 const humanize = (s) => {
   if (s === "taks") return "طقس";
@@ -15,21 +17,24 @@ const LecturePage = () => {
   const [files, setFiles] = useState({
     audio: null,
     pdf: null,
-    video: null
+    video: null,
   });
   const [uploading, setUploading] = useState({
     audio: false,
     pdf: false,
-    video: false
+    video: false,
   });
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [info, setInfo] = useState(null);
   const fileInputRefs = {
     audio: useRef(null),
     pdf: useRef(null),
-    video: useRef(null)
+    video: useRef(null),
   };
   const [levelMeta, setLevelMeta] = useState(null);
+  const [selectedHymns, setSelectedHymns] = useState([]);
+  const [showHymnSelection, setShowHymnSelection] = useState(false);
 
   const getLevelName = (lvl) => {
     switch (Number(lvl)) {
@@ -81,8 +86,14 @@ const LecturePage = () => {
         );
         setInfo(found || null);
         setLevelMeta(levelRes.data?.level || null);
+
+        // Load selected hymns for al7an curriculum
+        if (subject === "al7an" && found) {
+          setSelectedHymns(found.hymns || []);
+        }
       } catch (e) {
-        // ignore
+        console.error("Error in loadInfo:", e);
+        console.error("Error response:", e.response?.data);
       }
     };
     loadInfo();
@@ -99,32 +110,82 @@ const LecturePage = () => {
 
     const form = new FormData();
     form.append("file", file);
-    
+
     try {
-      setUploading(prev => ({ ...prev, [fileType]: true }));
+      setUploading((prev) => ({ ...prev, [fileType]: true }));
       const url = `${
         import.meta.env.VITE_API_BASE_URL
       }/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
       const res = await axios.post(url, form);
       setInfo(res.data?.curriculum || null);
-      setFiles(prev => ({ ...prev, [fileType]: null }));
+      setFiles((prev) => ({ ...prev, [fileType]: null }));
     } catch (err) {
       setError(err.response?.data?.error || "فشل رفع الملف");
     } finally {
-      setUploading(prev => ({ ...prev, [fileType]: false }));
+      setUploading((prev) => ({ ...prev, [fileType]: false }));
     }
   };
 
   const handleFileChange = (fileType, event) => {
     const file = event.target.files?.[0] || null;
-    setFiles(prev => ({ ...prev, [fileType]: file }));
+    setFiles((prev) => ({ ...prev, [fileType]: file }));
+  };
+
+  const handleHymnSelection = async (hymns) => {
+    try {
+      setError("");
+      setSuccessMessage("");
+      console.log("Selected hymns:", hymns);
+      const payload = hymns.map((h, idx) => ({
+        hymn_id: h.hymn_id,
+        lyrics_variants: h.lyrics_variants || ["arabic"],
+        sort_order: idx + 1,
+      }));
+      console.log("Payload being sent:", payload);
+
+      const response = await axios.put(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
+        { hymns: payload }
+      );
+
+      console.log("Backend response:", response.data);
+      console.log("Response status:", response.status);
+
+      setSelectedHymns(hymns);
+      setError(""); // Clear any previous errors
+      setSuccessMessage("تم حفظ الترانيم بنجاح!"); // Show success message
+      // Refresh the curriculum data to get updated hymns
+      loadInfo();
+    } catch (e) {
+      console.error("Error in handleHymnSelection:", e);
+      console.error("Error response:", e.response?.data);
+      console.error("Error status:", e.response?.status);
+      setError(e.response?.data?.error);
+      setSuccessMessage(""); // Clear success message on error
+    }
+  };
+
+  const handleRemoveHymn = async (hymnToRemove) => {
+    try {
+      const updatedHymns = selectedHymns.filter(
+        (h) => h.hymn_id !== hymnToRemove.hymn_id
+      );
+      await handleHymnSelection(updatedHymns);
+    } catch (e) {
+      setError(e.response?.data?.error || "فشل إزالة الترانيمة");
+    }
   };
 
   const renderFilePreview = (filePath, fileType) => {
     if (!filePath) return null;
-    
-    const fullUrl = `${import.meta.env.VITE_API_BASE_URL}/${filePath.replace(/^\/+/, "")}`;
-    
+
+    const fullUrl = `${import.meta.env.VITE_API_BASE_URL}/${filePath.replace(
+      /^\/+/,
+      ""
+    )}`;
+
     if (fileType === "pdf") {
       return (
         <div className="mb-4">
@@ -137,7 +198,7 @@ const LecturePage = () => {
         </div>
       );
     }
-    
+
     if (fileType === "audio") {
       return (
         <div className="mb-4">
@@ -148,7 +209,7 @@ const LecturePage = () => {
         </div>
       );
     }
-    
+
     if (fileType === "video") {
       return (
         <div className="mb-4">
@@ -159,7 +220,7 @@ const LecturePage = () => {
         </div>
       );
     }
-    
+
     return null;
   };
 
@@ -228,37 +289,92 @@ const LecturePage = () => {
           <span className="font-medium">المحاضرة:</span> {lecture}
         </div>
 
+        {/* Hymn Selection for al7an */}
+        {subject === "al7an" && (
+          <div className="mb-6 bg-white p-4 rounded shadow">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">ترانيم المحاضرة</h3>
+              <button
+                onClick={() => setShowHymnSelection(true)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                إضافة ترانيم من المكتبة
+              </button>
+            </div>
+
+            {selectedHymns.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">🎵</div>
+                <p>لم يتم اختيار أي ترانيم لهذه المحاضرة</p>
+                <p className="text-sm">
+                  انقر على "إضافة ترانيم من المكتبة" لاختيار الترانيم
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedHymns.map((selectedHymn, index) => (
+                  <CurriculumHymnCard
+                    key={`${selectedHymn.hymn_id}-${index}`}
+                    hymn={selectedHymn.hymn}
+                    lyricsVariants={
+                      selectedHymn.lyrics_variants || [
+                        selectedHymn.lyrics_variant,
+                      ] || ["arabic"]
+                    }
+                    onRemove={() => handleRemoveHymn(selectedHymn)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* File Previews */}
         {info && (
           <div className="mb-6">
             {info.audio_path && renderFilePreview(info.audio_path, "audio")}
             {info.pdf_path && renderFilePreview(info.pdf_path, "pdf")}
             {info.video_path && renderFilePreview(info.video_path, "video")}
-            {info.path && !info.audio_path && !info.pdf_path && !info.video_path && (
-              <div className="mb-4">
-                <h4 className="font-medium text-gray-700 mb-2">الملف الحالي:</h4>
-                <a
-                  className="text-blue-600"
-                  href={`${import.meta.env.VITE_API_BASE_URL}/${info.path.replace(/^\/+/, "")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  فتح الملف
-                </a>
-              </div>
-            )}
           </div>
         )}
 
         {error && <div className="text-red-600 text-sm mb-3">{error}</div>}
+        {successMessage && (
+          <div className="text-green-600 text-sm mb-3">{successMessage}</div>
+        )}
 
         {/* Upload Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {renderUploadSection("audio", "ملف صوتي (MP3)", ".mp3,audio/mpeg")}
           {renderUploadSection("pdf", "ملف PDF", ".pdf,application/pdf")}
-          {renderUploadSection("video", "ملف فيديو (MKV)", ".mkv,video/x-matroska,video/webm")}
+          {renderUploadSection(
+            "video",
+            "ملف فيديو (MKV)",
+            ".mkv,video/x-matroska,video/webm"
+          )}
         </div>
       </div>
+
+      {/* Hymn Selection Panel */}
+      <HymnSelectionPanel
+        isOpen={showHymnSelection}
+        onClose={() => setShowHymnSelection(false)}
+        onSelectHymns={handleHymnSelection}
+        selectedHymns={selectedHymns}
+      />
     </div>
   );
 };

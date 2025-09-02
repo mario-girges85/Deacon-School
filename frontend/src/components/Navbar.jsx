@@ -70,6 +70,9 @@ const Navbar = () => {
             <Link to="/schedule" className={getLinkClasses("/schedule")}>
               جدول المعلمين
             </Link>
+            <Link to="/hymns" className={getLinkClasses("/hymns")}>
+              مكتبة الألحان
+            </Link>
 
             <>
               <Link to="/users" className={getLinkClasses("/users")}>
@@ -198,6 +201,13 @@ const Navbar = () => {
               onClick={toggleMenu}
             >
               جدول المعلمين
+            </Link>
+            <Link
+              to="/hymns"
+              className={getMobileLinkClasses("/hymns")}
+              onClick={toggleMenu}
+            >
+              مكتبة الألحان
             </Link>
 
             <>

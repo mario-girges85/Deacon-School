@@ -2,6 +2,9 @@ const User = require("./user");
 const Levels = require("./levels");
 const Classes = require("./classes");
 const Curriculum = require("./curriculum");
+const Events = require("./events");
+const Hymns = require("./hymns");
+const CurriculumHymns = require("./curriculumHymns");
 const sequelize = require("../util/db");
 
 // Define relationships
@@ -79,9 +82,25 @@ Classes.belongsToMany(User, {
   otherKey: "teacher_id",
 });
 
+// Events -> Hymns (One-to-Many)
+// One event can have multiple hymns
+Events.hasMany(Hymns, {
+  foreignKey: "event_id",
+  as: "hymns",
+  onDelete: "CASCADE",
+});
+
+Hymns.belongsTo(Events, {
+  foreignKey: "event_id",
+  as: "event",
+});
+
 module.exports = {
   User,
   Levels,
   Classes,
   Curriculum,
+  Events,
+  Hymns,
+  CurriculumHymns,
 };

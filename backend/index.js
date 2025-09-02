@@ -9,9 +9,19 @@ const classRouter = require("./routes/classRouter");
 const levelRouter = require("./routes/levelRouter");
 const curriculumRouter = require("./routes/curriculumRouter");
 const scheduleRouter = require("./routes/scheduleRouter");
+const eventsRouter = require("./routes/eventsRouter");
+const hymnsRouter = require("./routes/hymnsRouter");
 
 // Import models and relationships
-const { User, Levels, Classes, Curriculum } = require("./models/relationships");
+const {
+  User,
+  Levels,
+  Classes,
+  Curriculum,
+  Events,
+  Hymns,
+  CurriculumHymns,
+} = require("./models/relationships");
 // Ensure teacher subject assignment model is registered for syncing
 require("./models/teacherSubjectAssignment");
 
@@ -224,6 +234,8 @@ app.use("/api/classes", classRouter);
 app.use("/api/levels", levelRouter);
 app.use("/api", curriculumRouter);
 app.use("/api/schedule", scheduleRouter);
+app.use("/api/events", eventsRouter);
+app.use("/api/hymns", hymnsRouter);
 
 // Serve uploads statically
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
@@ -235,7 +247,12 @@ app.listen(port, async () => {
     // - force: false (default) - won't drop existing tables
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
-    await sequelize.sync({ force: false, alter: true });
+    // Avoid global alter to prevent hitting key limits on existing tables
+    await sequelize.sync({ force: false, alter: false });
+    // Ensure the new curriculum_hymns table exists/updates
+    if (typeof CurriculumHymns?.sync === "function") {
+      await CurriculumHymns.sync({ alter: true });
+    }
 
     console.log("Database synchronized successfully.");
 

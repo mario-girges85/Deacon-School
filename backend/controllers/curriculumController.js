@@ -1,5 +1,11 @@
 const path = require("path");
-const { Curriculum, Levels } = require("../models/relationships");
+const {
+  Curriculum,
+  Levels,
+  CurriculumHymns,
+  Hymns,
+  Events,
+} = require("../models/relationships");
 
 // Create or update a lecture entry with uploaded file (legacy single file)
 const uploadLecture = async (req, res) => {
@@ -81,12 +87,12 @@ const uploadMultipleFiles = async (req, res) => {
 
     // Process uploaded files
     const updateData = {};
-    
+
     for (const file of req.files) {
       const relativePath = path
         .join("uploads", "Curriculum", path.basename(file.path))
         .replace(/\\/g, "/");
-      
+
       const ext = path.extname(file.originalname || "").toLowerCase();
       const mimeType = file.mimetype || "";
 
@@ -95,7 +101,11 @@ const uploadMultipleFiles = async (req, res) => {
         updateData.audio_path = relativePath;
       } else if (ext === ".pdf" || mimeType === "application/pdf") {
         updateData.pdf_path = relativePath;
-      } else if (ext === ".mkv" || mimeType === "video/x-matroska" || mimeType === "video/webm") {
+      } else if (
+        ext === ".mkv" ||
+        mimeType === "video/x-matroska" ||
+        mimeType === "video/webm"
+      ) {
         updateData.video_path = relativePath;
       }
     }
@@ -128,7 +138,7 @@ const uploadSpecificFile = async (req, res) => {
     }
 
     // Validate file type
-    const validFileTypes = ['audio', 'pdf', 'video'];
+    const validFileTypes = ["audio", "pdf", "video"];
     if (!validFileTypes.includes(fileType)) {
       return res.status(400).json({ error: "نوع الملف غير صحيح" });
     }
@@ -178,6 +188,47 @@ const getCurriculum = async (req, res) => {
       where,
       order: [["lecture", "ASC"]],
     });
+
+    // If requesting al7an subject, include linked hymns
+    if (subject === "al7an") {
+      const curriculumIds = rows.map((r) => r.id);
+      const links = await CurriculumHymns.findAll({
+        where: { curriculum_id: curriculumIds },
+      });
+      const hymnIds = [...new Set(links.map((l) => l.hymn_id))];
+      const hymns = hymnIds.length
+        ? await Hymns.findAll({
+            where: { id: hymnIds },
+            include: [{ model: Events, as: "event" }],
+          })
+        : [];
+      const idToHymn = new Map(hymns.map((h) => [h.id, h]));
+      const grouped = links.reduce((acc, l) => {
+        if (!acc[l.curriculum_id]) acc[l.curriculum_id] = [];
+        acc[l.curriculum_id].push({
+          id: l.id,
+          hymn: idToHymn.get(l.hymn_id) || null,
+          hymn_id: l.hymn_id,
+          lyrics_variants: (() => {
+            try {
+              return JSON.parse(l.lyrics_variants);
+            } catch (e) {
+              // Fallback for old data format
+              return l.lyrics_variants || [l.lyrics_variant] || ["arabic"];
+            }
+          })(),
+          sort_order: l.sort_order,
+        });
+        return acc;
+      }, {});
+
+      const withHymns = rows.map((r) => ({
+        ...r.toJSON(),
+        hymns: grouped[r.id] || [],
+      }));
+      return res.json({ success: true, curriculum: withHymns });
+    }
+
     return res.json({ success: true, curriculum: rows });
   } catch (err) {
     console.error("getCurriculum error:", err);
@@ -185,9 +236,118 @@ const getCurriculum = async (req, res) => {
   }
 };
 
-module.exports = { 
-  uploadLecture, 
-  uploadMultipleFiles, 
-  uploadSpecificFile, 
-  getCurriculum 
+// Link hymns to a specific al7an lecture (replace set)
+const setLectureHymns = async (req, res) => {
+  try {
+    const { levelId, subject, semester, lecture } = req.params;
+    if (subject !== "al7an") {
+      return res
+        .status(400)
+        .json({ error: "هذه العملية متاحة لمادة الألحان فقط" });
+    }
+
+    const { hymns } = req.body; // [{ hymn_id, lyrics_variant, sort_order }]
+
+    console.log("setLectureHymns called with:", {
+      levelId,
+      subject,
+      semester,
+      lecture,
+      hymns: hymns,
+    });
+
+    if (!Array.isArray(hymns)) {
+      return res.status(400).json({ error: "صيغة البيانات غير صحيحة" });
+    }
+
+    const level = await Levels.findByPk(levelId);
+    if (!level) return res.status(404).json({ error: "المستوى غير موجود" });
+
+    const [entry] = await Curriculum.findOrCreate({
+      where: {
+        level_id: levelId,
+        subject,
+        semester: Number(semester),
+        lecture: Number(lecture),
+      },
+      defaults: {
+        level_id: levelId,
+        subject,
+        semester: Number(semester),
+        lecture: Number(lecture),
+      },
+    });
+
+    // Replace existing links
+    console.log("Deleting existing links for curriculum_id:", entry.id);
+    await CurriculumHymns.destroy({ where: { curriculum_id: entry.id } });
+
+    console.log("Processing hymns payload...");
+    const payload = hymns
+      .filter(
+        (h) =>
+          h &&
+          h.hymn_id &&
+          typeof h.hymn_id === "string" &&
+          h.hymn_id.length > 0
+      )
+      .map((h, idx) => {
+        const hymnId = h.hymn_id; // Keep as string (UUID)
+        if (!hymnId || typeof hymnId !== "string") {
+          console.error("Invalid hymn_id:", h.hymn_id, "for hymn:", h);
+          return null;
+        }
+        return {
+          curriculum_id: entry.id,
+          hymn_id: hymnId, // Store as string UUID
+          lyrics_variants: JSON.stringify(
+            Array.isArray(h.lyrics_variants)
+              ? h.lyrics_variants.filter((v) =>
+                  ["arabic", "coptic", "arabic_coptic"].includes(v)
+                )
+              : ["arabic"]
+          ),
+          sort_order: h.sort_order ?? idx + 1,
+        };
+      })
+      .filter(Boolean); // Remove null entries
+
+    console.log("Final payload:", payload);
+
+    if (payload.length) {
+      console.log("Creating hymn links in database...");
+      await CurriculumHymns.bulkCreate(payload);
+      console.log("Hymn links created successfully");
+    } else {
+      console.log("No valid hymns to create");
+    }
+
+    const refreshed = await CurriculumHymns.findAll({
+      where: { curriculum_id: entry.id },
+    });
+    return res.json({
+      success: true,
+      curriculum_id: entry.id,
+      links: refreshed,
+    });
+  } catch (err) {
+    console.error("setLectureHymns error:", err);
+    console.error("Error details:", {
+      message: err.message,
+      stack: err.stack,
+      name: err.name,
+    });
+    return res.status(500).json({
+      error: "فشل حفظ الترانيم",
+      details: err.message,
+    });
+  }
+};
+
+module.exports = {
+  uploadLecture,
+  uploadMultipleFiles,
+  uploadSpecificFile,
+  getCurriculum,
+  setLectureHymns,
 };

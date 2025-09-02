@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/coptic.css";
 
 /* CSS Custom Properties for the primary color */
 :root {

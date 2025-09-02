@@ -5,8 +5,12 @@ const {
   uploadMultipleFiles,
   uploadSpecificFile,
   getCurriculum,
+  setLectureHymns,
 } = require("../controllers/curriculumController");
-const { uploadCurriculum, uploadMultipleCurriculum } = require("../middleware/curriculumUpload");
+const {
+  uploadCurriculum,
+  uploadMultipleCurriculum,
+} = require("../middleware/curriculumUpload");
 
 // List curriculum for a level with optional filters
 router.get("/levels/:levelId/curriculum", getCurriculum);
@@ -30,6 +34,12 @@ router.post(
   "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
   uploadCurriculum.single("file"),
   uploadSpecificFile
+);
+
+// Set hymns for an al7an lecture (replace set)
+router.put(
+  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns",
+  setLectureHymns
 );
 
 module.exports = router;

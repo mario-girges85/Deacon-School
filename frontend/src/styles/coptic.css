@@ -1,0 +1,69 @@
+/* Coptic Font Support */
+@font-face {
+  font-family: "CopticFont";
+  src: url("/fonts/coptic-font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Coptic text styling */
+.coptic-text {
+  font-family: "CopticFont", "Times New Roman", serif;
+  font-size: 1.1em;
+  line-height: 1.6;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Ensure proper rendering of Coptic characters */
+.coptic-text * {
+  font-family: inherit;
+}
+
+/* Fallback for browsers that don't support the Coptic font */
+@supports not (font-family: "CopticFont") {
+  .coptic-text {
+    font-family: "Times New Roman", serif;
+    font-size: 1.2em;
+  }
+}
+
+/* Keyboard input styling for Coptic */
+.coptic-input {
+  font-family: "CopticFont", "Times New Roman", serif;
+  font-size: 1.1em;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Hymn details page specific styling */
+.hymn-lyrics {
+  font-family: "CopticFont", "Times New Roman", serif;
+  font-size: 1.2em;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  text-align: right;
+  direction: rtl;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .coptic-text {
+    font-size: 1em;
+  }
+
+  .hymn-lyrics {
+    font-size: 1.1em;
+  }
+}
+
+/* Print styles */
+@media print {
+  .coptic-text,
+  .hymn-lyrics {
+    font-family: "CopticFont", "Times New Roman", serif;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+}

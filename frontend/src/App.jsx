@@ -18,6 +18,10 @@ import BulkAllStudents from "./pages/BulkAllStudents";
 import Schedule from "./pages/Schedule";
 import AddStudent from "./pages/AddStudent";
 import UserDetails from "./pages/UserDetails";
+import HymnsLibrary from "./pages/library/HymnsLibrary";
+import HymnDetails from "./pages/library/HymnDetails";
+import AddEditHymn from "./pages/library/AddEditHymn";
+import EventsManagement from "./pages/library/EventsManagement";
 
 const App = () => {
   return (
@@ -49,6 +53,11 @@ const App = () => {
           path="/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture"
           element={<LecturePage />}
         />
+        <Route path="/hymns" element={<HymnsLibrary />} />
+        <Route path="/hymns/add" element={<AddEditHymn />} />
+        <Route path="/hymns/:id" element={<HymnDetails />} />
+        <Route path="/hymns/:id/edit" element={<AddEditHymn />} />
+        <Route path="/events" element={<EventsManagement />} />
       </Routes>
     </div>
   );

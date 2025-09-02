@@ -1,124 +1,56 @@
-# ClassCard Component
+# Components
 
-A reusable React component for displaying class information in different layouts.
+This directory contains reusable React components used throughout the application.
 
-## Features
+## HymnCard
 
-- **Multiple Variants**: Default, compact, and detailed layouts
-- **Customizable**: Accepts custom onClick handlers and CSS classes
-- **Responsive**: Works well on different screen sizes
-- **Accessible**: Proper ARIA labels and keyboard navigation
-- **TypeScript Ready**: Includes PropTypes for type checking
+A reusable component for displaying hymn information in a card format.
 
-## Props
+### Props
 
-| Prop                  | Type     | Required | Default     | Description                                      |
-| --------------------- | -------- | -------- | ----------- | ------------------------------------------------ |
-| `classItem`           | Object   | Yes      | -           | Class data object                                |
-| `getLevelName`        | Function | Yes      | -           | Function to get level name                       |
-| `getStageName`        | Function | Yes      | -           | Function to get stage name                       |
-| `onClick`             | Function | No       | -           | Custom click handler                             |
-| `showActionIndicator` | Boolean  | No       | `true`      | Show/hide action indicator                       |
-| `className`           | String   | No       | `""`        | Additional CSS classes                           |
-| `variant`             | String   | No       | `"default"` | Layout variant: "default", "compact", "detailed" |
+- `hymn` (object, required): The hymn object containing hymn data
+- `onClick` (function, optional): Callback function when the card is clicked
+- `className` (string, optional): Additional CSS classes to apply to the card
+- `showEvent` (boolean, optional, default: true): Whether to show the event information
+- `showDuration` (boolean, optional, default: true): Whether to show the duration
+- `showDescription` (boolean, optional, default: true): Whether to show the description
+- `showLyricsInfo` (boolean, optional, default: true): Whether to show lyrics language info
+- `showAudioIcon` (boolean, optional, default: true): Whether to show the audio icon
+- `clickable` (boolean, optional, default: true): Whether the card should be clickable
 
-## Usage Examples
+### Usage Examples
 
-### Basic Usage (Default Variant)
+#### Basic Usage
 
 ```jsx
-import ClassCard from "../components/ClassCard";
+import HymnCard from "../components/HymnCard";
 
-<ClassCard
-  classItem={classData}
-  getLevelName={getLevelName}
-  getStageName={getStageName}
-/>;
+<HymnCard hymn={hymnData} onClick={(hymn) => navigate(`/hymns/${hymn.id}`)} />;
 ```
 
-### Compact Variant
+#### Non-clickable Card
 
 ```jsx
-<ClassCard
-  classItem={classData}
-  getLevelName={getLevelName}
-  getStageName={getStageName}
-  variant="compact"
-/>
+<HymnCard hymn={hymnData} clickable={false} showDescription={false} />
 ```
 
-### Custom Click Handler
+#### Custom Styling
 
 ```jsx
-<ClassCard
-  classItem={classData}
-  getLevelName={getLevelName}
-  getStageName={getStageName}
-  onClick={(classItem) => console.log("Clicked:", classItem)}
-/>
-```
-
-### Without Action Indicator
-
-```jsx
-<ClassCard
-  classItem={classData}
-  getLevelName={getLevelName}
-  getStageName={getStageName}
-  showActionIndicator={false}
-/>
-```
-
-### With Custom Styling
-
-```jsx
-<ClassCard
-  classItem={classData}
-  getLevelName={getLevelName}
-  getStageName={getStageName}
+<HymnCard
+  hymn={hymnData}
   className="border-2 border-blue-500"
+  showEvent={false}
+  showDuration={false}
 />
 ```
 
-## Variants
+### Features
 
-### Default
-
-- Full-size card with detailed information
-- Includes action indicator
-- Best for main class listings
-
-### Compact
-
-- Smaller card with essential information
-- Good for sidebars or dense layouts
-- No action indicator
-
-### Detailed
-
-- Full information with enhanced styling
-- Best for featured or important classes
-- Includes action indicator
-
-## Class Item Structure
-
-The `classItem` prop should have this structure:
-
-```javascript
-{
-  id: "uuid-string",
-  location: "Floor 1 - Room 101",
-  level: {
-    level: 1,
-    stage: 2
-  }
-}
-```
-
-## Styling
-
-The component uses Tailwind CSS classes and can be customized with:
-
-- `className` prop for additional classes
-- CSS custom properties for theming
-- Tailwind's utility classes for modifications
+- Responsive design that works on mobile and desktop
+- Configurable display options for different use cases
+- Audio icon indicator when audio is available
+- Duration formatting
+- Lyrics language indicators
+- Hover effects and transitions
+- Line clamping for long text content

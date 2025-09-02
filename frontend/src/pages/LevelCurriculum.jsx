@@ -21,6 +21,9 @@ const LevelCurriculum = () => {
     al7an: {},
     coptic: {},
   });
+  const [hymnPresence, setHymnPresence] = useState({
+    al7an: {},
+  });
 
   useEffect(() => {
     const loadLevel = async () => {
@@ -43,40 +46,90 @@ const LevelCurriculum = () => {
   useEffect(() => {
     const loadPresence = async () => {
       try {
+        // Load curriculum for all subjects to get file presence
         const res = await axios.get(
           `${
             import.meta.env.VITE_API_BASE_URL
           }/api/levels/${levelId}/curriculum`,
           { params: { semester: selectedSemester } }
         );
+
+        // Load al7an curriculum separately to get hymns
+        const al7anRes = await axios.get(
+          `${
+            import.meta.env.VITE_API_BASE_URL
+          }/api/levels/${levelId}/curriculum`,
+          { params: { semester: selectedSemester, subject: "al7an" } }
+        );
         const rows = res.data?.curriculum || [];
+        const al7anRows = al7anRes.data?.curriculum || [];
+        console.log("Curriculum data received:", rows);
+        console.log("Al7an curriculum data received:", al7anRows);
+
+        // Merge al7an data with hymns into main rows
+        const al7anWithHymns = al7anRows.reduce((acc, al7anRow) => {
+          acc[al7anRow.id] = al7anRow;
+          return acc;
+        }, {});
+
+        const mergedRows = rows.map((row) => {
+          if (row.subject === "al7an" && al7anWithHymns[row.id]) {
+            return al7anWithHymns[row.id];
+          }
+          return row;
+        });
+
+        console.log("Merged curriculum data:", mergedRows);
+
         const next = { taks: {}, al7an: {}, coptic: {} };
-        rows.forEach((r) => {
+        const hymnNext = { al7an: {} };
+
+        mergedRows.forEach((r) => {
           const subj = (r.subject || "").toLowerCase();
           if (next[subj] !== undefined) {
             const lectureNum = Number(r.lecture);
             if (!next[subj][lectureNum]) {
-              next[subj][lectureNum] = { audio: false, pdf: false, video: false };
+              next[subj][lectureNum] = {
+                audio: false,
+                pdf: false,
+                video: false,
+              };
             }
-            
+
             // Check for different file types
             if (r.audio_path) next[subj][lectureNum].audio = true;
             if (r.pdf_path) next[subj][lectureNum].pdf = true;
             if (r.video_path) next[subj][lectureNum].video = true;
-            
+
             // Legacy support for old path field
             if (r.path && !r.audio_path && !r.pdf_path && !r.video_path) {
-              const ext = r.path.toLowerCase().split('.').pop();
-              if (ext === 'mp3') next[subj][lectureNum].audio = true;
-              else if (ext === 'pdf') next[subj][lectureNum].pdf = true;
-              else if (ext === 'mkv') next[subj][lectureNum].video = true;
+              const ext = r.path.toLowerCase().split(".").pop();
+              if (ext === "mp3") next[subj][lectureNum].audio = true;
+              else if (ext === "pdf") next[subj][lectureNum].pdf = true;
+              else if (ext === "mkv") next[subj][lectureNum].video = true;
+            }
+
+            // Check for hymns (only for al7an subject)
+            if (subj === "al7an" && r.hymns && r.hymns.length > 0) {
+              console.log(
+                `Found hymns for ${subj} lecture ${lectureNum}:`,
+                r.hymns
+              );
+              if (!hymnNext[subj][lectureNum]) {
+                hymnNext[subj][lectureNum] = false;
+              }
+              hymnNext[subj][lectureNum] = true;
             }
           }
         });
+        console.log("File presence:", next);
+        console.log("Hymn presence:", hymnNext);
         setFilePresence(next);
+        setHymnPresence(hymnNext);
       } catch (e) {
         // silent fail on presence
         setFilePresence({ taks: {}, al7an: {}, coptic: {} });
+        setHymnPresence({ al7an: {} });
       }
     };
     loadPresence();
@@ -89,22 +142,51 @@ const LevelCurriculum = () => {
 
   const renderFileIndicators = (subject, lecture) => {
     const files = filePresence[subject]?.[lecture];
-    if (!files) return null;
+    const hasHymns = hymnPresence[subject]?.[lecture];
+
+    if (!files && !hasHymns) return null;
 
     const indicators = [];
-    if (files.audio) {
-      indicators.push(
-        <span key="audio" className="inline-block mr-1 h-2 w-2 rounded-full bg-blue-500" title="ملف صوتي" />
-      );
+
+    // File indicators
+    if (files) {
+      if (files.audio) {
+        indicators.push(
+          <span
+            key="audio"
+            className="inline-block mr-1 h-2 w-2 rounded-full bg-blue-500"
+            title="ملف صوتي"
+          />
+        );
+      }
+      if (files.pdf) {
+        indicators.push(
+          <span
+            key="pdf"
+            className="inline-block mr-1 h-2 w-2 rounded-full bg-green-500"
+            title="ملف PDF"
+          />
+        );
+      }
+      if (files.video) {
+        indicators.push(
+          <span
+            key="video"
+            className="inline-block mr-1 h-2 w-2 rounded-full bg-purple-500"
+            title="ملف فيديو"
+          />
+        );
+      }
     }
-    if (files.pdf) {
+
+    // Hymn indicator (only for al7an subject)
+    if (subject === "al7an" && hasHymns) {
       indicators.push(
-        <span key="pdf" className="inline-block mr-1 h-2 w-2 rounded-full bg-green-500" title="ملف PDF" />
-      );
-    }
-    if (files.video) {
-      indicators.push(
-        <span key="video" className="inline-block mr-1 h-2 w-2 rounded-full bg-purple-500" title="ملف فيديو" />
+        <span
+          key="hymns"
+          className="inline-block mr-1 h-2 w-2 rounded-full bg-yellow-500"
+          title="ترانيم مرتبطة"
+        />
       );
     }
 
@@ -161,7 +243,9 @@ const LevelCurriculum = () => {
 
         {/* File Type Legend */}
         <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">مؤشرات الملفات:</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            مؤشرات الملفات:
+          </h3>
           <div className="flex items-center gap-4 text-xs text-gray-600">
             <div className="flex items-center gap-1">
               <span className="inline-block h-2 w-2 rounded-full bg-blue-500"></span>
@@ -174,6 +258,10 @@ const LevelCurriculum = () => {
             <div className="flex items-center gap-1">
               <span className="inline-block h-2 w-2 rounded-full bg-purple-500"></span>
               <span>ملف فيديو</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-yellow-500"></span>
+              <span>ترانيم مرتبطة</span>
             </div>
           </div>
         </div>
