@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { isAuthenticated } from "../util/auth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,17 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // If already logged in, block access to login page
+  useEffect(() => {
+    try {
+      const hasToken = isAuthenticated();
+      const hasUser = !!localStorage.getItem("user");
+      if (hasToken && hasUser) {
+        navigate("/", { replace: true });
+      }
+    } catch (_) {}
+  }, [navigate]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -63,7 +75,16 @@ const Login = () => {
           },
         });
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        const user = response.data.user || {};
+        // Persist class_id and level_id explicitly
+        localStorage.setItem("user", JSON.stringify(user));
+        if (user.class_id != null)
+          localStorage.setItem("class_id", String(user.class_id));
+        if (user.level_id != null)
+          localStorage.setItem("level_id", String(user.level_id));
+        try {
+          window.dispatchEvent(new Event("user:updated"));
+        } catch {}
 
         // Handle successful response
         console.log("Login successful:", response.data);

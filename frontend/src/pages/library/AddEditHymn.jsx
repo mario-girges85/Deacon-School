@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import CopticKeyboard from "../../components/CopticKeyboard";
-import { isAuthenticated, isAdmin, getAuthHeaders } from "../../util/auth";
+import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../../util/auth";
 
 const AddEditHymn = () => {
   const { id } = useParams();
@@ -36,6 +36,7 @@ const AddEditHymn = () => {
       return;
     }
     if (!isAdmin()) {
+      notifyForbidden();
       navigate("/hymns");
       return;
     }

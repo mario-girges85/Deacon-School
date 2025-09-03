@@ -43,9 +43,10 @@ const UserData = () => {
     ? new Date(user.birthday).toLocaleDateString("ar-EG")
     : "";
 
-  const arabicClassName = user.class
-    ? classLabels[user.class] || user.class
-    : "";
+  const classId = user.class_id || localStorage.getItem("class_id") || "";
+  const levelId = user.level_id || localStorage.getItem("level_id") || "";
+  const classLocation = storedUser?.class?.location || null;
+  const levelInfo = storedUser?.level || storedUser?.class?.level || null;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 w-full max-w-2xl mx-auto mt-8">
@@ -97,11 +98,22 @@ const UserData = () => {
               </div>
             )}
 
-            {user.class && (
+            {(classLocation || classId) && (
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="text-xs text-gray-500 mb-1">الصف</div>
+                <div className="text-xs text-gray-500 mb-1">الفصل</div>
                 <div className="text-gray-900 font-medium">
-                  {arabicClassName}
+                  {classLocation || `#${classId}`}
+                </div>
+              </div>
+            )}
+
+            {(levelInfo || levelId) && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">المستوى</div>
+                <div className="text-gray-900 font-medium">
+                  {levelInfo
+                    ? `المستوى ${levelInfo.level} - المرحلة ${levelInfo.stage}`
+                    : `#${levelId}`}
                 </div>
               </div>
             )}

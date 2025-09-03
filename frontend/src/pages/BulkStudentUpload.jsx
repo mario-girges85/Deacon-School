@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as ExcelJS from "exceljs";
-import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
+import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
 
 const BulkStudentUpload = () => {
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ const BulkStudentUpload = () => {
     }
 
     if (!isAdmin()) {
+      notifyForbidden();
       navigate("/");
       return;
     }

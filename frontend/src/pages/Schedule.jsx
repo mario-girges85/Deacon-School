@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
 
 const SUBJECT_LABELS = { taks: "طقس", al7an: "ألحان", coptic: "قبطي" };
 
 const Schedule = () => {
+  const navigate = useNavigate();
   const [teachersBySubject, setTeachersBySubject] = useState({
     taks: [],
     al7an: [],
@@ -21,10 +24,20 @@ const Schedule = () => {
   const [dragInfo, setDragInfo] = useState(null); // { classId, slotKey }
 
   useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+    if (!isAdmin()) {
+      notifyForbidden();
+      navigate("/");
+      return;
+    }
     const fetchTeachers = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/users/teachers-by-subject`
+          `${import.meta.env.VITE_API_BASE_URL}/api/users/teachers-by-subject`,
+          { headers: { ...getAuthHeaders() } }
         );
 
         if (res.data.success) {
@@ -44,7 +57,7 @@ const Schedule = () => {
       }
     };
     fetchTeachers();
-  }, []);
+  }, [navigate]);
 
   const teacherNameById = useMemo(() => {
     const map = new Map();
@@ -82,7 +95,8 @@ const Schedule = () => {
       const payload = { subjectTeachers: selectedTeachers };
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
-        payload
+        payload,
+        { headers: { ...getAuthHeaders() } }
       );
       setResult(res.data);
       setEditedRows(res.data.rows);
@@ -191,12 +205,14 @@ const Schedule = () => {
       // First validate (no persistence)
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/schedule/apply`,
-        { rows: editedRows }
+        { rows: editedRows },
+        { headers: { ...getAuthHeaders() } }
       );
       // Then save
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/schedule/save`,
-        { rows: editedRows }
+        { rows: editedRows },
+        { headers: { ...getAuthHeaders() } }
       );
       alert(res.data?.message || "تم حفظ الجدول بنجاح");
     } catch (e) {

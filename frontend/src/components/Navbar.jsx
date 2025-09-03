@@ -70,7 +70,9 @@ const Navbar = () => {
     ...(isAdmin()
       ? [{ path: "/bulk-upload", label: "رفع طلاب", icon: "📤" }]
       : []),
-    { path: "/schedule", label: "جدول المعلمين", icon: "📅" },
+    ...(isAdmin()
+      ? [{ path: "/schedule", label: "جدول المعلمين", icon: "📅" }]
+      : []),
     { path: "/hymns", label: "مكتبة الألحان", icon: "🎵" },
     // Only show Users link for admins
     ...(isAdmin() ? [{ path: "/users", label: "المستخدمين", icon: "👤" }] : []),

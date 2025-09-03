@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UsersTable from "../components/UsersTable";
-import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
+import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -21,8 +21,12 @@ const Users = () => {
       return;
     }
 
-    // Note: Real role check happens on backend
-    // This is just for UX - if user is not admin, they'll get 403 from backend
+    // Admin only
+    if (!isAdmin()) {
+      notifyForbidden();
+      navigate("/");
+      return;
+    }
     fetchUsers();
   }, [navigate]);
 

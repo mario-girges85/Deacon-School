@@ -69,18 +69,16 @@ export const verifyToken = (token) => {
 export const decodeToken = (token) => {
   try {
     if (!token) return null;
-
-    // Split token and get payload part
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-
-    // Decode base64 payload
-    const payload = parts[1];
-    const decodedPayload = JSON.parse(atob(payload));
-
-    return decodedPayload;
-  } catch (error) {
-    console.error("Token decode error:", error);
+    // Convert base64url -> base64 and add padding
+    let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const pad = payload.length % 4;
+    if (pad) payload += "=".repeat(4 - pad);
+    const json = atob(payload);
+    return JSON.parse(json);
+  } catch (_) {
+    // Silent fallback; return null so callers can use stored user
     return null;
   }
 };
@@ -91,10 +89,14 @@ export const decodeToken = (token) => {
  */
 export const getCurrentUser = () => {
   const token = getToken();
-  if (!token) return null;
-
   const decoded = decodeToken(token);
-  return decoded;
+  if (decoded) return decoded;
+  try {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  } catch (_) {
+    return null;
+  }
 };
 
 /**
@@ -177,6 +179,15 @@ export const logout = () => {
   removeToken();
   // You can add additional cleanup here
   // Example: clear user data, redirect to login, etc.
+};
+
+/**
+ * Client helper: show forbidden alert and optionally redirect
+ */
+export const notifyForbidden = (message = "ليس لديك صلاحية للوصول") => {
+  try {
+    alert(message);
+  } catch (_) {}
 };
 
 /**

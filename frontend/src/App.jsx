@@ -23,6 +23,7 @@ import HymnDetails from "./pages/library/HymnDetails";
 import AddEditHymn from "./pages/library/AddEditHymn";
 import EventsManagement from "./pages/library/EventsManagement";
 import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
@@ -33,16 +34,29 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/users" element={<Users />} />
+        <Route
+          path="/users"
+          element={<ProtectedRoute requireAdmin element={<Users />} />}
+        />
         <Route path="/users/:userId" element={<UserDetails />} />
         <Route path="/classes" element={<Classes />} />
         <Route path="/classes/:id" element={<ClassDetails />} />
         <Route
           path="/classes/:classId/bulk-upload"
-          element={<BulkStudentUpload />}
+          element={
+            <ProtectedRoute requireAdmin element={<BulkStudentUpload />} />
+          }
         />
-        <Route path="/bulk-upload" element={<BulkAllStudents />} />
-        <Route path="/schedule" element={<Schedule />} />
+        <Route
+          path="/bulk-upload"
+          element={
+            <ProtectedRoute requireAdmin element={<BulkAllStudents />} />
+          }
+        />
+        <Route
+          path="/schedule"
+          element={<ProtectedRoute requireAdmin element={<Schedule />} />}
+        />
         <Route path="/classes/:classId/add-student" element={<AddStudent />} />
         <Route path="/levels" element={<Levels />} />
         <Route path="/levels/:levelId" element={<LevelDetails />} />
@@ -55,10 +69,21 @@ const App = () => {
           element={<LecturePage />}
         />
         <Route path="/hymns" element={<HymnsLibrary />} />
-        <Route path="/hymns/add" element={<AddEditHymn />} />
+        <Route
+          path="/hymns/add"
+          element={<ProtectedRoute requireAdmin element={<AddEditHymn />} />}
+        />
         <Route path="/hymns/:id" element={<HymnDetails />} />
-        <Route path="/hymns/:id/edit" element={<AddEditHymn />} />
-        <Route path="/events" element={<EventsManagement />} />
+        <Route
+          path="/hymns/:id/edit"
+          element={<ProtectedRoute requireAdmin element={<AddEditHymn />} />}
+        />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute requireAdmin element={<EventsManagement />} />
+          }
+        />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>

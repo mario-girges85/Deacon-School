@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { isAuthenticated, isAdmin, getAuthHeaders } from "../../util/auth";
+import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../../util/auth";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -56,6 +56,7 @@ const EventsManagement = () => {
       return;
     }
     if (!isAdmin()) {
+      notifyForbidden();
       navigate("/hymns");
       return;
     }

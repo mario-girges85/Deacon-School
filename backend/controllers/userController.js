@@ -214,6 +214,23 @@ module.exports.login = async (req, res) => {
       where: {
         [Op.or]: [{ phone: phoneOrCode }, { code: phoneOrCode }],
       },
+      include: [
+        {
+          model: Classes,
+          as: "class",
+          attributes: ["id", "location", "level_id"],
+          include: [
+            { model: Levels, as: "level", attributes: ["level", "stage"] },
+          ],
+          required: false,
+        },
+        {
+          model: Levels,
+          as: "level",
+          attributes: ["level", "stage"],
+          required: false,
+        },
+      ],
     });
     if (!user) {
       return res.status(404).json({
@@ -245,14 +262,27 @@ module.exports.login = async (req, res) => {
     );
 
     // Prepare user data for response
+    const userJson = user.toJSON();
     const userData = {
-      name: user.name,
-      phone: user.phone,
-      code: user.code,
-      class: user.class,
-      birthday: user.birthday,
-      gender: user.gender,
-      role: user.role,
+      name: userJson.name,
+      phone: userJson.phone,
+      code: userJson.code,
+      class_id: userJson.class_id || null,
+      level_id: userJson.level_id || null,
+      // Include minimal class and level data for UI
+      class: userJson.class
+        ? {
+            id: userJson.class.id,
+            location: userJson.class.location,
+            level: userJson.class.level || null,
+          }
+        : null,
+      level: userJson.level
+        ? { level: userJson.level.level, stage: userJson.level.stage }
+        : null,
+      birthday: userJson.birthday,
+      gender: userJson.gender,
+      role: userJson.role,
       image: null, // Default to null
     };
 
@@ -311,12 +341,10 @@ module.exports.changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body || {};
 
     if (!newPassword || String(newPassword).length < 6) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل",
+      });
     }
 
     const user = await User.findByPk(id);
