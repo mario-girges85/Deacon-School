@@ -1,17 +1,26 @@
 const mysql = require("mysql2");
 const Sequelize = require("sequelize");
-require("dotenv").config();
+const path = require("path");
 
-// DATABASE CONNECTION (hardcoded for production)
+// Load environment variables from project root
+require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+
+// DATABASE CONNECTION
 const sequelize = new Sequelize(
-  "u354738377_deaconschool",
-  "u354738377_deaconschool",
-  "@6pv7BOIvC",
+  process.env.DB_NAME || "u354738377_deaconschool",
+  process.env.DB_USER || "u354738377_deaconschool",
+  process.env.DB_PASSWORD || "@6pv7BOIvC",
   {
-    host: "92.113.22.53",
-    port: 3306,
+    host: process.env.DB_HOST || "92.113.22.53",
+    port: process.env.DB_PORT || 3306,
     dialect: "mysql",
-    logging: false,
+    logging: process.env.NODE_ENV === "development",
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   }
 );
 
