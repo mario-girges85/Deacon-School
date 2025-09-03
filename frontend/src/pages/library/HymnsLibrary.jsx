@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { isAdmin } from "../../util/auth";
 import axios from "axios";
@@ -7,8 +7,8 @@ import HymnCard from "../../components/HymnCard";
 const HymnsLibrary = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
-  const [hymns, setHymns] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [allHymns, setAllHymns] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null); // full object
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,18 +30,13 @@ const HymnsLibrary = () => {
     }
   };
 
-  const fetchHymns = async (eventId = null, search = "") => {
+  const fetchHymns = async () => {
     try {
       setLoading(true);
-      const params = {};
-      if (eventId) params.event_id = eventId;
-      if (search) params.search = search;
-
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns`,
-        { params }
+        `${import.meta.env.VITE_API_BASE_URL}/api/hymns`
       );
-      setHymns(response.data.hymns || []);
+      setAllHymns(response.data.hymns || []);
     } catch (error) {
       console.error("Error fetching hymns:", error);
       setError("حدث خطأ أثناء جلب الترانيم");
@@ -53,20 +48,45 @@ const HymnsLibrary = () => {
   const handleEventSelect = (event) => {
     setSelectedEvent(event);
     setSearchTerm("");
-    fetchHymns(event.id);
   };
 
   const handleSearch = (term) => {
     setSearchTerm(term);
     setSelectedEvent(null);
-    fetchHymns(null, term);
   };
+
+  // Build filtered hymns client-side
+  const filteredHymns = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const eventId = selectedEvent?.id || null;
+    return (allHymns || []).filter((h) => {
+      if (eventId && String(h.event_id) !== String(eventId)) return false;
+      if (!q) return true;
+      const fields = [
+        h.title_arabic,
+        h.description,
+        h.lyrics_arabic,
+        h.lyrics_coptic,
+        h.lyrics_arabic_coptic,
+      ]
+        .filter(Boolean)
+        .join("\n")
+        .toLowerCase();
+      return fields.includes(q);
+    });
+  }, [allHymns, searchTerm, selectedEvent]);
+
+  // Debounce typing, but filtering is instant; this only avoids rapid state churn
+  useEffect(() => {
+    const t = setTimeout(() => {}, 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   const handleHymnClick = (hymn) => {
     navigate(`/hymns/${hymn.id}`);
   };
 
-  if (loading && hymns.length === 0) {
+  if (loading && filteredHymns.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -120,6 +140,11 @@ const HymnsLibrary = () => {
               placeholder="البحث في الترانيم..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                }
+              }}
               className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -188,7 +213,7 @@ const HymnsLibrary = () => {
                     {selectedEvent.name_arabic || selectedEvent.name}
                   </h3>
                   <span className="text-sm text-gray-500">
-                    ({hymns.length} ترنيمة)
+                    ({filteredHymns.length} ترنيمة)
                   </span>
                 </div>
                 {selectedEvent.description && (
@@ -205,7 +230,7 @@ const HymnsLibrary = () => {
                   نتائج البحث عن: "{searchTerm}"
                 </h3>
                 <span className="text-sm text-gray-500">
-                  ({hymns.length} ترنيمة)
+                  ({filteredHymns.length} ترنيمة)
                 </span>
               </div>
             )}
@@ -214,7 +239,7 @@ const HymnsLibrary = () => {
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : hymns.length === 0 ? (
+            ) : filteredHymns.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-4">🎵</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -230,7 +255,7 @@ const HymnsLibrary = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {hymns.map((hymn) => (
+                {filteredHymns.map((hymn) => (
                   <HymnCard
                     key={hymn.id}
                     hymn={hymn}
