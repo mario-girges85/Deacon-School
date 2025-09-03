@@ -1,6 +1,7 @@
 const mysql = require("mysql2");
 const Sequelize = require("sequelize");
-require("dotenv").config();
+const path = require("path");
+
 
 // DATABASE CONNECTION using environment variables
 const sequelize = new Sequelize(
@@ -12,6 +13,7 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 3306,
     dialect: process.env.DB_DIALECT || "mysql",
     logging: false,
+
   }
 );
 

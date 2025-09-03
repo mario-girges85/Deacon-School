@@ -256,14 +256,14 @@ const seedAdmin = async () => {
   }
 };
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// CORS configuration - allow all origins
+// CORS configuration
 app.use(
   cors({
-    origin: "*", // Allow all origins
+    origin: process.env.CORS_ORIGIN || "*", // Allow all origins in development
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: false, // Set to false when using wildcard origin
@@ -285,7 +285,8 @@ app.use("/api/hymns", hymnsRouter);
 // Serve uploads statically
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
 
-app.listen(port, async () => {
+// Initialize database and start server
+const initializeServer = async () => {
   try {
     // Sync database - only create tables if they don't exist
     // Options:
@@ -320,4 +321,12 @@ app.listen(port, async () => {
   } catch (error) {
     console.error("Database synchronization failed:", error);
   }
-});
+};
+
+// Only start server if not in Vercel environment
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  app.listen(port, initializeServer);
+}
+
+// Export for Vercel
+module.exports = app;
