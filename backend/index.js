@@ -258,7 +258,15 @@ const port = 3000;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+// CORS configuration - allow all origins
+app.use(
+  cors({
+    origin: "*", // Allow all origins
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: false, // Set to false when using wildcard origin
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("Hello school");
