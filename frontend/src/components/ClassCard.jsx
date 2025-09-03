@@ -164,6 +164,28 @@ const ClassCard = ({
       </div>
 
       {/* Action indicator */}
+      {Array.isArray(classItem.students_preview) &&
+        classItem.students_preview.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex -space-x-2 rtl:space-x-reverse">
+              {classItem.students_preview.map((s, idx) => (
+                <img
+                  key={s.id}
+                  src={
+                    s.image ||
+                    "https://ui-avatars.com/api/?name=" +
+                      encodeURIComponent(s.name)
+                  }
+                  alt={s.name}
+                  title={s.name}
+                  className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover"
+                  style={{ zIndex: 10 - idx }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
       {showActionIndicator && (
         <div className="mt-4 pt-3 border-t border-gray-100">
           <div className="flex items-center justify-center text-blue-600 text-sm font-medium">

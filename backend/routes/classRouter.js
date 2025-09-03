@@ -10,14 +10,15 @@ const {
   getClassTeacherAssignments,
   updateClassTeacherAssignments,
 } = require("../controllers/classController");
+const { authenticateToken, requireAdmin } = require("../util/auth");
 
 // Class routes
-router.post("/", createClass);
+router.post("/", authenticateToken, requireAdmin, createClass);
 router.get("/", getAllClasses);
 router.get("/:id", getClassById);
 router.get("/:id/details", getClassDetails);
-router.put("/:id", updateClass);
-router.delete("/:id", deleteClass);
+router.put("/:id", authenticateToken, requireAdmin, updateClass);
+router.delete("/:id", authenticateToken, requireAdmin, deleteClass);
 
 // Teacher assignments per subject for a class
 router.get("/:id/teacher-assignments", getClassTeacherAssignments);

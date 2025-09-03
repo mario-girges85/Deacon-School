@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { isAuthenticated, getCurrentUser } from "../util/auth";
 
 const LevelDetails = () => {
   const { levelId } = useParams();
@@ -107,7 +108,9 @@ const LevelDetails = () => {
     );
   }
 
-  const levelClasses = getClassesForLevel();
+  const viewer = isAuthenticated() ? getCurrentUser() : null;
+  const isStudentViewer = viewer?.role === "student";
+  const levelClasses = isStudentViewer ? [] : getClassesForLevel();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -173,41 +176,45 @@ const LevelDetails = () => {
           </div>
         </div>
 
-        {/* Classes Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-4">الفصول</h3>
+        {/* Classes Section (hidden for students) */}
+        {!isStudentViewer && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+              الفصول
+            </h3>
 
-          {levelClasses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {levelClasses.map((classItem) => (
-                <div
-                  key={classItem.id}
-                  onClick={() => navigate(`/classes/${classItem.id}`)}
-                  className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+            {levelClasses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {levelClasses.map((classItem) => (
+                  <div
+                    key={classItem.id}
+                    onClick={() => navigate(`/classes/${classItem.id}`)}
+                    className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+                  >
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      {classItem.location}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      عدد الطلاب: {classItem.students_count || 0}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-lg mb-4">
+                  لا توجد فصول مرتبطة بهذا المستوى
+                </p>
+                <button
+                  onClick={() => navigate("/classes")}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <h4 className="font-medium text-gray-900 mb-2">
-                    {classItem.location}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    عدد الطلاب: {classItem.students_count || 0}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500 text-lg mb-4">
-                لا توجد فصول مرتبطة بهذا المستوى
-              </p>
-              <button
-                onClick={() => navigate("/classes")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                إنشاء فصل جديد
-              </button>
-            </div>
-          )}
-        </div>
+                  إنشاء فصل جديد
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ClassCard from "../components/ClassCard";
+import {
+  isAdmin,
+  getCurrentUser,
+  isAuthenticated,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../util/auth";
 
 const Classes = () => {
   const navigate = useNavigate();
@@ -57,8 +64,24 @@ const Classes = () => {
       setLoading(false);
     }
   };
+  const me = isAuthenticated() ? getCurrentUser() : null;
+  const isUserAdmin = isAdmin();
+
+  const visibleClasses = useMemo(() => {
+    if (isUserAdmin) return classes;
+    if (!me) return [];
+    const allowedClassIds = new Set();
+    if (me.class_id) allowedClassIds.add(me.class_id);
+    if (Array.isArray(me.classes))
+      me.classes.forEach((c) => c?.id && allowedClassIds.add(c.id));
+    return classes.filter((c) => allowedClassIds.has(c.id));
+  }, [classes, me, isUserAdmin]);
 
   const handleCreateRelation = () => {
+    if (!isUserAdmin) {
+      notifyForbidden();
+      return;
+    }
     setSelectedLevelId("");
     setSelectedClassId("");
     setShowCreateRelationModal(true);
@@ -69,11 +92,13 @@ const Classes = () => {
 
     try {
       setCreating(true);
+      const headers = { ...getAuthHeaders() };
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/api/classes/${selectedClassId}`,
         {
           level_id: selectedLevelId,
-        }
+        },
+        { headers }
       );
 
       setShowCreateRelationModal(false);
@@ -159,29 +184,33 @@ const Classes = () => {
 
         <div className="mb-6 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            عدد الفصول : {classes.length}
+            عدد الفصول : {visibleClasses.length}
           </div>
-          <button
-            onClick={handleCreateRelation}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200"
-          >
-            إنشاء فصل
-          </button>
-        </div>
-
-        {classes.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">لا توجد فصول حالياً</p>
+          {isUserAdmin && (
             <button
               onClick={handleCreateRelation}
-              className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200"
             >
               إنشاء فصل
             </button>
+          )}
+        </div>
+
+        {visibleClasses.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg mb-4">لا توجد فصول حالياً</p>
+            {isUserAdmin && (
+              <button
+                onClick={handleCreateRelation}
+                className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                إنشاء فصل
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classes.map((classItem) => (
+            {visibleClasses.map((classItem) => (
               <ClassCard
                 key={classItem.id}
                 classItem={classItem}
@@ -194,7 +223,7 @@ const Classes = () => {
       </div>
 
       {/* Create Relation Modal */}
-      {showCreateRelationModal && (
+      {isUserAdmin && showCreateRelationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">

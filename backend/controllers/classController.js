@@ -1,6 +1,7 @@
 const { Classes, Levels, User } = require("../models/relationships");
 const sequelize = require("../util/db");
 const TeacherSubjectAssignment = require("../models/teacherSubjectAssignment");
+const { imageToBase64 } = require("../util/userHelpers");
 
 // Create a new class
 const createClass = async (req, res) => {
@@ -61,9 +62,26 @@ const getAllClasses = async (req, res) => {
           },
         });
 
+        // Preview up to 5 students with base64 images
+        const previewRows = await User.findAll({
+          where: { class_id: classItem.id, role: "student" },
+          order: [["name", "ASC"]],
+          limit: 5,
+          attributes: ["id", "name", "image"],
+        });
+
+        const students_preview = await Promise.all(
+          previewRows.map(async (s) => ({
+            id: s.id,
+            name: s.name,
+            image: s.image ? imageToBase64(s.image) : null,
+          }))
+        );
+
         return {
           ...classItem.toJSON(),
           students_count: studentCount,
+          students_preview,
         };
       })
     );
@@ -94,9 +112,25 @@ const getClassesByLevel = async (req, res) => {
           },
         });
 
+        const previewRows = await User.findAll({
+          where: { class_id: classItem.id, role: "student" },
+          order: [["name", "ASC"]],
+          limit: 5,
+          attributes: ["id", "name", "image"],
+        });
+
+        const students_preview = await Promise.all(
+          previewRows.map(async (s) => ({
+            id: s.id,
+            name: s.name,
+            image: s.image ? imageToBase64(s.image) : null,
+          }))
+        );
+
         return {
           ...classItem.toJSON(),
           students_count: studentCount,
+          students_preview,
         };
       })
     );

@@ -250,7 +250,9 @@ module.exports.login = async (req, res) => {
     const token = jwt.sign(
       {
         name: user.name,
-        class: user.class,
+        class: user.class, // may be null
+        class_id: user.class_id || null,
+        level_id: user.level_id || null,
         birthday: user.birthday,
         gender: user.gender,
         id: user.id,
@@ -645,7 +647,18 @@ module.exports.deleteUser = async (req, res) => {
       });
     }
 
-    // Delete user
+    // Delete profile image if exists
+    try {
+      if (user.image) {
+        const path = require("path");
+        const fs = require("fs");
+        const p = path.join(__dirname, "..", user.image);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      }
+    } catch (e) {
+      console.warn("Failed to delete user image:", e.message);
+    }
+
     await user.destroy();
 
     res.json({

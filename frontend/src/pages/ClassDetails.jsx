@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import UsersTable from "../components/UsersTable";
+import {
+  getAuthHeaders,
+  notifyForbidden,
+  isAdmin,
+  isAuthenticated,
+  getCurrentUser,
+} from "../util/auth";
 
 const ClassDetails = () => {
   const navigate = useNavigate();
@@ -103,8 +110,16 @@ const ClassDetails = () => {
         return;
       }
       setDeleting(true);
+      const headers = { ...getAuthHeaders() };
+      if (!isAuthenticated() || !isAdmin()) {
+        notifyForbidden();
+        setDeleting(false);
+        return;
+      }
       await axios
-        .delete(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`)
+        .delete(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`, {
+          headers,
+        })
         .then(() => {
           alert("تم حذف الفصل بنجاح");
           navigate("/classes");
@@ -209,69 +224,78 @@ const ClassDetails = () => {
               </h1>
               <p className="text-gray-600">معلومات مفصلة عن الفصل والطلاب</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3 space-x-reverse">
-              <button
-                aria-label="إضافة طالب واحد"
-                onClick={() => navigate(`/classes/${id}/add-student`)}
-                className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-green-500/20 transition-all duration-200 hover:shadow-md hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5Z" />
-                </svg>
-                <span>إضافة طالب واحد</span>
-              </button>
-              <button
-                aria-label="حذف الفصل"
-                onClick={handleDeleteClass}
-                disabled={deleting}
-                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-red-500/20 transition-all duration-200 hover:shadow-md hover:bg-red-700 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path d="M9 3.75A1.5 1.5 0 0 1 10.5 2.25h3A1.5 1.5 0 0 1 15 3.75V5h3.75a.75.75 0 0 1 0 1.5H17.25l-.79 11.06A2.25 2.25 0 0 1 14.22 20.75H9.78a2.25 2.25 0 0 1-2.24-2.19L6.75 6.5H5.25a.75.75 0 0 1 0-1.5H9V3.75Zm1.5 1.25h3V5h-3V5ZM9.75 9.5a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Zm3 0a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Z" />
-                </svg>
-                <span>{deleting ? "جارِ الحذف..." : "حذف الفصل"}</span>
-              </button>
-              <button
-                aria-label="إضافة مجموعة طلاب"
-                onClick={() => navigate(`/classes/${id}/bulk-upload`)}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-blue-500/20 transition-all duration-200 hover:shadow-md hover:from-blue-700 hover:to-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path d="M12 3a4 4 0 1 1-3.995 4.2A4 4 0 0 1 12 3Zm-7 15.5a6.5 6.5 0 0 1 13 0V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1.5Zm14.25-7.75a.75.75 0 0 1 .75.75v2h2a.75.75 0 0 1 0 1.5h-2v2a.75.75 0 0 1-1.5 0v-2h-2a.75.75 0 0 1 0-1.5h2v-2a.75.75 0 0 1 .75-.75Z" />
-                </svg>
-                <span>إضافة مجموعة طلاب</span>
-              </button>
-              <button
-                aria-label="العودة للفصول"
-                onClick={() => navigate("/classes")}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path d="M10.03 4.97a.75.75 0 0 1 0 1.06L6.06 10h12.19a.75.75 0 0 1 0 1.5H6.06l3.97 3.97a.75.75 0 1 1-1.06 1.06l-5.25-5.25a.75.75 0 0 1 0-1.06l5.25-5.25a.75.75 0 0 1 1.06 0Z" />
-                </svg>
-                <span>العودة للفصول</span>
-              </button>
-            </div>
+            {(() => {
+              const viewer = isAuthenticated() ? getCurrentUser() : null;
+              const isStudentViewer = viewer?.role === "student";
+              if (isStudentViewer) return null;
+              return (
+                <div className="flex flex-wrap items-center gap-3 space-x-reverse">
+                  <button
+                    aria-label="إضافة طالب واحد"
+                    onClick={() => navigate(`/classes/${id}/add-student`)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-green-500/20 transition-all duration-200 hover:shadow-md hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5Z" />
+                    </svg>
+                    <span>إضافة طالب واحد</span>
+                  </button>
+                  {isAdmin() && (
+                    <button
+                      aria-label="حذف الفصل"
+                      onClick={handleDeleteClass}
+                      disabled={deleting}
+                      className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-red-500/20 transition-all duration-200 hover:shadow-md hover:bg-red-700 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M9 3.75A1.5 1.5 0 0 1 10.5 2.25h3A1.5 1.5 0 0 1 15 3.75V5h3.75a.75.75 0 0 1 0 1.5H17.25l-.79 11.06A2.25 2.25 0 0 1 14.22 20.75H9.78a2.25 2.25 0 0 1-2.24-2.19L6.75 6.5H5.25a.75.75 0 0 1 0-1.5H9V3.75Zm1.5 1.25h3V5h-3V5ZM9.75 9.5a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Zm3 0a.75.75 0 0 1 1.5 0v7a.75.75 0 0 1-1.5 0v-7Z" />
+                      </svg>
+                      <span>{deleting ? "جارِ الحذف..." : "حذف الفصل"}</span>
+                    </button>
+                  )}
+                  <button
+                    aria-label="إضافة مجموعة طلاب"
+                    onClick={() => navigate(`/classes/${id}/bulk-upload`)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-blue-500/20 transition-all duration-200 hover:shadow-md hover:from-blue-700 hover:to-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path d="M12 3a4 4 0 1 1-3.995 4.2A4 4 0 0 1 12 3Zm-7 15.5a6.5 6.5 0 0 1 13 0V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1.5Zm14.25-7.75a.75.75 0 0 1 .75.75v2h2a.75.75 0 0 1 0 1.5h-2v2a.75.75 0 0 1-1.5 0v-2h-2a.75.75 0 0 1 0-1.5h2v-2a.75.75 0 0 1 .75-.75Z" />
+                    </svg>
+                    <span>إضافة مجموعة طلاب</span>
+                  </button>
+                  <button
+                    aria-label="العودة للفصول"
+                    onClick={() => navigate("/classes")}
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path d="M10.03 4.97a.75.75 0 0 1 0 1.06L6.06 10h12.19a.75.75 0 0 1 0 1.5H6.06l3.97 3.97a.75.75 0 1 1-1.06 1.06l-5.25-5.25a.75.75 0 0 1 0-1.06l5.25-5.25a.75.75 0 0 1 1.06 0Z" />
+                    </svg>
+                    <span>العودة للفصول</span>
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -332,32 +356,39 @@ const ClassDetails = () => {
           </div>
         </div>
 
-        {/* Students Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">الطلاب</h2>
-            <span className="text-sm text-gray-500">
-              إجمالي الطلاب: {students.length}
-            </span>
-          </div>
+        {/* Students Section - hidden for students */}
+        {(() => {
+          const viewer = isAuthenticated() ? getCurrentUser() : null;
+          const isStudentViewer = viewer?.role === "student";
+          if (isStudentViewer) return null;
+          return (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">الطلاب</h2>
+                <span className="text-sm text-gray-500">
+                  إجمالي الطلاب: {students.length}
+                </span>
+              </div>
 
-          {students.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
-                لا يوجد طلاب في هذا الفصل حالياً
-              </p>
-              <p className="text-sm text-gray-400 mt-2">
-                قد يكون هذا بسبب عدم وجود طلاب مسجلين أو مشكلة في الاتصال
-              </p>
+              {students.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">
+                    لا يوجد طلاب في هذا الفصل حالياً
+                  </p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    قد يكون هذا بسبب عدم وجود طلاب مسجلين أو مشكلة في الاتصال
+                  </p>
+                </div>
+              ) : (
+                <UsersTable
+                  users={students}
+                  emptyMessage="لا يوجد طلاب في هذا الفصل حالياً"
+                  emptySubMessage="قد يكون هذا بسبب عدم وجود طلاب مسجلين أو مشكلة في الاتصال"
+                />
+              )}
             </div>
-          ) : (
-            <UsersTable
-              users={students}
-              emptyMessage="لا يوجد طلاب في هذا الفصل حالياً"
-              emptySubMessage="قد يكون هذا بسبب عدم وجود طلاب مسجلين أو مشكلة في الاتصال"
-            />
-          )}
-        </div>
+          );
+        })()}
 
         {/* Class Schedule */}
         <div className="bg-white rounded-lg shadow-md p-6 mt-8">

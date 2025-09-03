@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { isAdmin, getCurrentUser, isAuthenticated } from "../util/auth";
 
 const Levels = () => {
   const navigate = useNavigate();
@@ -31,8 +32,37 @@ const Levels = () => {
     }
   };
 
+  const me = isAuthenticated() ? getCurrentUser() : null;
+  const isUserAdmin = isAdmin();
+
+  // Client-side visibility filter
+  const visibleLevels = useMemo(() => {
+    if (isUserAdmin) return levels;
+    if (!me) return [];
+    const allowedLevelIds = new Set();
+    if (me.level_id) allowedLevelIds.add(me.level_id);
+    // include levels of classes user teaches/supervises if available
+    if (Array.isArray(me.classes)) {
+      me.classes.forEach(
+        (c) => c?.level?.id && allowedLevelIds.add(c.level.id)
+      );
+    }
+    return levels.filter((lvl) => allowedLevelIds.has(lvl.id));
+  }, [levels, me, isUserAdmin]);
+
+  const visibleClasses = useMemo(() => {
+    if (isUserAdmin) return classes;
+    if (!me) return [];
+    const allowedClassIds = new Set();
+    if (me.class_id) allowedClassIds.add(me.class_id);
+    if (Array.isArray(me.classes)) {
+      me.classes.forEach((c) => c?.id && allowedClassIds.add(c.id));
+    }
+    return classes.filter((c) => allowedClassIds.has(c.id));
+  }, [classes, me, isUserAdmin]);
+
   const getClassesCountForLevel = (levelId) => {
-    return classes.filter((c) => c.level_id === levelId).length;
+    return visibleClasses.filter((c) => c.level_id === levelId).length;
   };
 
   const handleDelete = async (id) => {
@@ -117,7 +147,7 @@ const Levels = () => {
 
         {/* Levels Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {levels.map((level) => {
+          {visibleLevels.map((level) => {
             const classesCount = getClassesCountForLevel(level.id);
             return (
               <div
@@ -146,7 +176,7 @@ const Levels = () => {
                       الفصول :
                     </h4>
                     <div className="space-y-1">
-                      {classes
+                      {visibleClasses
                         .filter((c) => c.level_id === level.id)
                         .slice(0, 3) // Show only first 3 classes
                         .map((classItem) => (
