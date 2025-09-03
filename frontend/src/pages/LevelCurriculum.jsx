@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../util/axiosConfig";
 
 const SUBJECTS = [
   { key: "taks", label: "طقس" },
@@ -29,9 +29,7 @@ const LevelCurriculum = () => {
     const loadLevel = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/levels/${levelId}`
-        );
+        const res = await apiClient.get(`/api/levels/${levelId}`);
         setLevelMeta(res.data?.level || null);
       } catch (e) {
         setError("تعذر تحميل بيانات المستوى");
@@ -47,18 +45,13 @@ const LevelCurriculum = () => {
     const loadPresence = async () => {
       try {
         // Load curriculum for all subjects to get file presence
-        const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/levels/${levelId}/curriculum`,
-          { params: { semester: selectedSemester } }
-        );
+        const res = await apiClient.get(`/api/levels/${levelId}/curriculum`, {
+          params: { semester: selectedSemester },
+        });
 
         // Load al7an curriculum separately to get hymns
-        const al7anRes = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/levels/${levelId}/curriculum`,
+        const al7anRes = await apiClient.get(
+          `/api/levels/${levelId}/curriculum`,
           { params: { semester: selectedSemester, subject: "al7an" } }
         );
         const rows = res.data?.curriculum || [];

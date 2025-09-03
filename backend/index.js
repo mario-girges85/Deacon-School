@@ -224,11 +224,11 @@ const seedAdmin = async () => {
   try {
     const bcrypt = require("bcrypt");
 
-    // Default admin credentials
+    // Admin credentials
     const adminData = {
       name: "System Administrator",
-      phone: "01000000000", // Default admin phone
-      password: await bcrypt.hash("admin123", 10), // Default password
+      phone: "01285948011", // Admin phone
+      password: await bcrypt.hash("000000", 10), // Admin password
       birthday: "1990-01-01",
       gender: "male",
       role: "admin",
@@ -244,10 +244,12 @@ const seedAdmin = async () => {
 
     if (created) {
       console.log("✅ Admin account created successfully");
-      console.log("📱 Phone: 01000000000");
-      console.log("🔑 Password: admin123");
+      console.log("📱 Phone: 01285948011");
+      console.log("🔑 Password: 000000");
     } else {
       console.log("⏭️ Admin account already exists");
+      console.log("📱 Phone: 01285948011");
+      console.log("🔑 Password: 000000");
     }
   } catch (err) {
     console.error("❌ Failed to seed admin account:", err);

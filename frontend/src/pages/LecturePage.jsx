@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../util/axiosConfig";
 import HymnSelectionPanel from "../components/HymnSelectionPanel";
 import CurriculumHymnCard from "../components/CurriculumHymnCard";
+import { isAdmin } from "../util/auth";
 
 const humanize = (s) => {
   if (s === "taks") return "طقس";
@@ -68,17 +69,10 @@ const LecturePage = () => {
     const loadInfo = async () => {
       try {
         const [curRes, levelRes] = await Promise.all([
-          axios.get(
-            `${
-              import.meta.env.VITE_API_BASE_URL
-            }/api/levels/${levelId}/curriculum`,
-            {
-              params: { subject, semester },
-            }
-          ),
-          axios.get(
-            `${import.meta.env.VITE_API_BASE_URL}/api/levels/${levelId}`
-          ),
+          apiClient.get(`/api/levels/${levelId}/curriculum`, {
+            params: { subject, semester },
+          }),
+          apiClient.get(`/api/levels/${levelId}`),
         ]);
 
         const found = (curRes.data?.curriculum || []).find(
@@ -116,7 +110,7 @@ const LecturePage = () => {
       const url = `${
         import.meta.env.VITE_API_BASE_URL
       }/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
-      const res = await axios.post(url, form);
+      const res = await apiClient.post(url, form);
       setInfo(res.data?.curriculum || null);
       setFiles((prev) => ({ ...prev, [fileType]: null }));
     } catch (err) {
@@ -143,10 +137,8 @@ const LecturePage = () => {
       }));
       console.log("Payload being sent:", payload);
 
-      const response = await axios.put(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
+      const response = await apiClient.put(
+        `/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
         { hymns: payload }
       );
 
@@ -290,7 +282,7 @@ const LecturePage = () => {
         </div>
 
         {/* Hymn Selection for al7an */}
-        {subject === "al7an" && (
+        {subject === "al7an" && isAdmin() && (
           <div className="mb-6 bg-white p-4 rounded shadow">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">ترانيم المحاضرة</h3>
@@ -356,16 +348,18 @@ const LecturePage = () => {
           <div className="text-green-600 text-sm mb-3">{successMessage}</div>
         )}
 
-        {/* Upload Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {renderUploadSection("audio", "ملف صوتي (MP3)", ".mp3,audio/mpeg")}
-          {renderUploadSection("pdf", "ملف PDF", ".pdf,application/pdf")}
-          {renderUploadSection(
-            "video",
-            "ملف فيديو (MKV)",
-            ".mkv,video/x-matroska,video/webm"
-          )}
-        </div>
+        {/* Upload Sections - Admin Only */}
+        {isAdmin() && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderUploadSection("audio", "ملف صوتي (MP3)", ".mp3,audio/mpeg")}
+            {renderUploadSection("pdf", "ملف PDF", ".pdf,application/pdf")}
+            {renderUploadSection(
+              "video",
+              "ملف فيديو (MKV)",
+              ".mkv,video/x-matroska,video/webm"
+            )}
+          </div>
+        )}
       </div>
 
       {/* Hymn Selection Panel */}
