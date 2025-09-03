@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import CopticKeyboard from "../../components/CopticKeyboard";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../../util/auth";
 
 const AddEditHymn = () => {
   const { id } = useParams();
@@ -29,11 +30,21 @@ const AddEditHymn = () => {
   const copticInputRef = useRef(null);
 
   useEffect(() => {
+    // Admin only
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+    if (!isAdmin()) {
+      navigate("/hymns");
+      return;
+    }
+
     fetchEvents();
     if (isEdit) {
       fetchHymn();
     }
-  }, [id, isEdit]);
+  }, [id, isEdit, navigate]);
 
   const fetchEvents = async () => {
     try {
@@ -76,15 +87,18 @@ const AddEditHymn = () => {
       };
 
       let response;
+      const headers = { ...getAuthHeaders() };
       if (isEdit) {
         response = await axios.put(
           `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${id}`,
-          hymnData
+          hymnData,
+          { headers }
         );
       } else {
         response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/hymns`,
-          hymnData
+          hymnData,
+          { headers }
         );
       }
 
@@ -118,7 +132,10 @@ const AddEditHymn = () => {
         `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${hymnId}/audio`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            ...getAuthHeaders(),
+          },
         }
       );
     } catch (error) {

@@ -24,27 +24,22 @@ const Schedule = () => {
     const fetchTeachers = async () => {
       try {
         const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/users/get-users?includeTeachingClasses=false`
+          `${import.meta.env.VITE_API_BASE_URL}/api/users/teachers-by-subject`
         );
-        const users = res.data.users || [];
-        const taks = users.filter(
-          (u) => u.role === "teacher" && u.subject === "taks"
-        );
-        const al7an = users.filter(
-          (u) => u.role === "teacher" && u.subject === "al7an"
-        );
-        const coptic = users.filter(
-          (u) => u.role === "teacher" && u.subject === "coptic"
-        );
-        setTeachersBySubject({ taks, al7an, coptic });
-        setSelectedTeachers({
-          taks: taks.map((t) => t.id),
-          al7an: al7an.map((t) => t.id),
-          coptic: coptic.map((t) => t.id),
-        });
+
+        if (res.data.success) {
+          const { teachersBySubject } = res.data;
+          setTeachersBySubject(teachersBySubject);
+          setSelectedTeachers({
+            taks: teachersBySubject.taks.map((t) => t.id),
+            al7an: teachersBySubject.al7an.map((t) => t.id),
+            coptic: teachersBySubject.coptic.map((t) => t.id),
+          });
+        } else {
+          setTeachersBySubject({ taks: [], al7an: [], coptic: [] });
+        }
       } catch (e) {
+        console.error("Error fetching teachers:", e);
         setTeachersBySubject({ taks: [], al7an: [], coptic: [] });
       }
     };

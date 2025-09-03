@@ -581,6 +581,40 @@ module.exports.deleteUser = async (req, res) => {
   }
 };
 
+// Get teachers by subject (for schedule management)
+module.exports.getTeachersBySubject = async (req, res) => {
+  try {
+    const teachers = await User.findAll({
+      where: {
+        role: "teacher",
+        subject: {
+          [Op.in]: ["taks", "al7an", "coptic"],
+        },
+      },
+      attributes: { exclude: ["password"] },
+      order: [["name", "ASC"]],
+    });
+
+    // Group teachers by subject
+    const teachersBySubject = {
+      taks: teachers.filter((t) => t.subject === "taks"),
+      al7an: teachers.filter((t) => t.subject === "al7an"),
+      coptic: teachers.filter((t) => t.subject === "coptic"),
+    };
+
+    res.json({
+      success: true,
+      teachersBySubject,
+    });
+  } catch (error) {
+    console.error("Error fetching teachers by subject:", error);
+    res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء جلب المعلمين",
+    });
+  }
+};
+
 // Unified bulk import (CSV or Excel). Role defaults to student.
 module.exports.bulkImport = async (req, res) => {
   try {

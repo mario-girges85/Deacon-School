@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../../util/auth";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -49,8 +50,17 @@ const EventsManagement = () => {
   };
 
   useEffect(() => {
+    // Admin only page
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+    if (!isAdmin()) {
+      navigate("/hymns");
+      return;
+    }
     fetchEvents();
-  }, []);
+  }, [navigate]);
 
   const filteredEvents = useMemo(() => {
     const q = query.trim();
@@ -64,16 +74,25 @@ const EventsManagement = () => {
     setSaving(true);
     setError("");
     try {
+      const headers = { ...getAuthHeaders() };
       if (form.id) {
-        await axios.put(`${apiBase}/api/events/${form.id}`, {
-          name: form.name_arabic,
-          name_arabic: form.name_arabic,
-        });
+        await axios.put(
+          `${apiBase}/api/events/${form.id}`,
+          {
+            name: form.name_arabic,
+            name_arabic: form.name_arabic,
+          },
+          { headers }
+        );
       } else {
-        await axios.post(`${apiBase}/api/events`, {
-          name: form.name_arabic,
-          name_arabic: form.name_arabic,
-        });
+        await axios.post(
+          `${apiBase}/api/events`,
+          {
+            name: form.name_arabic,
+            name_arabic: form.name_arabic,
+          },
+          { headers }
+        );
       }
       await fetchEvents();
       resetForm();
@@ -89,7 +108,8 @@ const EventsManagement = () => {
   const handleDelete = async (id) => {
     if (!confirm("هل تريد حذف هذه المناسبة؟")) return;
     try {
-      await axios.delete(`${apiBase}/api/events/${id}`);
+      const headers = { ...getAuthHeaders() };
+      await axios.delete(`${apiBase}/api/events/${id}`, { headers });
       await fetchEvents();
     } catch (e) {
       console.error(e);

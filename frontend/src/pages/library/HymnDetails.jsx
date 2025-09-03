@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { isAdmin } from "../../util/auth";
 
 const HymnDetails = () => {
   const { id } = useParams();
@@ -172,12 +173,14 @@ const HymnDetails = () => {
             </svg>
             العودة للمكتبة
           </button>
-          <button
-            onClick={() => navigate(`/hymns/${id}/edit`)}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-          >
-            تعديل
-          </button>
+          {isAdmin() && (
+            <button
+              onClick={() => navigate(`/hymns/${id}/edit`)}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+            >
+              تعديل
+            </button>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">

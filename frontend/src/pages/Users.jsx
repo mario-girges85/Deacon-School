@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import UsersTable from "../components/UsersTable";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
 
 const Users = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,8 +15,16 @@ const Users = () => {
   const [filterLevel, setFilterLevel] = useState("all");
 
   useEffect(() => {
+    // Check authentication (basic check for UX)
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    // Note: Real role check happens on backend
+    // This is just for UX - if user is not admin, they'll get 403 from backend
     fetchUsers();
-  }, []);
+  }, [navigate]);
 
   // Filter users based on search term and filters
   useEffect(() => {
@@ -50,14 +61,10 @@ const Users = () => {
   const handleDelete = async (userId, userName) => {
     if (window.confirm(`هل أنت متأكد من حذف المستخدم "${userName}"؟`)) {
       try {
-        const token = localStorage.getItem("token");
+        const headers = getAuthHeaders();
         await axios.delete(
           `${import.meta.env.VITE_API_BASE_URL}/api/users/delete/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers }
         );
 
         // Remove user from local state
@@ -67,6 +74,19 @@ const Users = () => {
         alert("تم حذف المستخدم بنجاح");
       } catch (err) {
         console.error("Delete error:", err);
+
+        if (err.response?.status === 401) {
+          // Unauthorized - redirect to login
+          navigate("/login");
+          return;
+        }
+
+        if (err.response?.status === 403) {
+          // Forbidden - not admin
+          alert("ليس لديك صلاحية لحذف المستخدمين");
+          return;
+        }
+
         alert("حدث خطأ في حذف المستخدم");
       }
     }
@@ -75,16 +95,11 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const headers = getAuthHeaders();
 
-      // Token is optional - backend is open but we can still send it
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/get-users`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
 
       if (response.data.success) {
@@ -93,6 +108,20 @@ const Users = () => {
         setError(response.data.message || "حدث خطأ في جلب البيانات");
       }
     } catch (err) {
+      console.error("Fetch users error:", err);
+
+      if (err.response?.status === 401) {
+        // Unauthorized - redirect to login
+        navigate("/login");
+        return;
+      }
+
+      if (err.response?.status === 403) {
+        // Forbidden - not admin
+        setError("ليس لديك صلاحية للوصول إلى هذه الصفحة");
+        return;
+      }
+
       setError("حدث خطأ في الاتصال بالخادم");
     } finally {
       setLoading(false);

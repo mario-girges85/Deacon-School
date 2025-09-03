@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { isAdmin } from "../../util/auth";
 import axios from "axios";
 import HymnCard from "../../components/HymnCard";
 
@@ -87,20 +88,22 @@ const HymnsLibrary = () => {
               استكشف مجموعة الترانيم والألحان الكنسية
             </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate("/events")}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              إدارة المناسبات
-            </button>
-            <button
-              onClick={() => navigate("/hymns/add")}
-              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-            >
-              إضافة ترنيمة جديدة
-            </button>
-          </div>
+          {isAdmin() && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate("/events")}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                إدارة المناسبات
+              </button>
+              <button
+                onClick={() => navigate("/hymns/add")}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                إضافة ترنيمة جديدة
+              </button>
+            </div>
+          )}
         </div>
 
         {error && (

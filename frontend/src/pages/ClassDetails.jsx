@@ -30,41 +30,28 @@ const ClassDetails = () => {
     try {
       setLoading(true);
 
-      const [classResponse, usersResponse, scheduleResponse] =
-        await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/get-users`),
-          axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
-            {}
-          ),
-        ]);
+      const [classResponse, scheduleResponse] = await Promise.all([
+        axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}/details`
+        ),
+        axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
+          {}
+        ),
+      ]);
 
       if (!classResponse.data?.success) {
         setError("فشل في جلب تفاصيل الفصل");
         setClassData(null);
-      } else {
-        setClassData(classResponse.data.class);
-      }
-
-      if (
-        usersResponse.data?.success &&
-        Array.isArray(usersResponse.data.users)
-      ) {
-        // Users payload now includes both students (single class) and teachers' classes list.
-        // We need only students with class_id === id
-        const filteredStudents = usersResponse.data.users.filter(
-          (user) => user.role === "student" && user.class_id === id
-        );
-        setStudents(filteredStudents);
-
-        // Collect teachers and supervisors for assignment dropdowns
-        const teacherUsers = usersResponse.data.users.filter((u) =>
-          ["teacher", "supervisor"].includes(u.role)
-        );
-        setTeachers(teacherUsers);
-      } else {
         setStudents([]);
+        setTeachers([]);
+      } else {
+        const classData = classResponse.data.class;
+        setClassData(classData);
+
+        // Set students and teachers from the class details response
+        setStudents(classData.students || []);
+        setTeachers(classData.teachers || []);
       }
 
       // Schedule for this class

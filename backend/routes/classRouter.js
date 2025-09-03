@@ -4,6 +4,7 @@ const {
   createClass,
   getAllClasses,
   getClassById,
+  getClassDetails,
   updateClass,
   deleteClass,
   getClassTeacherAssignments,
@@ -14,6 +15,7 @@ const {
 router.post("/", createClass);
 router.get("/", getAllClasses);
 router.get("/:id", getClassById);
+router.get("/:id/details", getClassDetails);
 router.put("/:id", updateClass);
 router.delete("/:id", deleteClass);
 

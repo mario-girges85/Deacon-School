@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const eventsController = require("../controllers/eventsController");
+const { authenticateToken, requireAdmin } = require("../util/auth");
 
 // Get all events
 router.get("/", eventsController.getEvents);
@@ -9,12 +10,22 @@ router.get("/", eventsController.getEvents);
 router.get("/:id", eventsController.getEventById);
 
 // Create new event
-router.post("/", eventsController.createEvent);
+router.post("/", authenticateToken, requireAdmin, eventsController.createEvent);
 
 // Update event
-router.put("/:id", eventsController.updateEvent);
+router.put(
+  "/:id",
+  authenticateToken,
+  requireAdmin,
+  eventsController.updateEvent
+);
 
 // Delete event
-router.delete("/:id", eventsController.deleteEvent);
+router.delete(
+  "/:id",
+  authenticateToken,
+  requireAdmin,
+  eventsController.deleteEvent
+);
 
 module.exports = router;

@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import * as ExcelJS from "exceljs";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
 
 const BulkAllStudents = () => {
+  const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Check authentication and admin role
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    if (!isAdmin()) {
+      navigate("/");
+      return;
+    }
+
     const fetchClasses = async () => {
       try {
         const res = await axios.get(
@@ -23,7 +37,7 @@ const BulkAllStudents = () => {
       }
     };
     fetchClasses();
-  }, []);
+  }, [navigate]);
 
   const downloadTemplate = () => {
     const workbook = new ExcelJS.Workbook();
@@ -119,15 +133,32 @@ const BulkAllStudents = () => {
       const fd = new FormData();
       fd.append("file", file);
       // No classId in body here; each row must include الفصل
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        ...getAuthHeaders(),
+      };
+
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
         fd,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        { headers }
       );
       setUploadResult(res.data);
     } catch (err) {
+      console.error("Error uploading file:", err);
+
+      if (err.response?.status === 401) {
+        // Unauthorized - redirect to login
+        navigate("/login");
+        return;
+      }
+
+      if (err.response?.status === 403) {
+        // Forbidden - not admin
+        setError("ليس لديك صلاحية لرفع الطلاب");
+        return;
+      }
+
       setError(err.response?.data?.error || "حدث خطأ أثناء رفع الملف");
     } finally {
       setUploading(false);

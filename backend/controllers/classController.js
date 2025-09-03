@@ -140,6 +140,50 @@ const getClassById = async (req, res) => {
   }
 };
 
+// Get class details with students and teachers
+const getClassDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const classItem = await Classes.findByPk(id, {
+      include: [{ model: Levels, as: "level" }],
+    });
+
+    if (!classItem) {
+      return res.status(404).json({ error: "الفصل غير موجود" });
+    }
+
+    // Get students in this class
+    const students = await User.findAll({
+      where: {
+        class_id: id,
+        role: "student",
+      },
+      attributes: { exclude: ["password"] },
+      include: [{ model: Levels, as: "level" }],
+    });
+
+    // Get all teachers and supervisors for assignment dropdowns
+    const teachers = await User.findAll({
+      where: {
+        role: ["teacher", "supervisor"],
+      },
+      attributes: { exclude: ["password"] },
+    });
+
+    const classWithDetails = {
+      ...classItem.toJSON(),
+      students: students,
+      teachers: teachers,
+      students_count: students.length,
+    };
+
+    res.json({ success: true, class: classWithDetails });
+  } catch (error) {
+    console.error("Error fetching class details:", error);
+    res.status(500).json({ error: "حدث خطأ أثناء جلب تفاصيل الفصل" });
+  }
+};
+
 // Update a class
 const updateClass = async (req, res) => {
   try {
@@ -254,6 +298,7 @@ module.exports = {
   getAllClasses,
   getClassesByLevel,
   getClassById,
+  getClassDetails,
   updateClass,
   deleteClass,
 };

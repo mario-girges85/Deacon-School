@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import Avatar from "./Avatar";
+import { isAdmin } from "../util/auth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,10 +48,14 @@ const Navbar = () => {
     { path: "/", label: "الرئيسية", icon: "🏠" },
     { path: "/levels", label: "المستويات", icon: "📚" },
     { path: "/classes", label: "الفصول", icon: "👥" },
-    { path: "/bulk-upload", label: "رفع طلاب", icon: "📤" },
+    // Only show bulk upload link for admins
+    ...(isAdmin()
+      ? [{ path: "/bulk-upload", label: "رفع طلاب", icon: "📤" }]
+      : []),
     { path: "/schedule", label: "جدول المعلمين", icon: "📅" },
     { path: "/hymns", label: "مكتبة الألحان", icon: "🎵" },
-    { path: "/users", label: "المستخدمين", icon: "👤" },
+    // Only show Users link for admins
+    ...(isAdmin() ? [{ path: "/users", label: "المستخدمين", icon: "👤" }] : []),
     { path: "/contact", label: "تواصل معنا", icon: "📞" },
   ];
 

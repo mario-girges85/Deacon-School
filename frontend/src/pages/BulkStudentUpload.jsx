@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as ExcelJS from "exceljs";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
 
 const BulkStudentUpload = () => {
   const navigate = useNavigate();
@@ -13,11 +14,22 @@ const BulkStudentUpload = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Check authentication and admin role
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    if (!isAdmin()) {
+      navigate("/");
+      return;
+    }
+
     if (classId) {
       fetchClassData();
       fetchLevels();
     }
-  }, [classId]);
+  }, [classId, navigate]);
 
   const fetchClassData = async () => {
     try {
@@ -130,19 +142,33 @@ const BulkStudentUpload = () => {
       formData.append("file", file);
       formData.append("classId", classId);
 
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        ...getAuthHeaders(),
+      };
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers }
       );
 
       setUploadResult(response.data);
     } catch (error) {
       console.error("Error uploading file:", error);
+
+      if (error.response?.status === 401) {
+        // Unauthorized - redirect to login
+        navigate("/login");
+        return;
+      }
+
+      if (error.response?.status === 403) {
+        // Forbidden - not admin
+        setError("ليس لديك صلاحية لرفع الطلاب");
+        return;
+      }
+
       setError(error.response?.data?.error || "حدث خطأ أثناء رفع الملف");
     } finally {
       setUploading(false);
