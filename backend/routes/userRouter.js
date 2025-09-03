@@ -20,8 +20,45 @@ router.post(
 // Update profile image for existing user
 router.put(
   "/:id/image",
+  authenticateToken,
+  // allow self or admin
+  (req, res, next) => {
+    if (
+      String(req.user.id) !== String(req.params.id) &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "غير مصرح لك بتحديث صورة هذا المستخدم",
+        });
+    }
+    next();
+  },
   profileImageUpload.single("image"),
   userController.updateUserImage
+);
+
+// Change password
+router.put(
+  "/:id/password",
+  authenticateToken,
+  (req, res, next) => {
+    if (
+      String(req.user.id) !== String(req.params.id) &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "غير مصرح لك بتغيير كلمة المرور لهذا المستخدم",
+        });
+    }
+    next();
+  },
+  userController.changePassword
 );
 
 // Unified bulk import (CSV or Excel). Field name: 'file'. Optional body: classId

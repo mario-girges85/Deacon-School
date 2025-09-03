@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { isAuthenticated } from "../util/auth";
+import { isAuthenticated, isAdmin } from "../util/auth";
 import { getCurrentUser } from "../util/auth";
 import axios from "axios";
 
@@ -9,9 +9,7 @@ const UserData = () => {
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
   const profileImage = storedUser?.image || null;
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const roleLabels = {
     student: "طالب",
@@ -49,70 +47,89 @@ const UserData = () => {
     ? classLabels[user.class] || user.class
     : "";
 
-  // You can customize which fields to show based on your token structure
   return (
-    <div className="bg-white rounded-lg shadow p-6 mt-6 w-full max-w-md">
-      <h2 className="text-2xl font-semibold mb-4 text-primary">
-        بيانات المستخدم
-      </h2>
-      {profileImage && (
-        <div className="w-full flex justify-center mb-4">
-          <img
-            src={profileImage}
-            alt={user?.name || "الصورة الشخصية"}
-            className="w-24 h-24 rounded-full object-cover border border-gray-200"
-          />
-        </div>
-      )}
-      <div className="space-y-2 text-right">
-        {user.name && (
-          <div>
-            <span className="font-bold">الاسم: </span>
-            <span>{user.name}</span>
-          </div>
-        )}
-
-        {user.role && (
-          <div>
-            <span className="font-bold">الدور: </span>
-            <span>{roleLabels[user.role] || user.role}</span>
-          </div>
-        )}
-
-        {user.class && (
-          <div>
-            <span className="font-bold">الصف: </span>
-            <span>{arabicClassName}</span>
-          </div>
-        )}
-
-        {user.birthday && (
-          <div>
-            <span className="font-bold">تاريخ الميلاد: </span>
-            <span>{formattedBirthday}</span>
-          </div>
-        )}
-
-        {user.gender && (
-          <div>
-            <span className="font-bold">النوع: </span>
-            <span>{genderLabel}</span>
-          </div>
-        )}
-
+    <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 w-full max-w-2xl mx-auto mt-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+          بياناتي
+        </h2>
         {user.code && (
-          <div>
-            <span className="font-bold">الكود: </span>
-            <span>{user.code}</span>
-          </div>
+          <span className="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary">
+            كود: {user.code}
+          </span>
         )}
+      </div>
 
-        {user.phone && (
-          <div>
-            <span className="font-bold">رقم الهاتف: </span>
-            <span>{user.phone}</span>
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+        <div className="shrink-0">
+          <div className="relative">
+            <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-primary to-blue-400 p-1">
+              <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={user?.name || "الصورة الشخصية"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-4xl md:text-5xl">👤</div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        <div className="flex-1 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {user.name && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">الاسم</div>
+                <div className="text-gray-900 font-medium">{user.name}</div>
+              </div>
+            )}
+
+            {user.role && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">الدور</div>
+                <div className="text-gray-900 font-medium">
+                  {roleLabels[user.role] || user.role}
+                </div>
+              </div>
+            )}
+
+            {user.class && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">الصف</div>
+                <div className="text-gray-900 font-medium">
+                  {arabicClassName}
+                </div>
+              </div>
+            )}
+
+            {user.phone && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">رقم الهاتف</div>
+                <div className="text-gray-900 font-medium">{user.phone}</div>
+              </div>
+            )}
+
+            {user.birthday && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">تاريخ الميلاد</div>
+                <div className="text-gray-900 font-medium">
+                  {formattedBirthday}
+                </div>
+              </div>
+            )}
+
+            {user.gender && (
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-1">النوع</div>
+                <div className="text-gray-900 font-medium">{genderLabel}</div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -260,6 +277,11 @@ const SchoolStats = () => {
 };
 
 const Home = () => {
+  const authed = isAuthenticated();
+  const user = authed ? getCurrentUser() : null;
+  const showUserData = authed && user?.role === "student";
+  const showStats = isAdmin();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -271,8 +293,8 @@ const Home = () => {
             كنيسة القديسة دميانة
           </h1>
 
-          {/* School Statistics */}
-          <SchoolStats />
+          {showStats && <SchoolStats />}
+          {showUserData && <UserData />}
         </div>
       </div>
     </div>

@@ -22,6 +22,7 @@ import HymnsLibrary from "./pages/library/HymnsLibrary";
 import HymnDetails from "./pages/library/HymnDetails";
 import AddEditHymn from "./pages/library/AddEditHymn";
 import EventsManagement from "./pages/library/EventsManagement";
+import Profile from "./pages/Profile";
 
 const App = () => {
   return (
@@ -58,6 +59,7 @@ const App = () => {
         <Route path="/hymns/:id" element={<HymnDetails />} />
         <Route path="/hymns/:id/edit" element={<AddEditHymn />} />
         <Route path="/events" element={<EventsManagement />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>
   );

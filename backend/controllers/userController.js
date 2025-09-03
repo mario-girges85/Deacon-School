@@ -304,6 +304,58 @@ module.exports.login = async (req, res) => {
   }
 };
 
+// Change password (self or admin)
+module.exports.changePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (!newPassword || String(newPassword).length < 6) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل",
+        });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "المستخدم غير موجود" });
+    }
+
+    // If not admin, verify current password
+    const actingIsAdmin = req.user && req.user.role === "admin";
+    if (!actingIsAdmin) {
+      if (!currentPassword) {
+        return res
+          .status(400)
+          .json({ success: false, message: "كلمة المرور الحالية مطلوبة" });
+      }
+      const ok = await bcrypt.compare(String(currentPassword), user.password);
+      if (!ok) {
+        return res
+          .status(401)
+          .json({ success: false, message: "كلمة المرور الحالية غير صحيحة" });
+      }
+    }
+
+    const saltRounds = 12;
+    const hashed = await bcrypt.hash(String(newPassword), saltRounds);
+    user.password = hashed;
+    await user.save();
+
+    return res.json({ success: true, message: "تم تغيير كلمة المرور بنجاح" });
+  } catch (error) {
+    console.error("changePassword error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "تعذر تغيير كلمة المرور" });
+  }
+};
+
 // Update user profile image
 module.exports.updateUserImage = async (req, res) => {
   try {

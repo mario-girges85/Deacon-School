@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import Avatar from "./Avatar";
@@ -8,7 +8,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-  const user = storedUser || {};
+  const [user, setUser] = useState(storedUser || {});
 
   // Simple function to check if user is authenticated
   const isAuthenticated = () => {
@@ -42,6 +42,24 @@ const Navbar = () => {
 
     return `${baseClasses} ${isActive(path) ? activeClasses : inactiveClasses}`;
   };
+
+  // Keep avatar in sync when profile image changes
+  useEffect(() => {
+    const refreshUser = () => {
+      const u = JSON.parse(localStorage.getItem("user") || "null") || {};
+      setUser(u);
+    };
+    const onStorage = (e) => {
+      if (e.key === "user" || e.key === null) refreshUser();
+    };
+    const onUserUpdated = () => refreshUser();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("user:updated", onUserUpdated);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("user:updated", onUserUpdated);
+    };
+  }, []);
 
   // Navigation items with icons
   const navigationItems = [
