@@ -291,7 +291,7 @@ app.listen(port, async () => {
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
     // Avoid global alter to prevent hitting key limits on existing tables
-    await sequelize.sync({ force: true, alter: false });
+    await sequelize.sync({ force: false, alter: false });
     // Ensure the new curriculum_hymns table exists/updates
     if (typeof CurriculumHymns?.sync === "function") {
       await CurriculumHymns.sync({ alter: true });
