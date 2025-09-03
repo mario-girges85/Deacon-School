@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../util/axiosConfig";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -17,9 +17,7 @@ const UserDetails = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/users/${userId}`
-        );
+        const res = await apiClient.get(`/api/users/${userId}`);
         if (res.data?.success) {
           setUser(res.data.user);
         } else {
@@ -40,10 +38,7 @@ const UserDetails = () => {
       if (!user || !["admin", "teacher"].includes(user.role)) return;
       try {
         setAdminScheduleLoading(true);
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
-          {}
-        );
+        const res = await apiClient.post("/api/schedule/generate", {});
         const sched = res.data || null;
         setAdminSchedule(sched);
 
@@ -226,12 +221,14 @@ const UserDetails = () => {
                     setUploadingImage(true);
                     const form = new FormData();
                     form.append("image", file);
-                    const res = await axios.put(
-                      `${import.meta.env.VITE_API_BASE_URL}/api/users/${
-                        user.id
-                      }/image`,
+                    const res = await apiClient.put(
+                      `/api/users/${user.id}/image`,
                       form,
-                      { headers: { "Content-Type": "multipart/form-data" } }
+                      {
+                        headers: {
+                          "Content-Type": "multipart/form-data",
+                        },
+                      }
                     );
                     if (res.data?.success && res.data?.image) {
                       setUser((prev) => ({ ...prev, image: res.data.image }));

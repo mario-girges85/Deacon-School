@@ -219,6 +219,41 @@ const seedCurriculum = async () => {
   }
 };
 
+// Ensure admin account exists
+const seedAdmin = async () => {
+  try {
+    const bcrypt = require("bcrypt");
+
+    // Default admin credentials
+    const adminData = {
+      name: "System Administrator",
+      phone: "01000000000", // Default admin phone
+      password: await bcrypt.hash("admin123", 10), // Default password
+      birthday: "1990-01-01",
+      gender: "male",
+      role: "admin",
+    };
+
+    const [admin, created] = await User.findOrCreate({
+      where: {
+        phone: adminData.phone,
+        role: "admin",
+      },
+      defaults: adminData,
+    });
+
+    if (created) {
+      console.log("✅ Admin account created successfully");
+      console.log("📱 Phone: 01000000000");
+      console.log("🔑 Password: admin123");
+    } else {
+      console.log("⏭️ Admin account already exists");
+    }
+  } catch (err) {
+    console.error("❌ Failed to seed admin account:", err);
+  }
+};
+
 const port = 3000;
 const app = express();
 app.use(express.json());
@@ -248,13 +283,16 @@ app.listen(port, async () => {
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
     // Avoid global alter to prevent hitting key limits on existing tables
-    await sequelize.sync({ force: false, alter: false });
+    await sequelize.sync({ force: true, alter: false });
     // Ensure the new curriculum_hymns table exists/updates
     if (typeof CurriculumHymns?.sync === "function") {
       await CurriculumHymns.sync({ alter: true });
     }
 
     console.log("Database synchronized successfully.");
+
+    // Always ensure admin account exists
+    await seedAdmin();
 
     // Check if database is already seeded
     const existingLevels = await Levels.count();
