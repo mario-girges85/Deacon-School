@@ -1,10 +1,10 @@
 // Vercel serverless function entry point
-const app = require("../index");
+const app = require("../backend/index");
 
 // Initialize database on cold start
 const initializeDatabase = async () => {
   try {
-    const sequelize = require("../util/db");
+    const sequelize = require("../backend/util/db");
     const {
       User,
       Levels,
@@ -13,7 +13,7 @@ const initializeDatabase = async () => {
       Events,
       Hymns,
       CurriculumHymns,
-    } = require("../models/relationships");
+    } = require("../backend/models/relationships");
 
     // Sync database
     await sequelize.sync({ force: false, alter: false });
