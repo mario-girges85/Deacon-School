@@ -219,7 +219,7 @@ const seedCurriculum = async () => {
   }
 };
 
-// Ensure admin account exists
+// Ensure admin account exists -
 const seedAdmin = async () => {
   try {
     const bcrypt = require("bcrypt");
