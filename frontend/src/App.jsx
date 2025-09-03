@@ -33,7 +33,10 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/signup"
+          element={<ProtectedRoute requireAdmin element={<Signup />} />}
+        />
         <Route
           path="/users"
           element={<ProtectedRoute requireAdmin element={<Users />} />}

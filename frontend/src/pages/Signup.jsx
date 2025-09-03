@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { isAdmin } from "../util/auth";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -20,6 +21,13 @@ const Signup = () => {
     code: "",
     image: null,
   });
+
+  // Check if user is admin, redirect if not
+  useEffect(() => {
+    if (!isAdmin()) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const loadLevels = async () => {

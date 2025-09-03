@@ -146,16 +146,22 @@ const Navbar = () => {
             ) : (
               <div className="hidden lg:flex items-center gap-2">
                 <Link
-                  to="/signup"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors duration-200 rounded-lg hover:bg-gray-50"
-                >
-                  إنشاء حساب
-                </Link>
-                <Link
                   to="/login"
                   className="px-5 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg"
                 >
                   تسجيل الدخول
+                </Link>
+              </div>
+            )}
+
+            {/* Admin-only signup button */}
+            {isAuthenticated() && isAdmin() && (
+              <div className="hidden lg:flex items-center">
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors duration-200 rounded-lg hover:bg-gray-50 border border-gray-200"
+                >
+                  إنشاء حساب جديد
                 </Link>
               </div>
             )}
@@ -297,22 +303,24 @@ const Navbar = () => {
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <Link
-                      to="/signup"
-                      className="block w-full text-right text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 text-base font-medium transition-colors duration-200 rounded-lg"
-                      onClick={closeMenu}
-                    >
-                      إنشاء حساب
-                    </Link>
-                    <Link
-                      to="/login"
-                      className="block w-full text-right text-white bg-primary hover:bg-primary-dark px-4 py-3 text-base font-medium transition-colors duration-200 rounded-lg shadow-md"
-                      onClick={closeMenu}
-                    >
-                      تسجيل الدخول
-                    </Link>
-                  </>
+                  <Link
+                    to="/login"
+                    className="block w-full text-right text-white bg-primary hover:bg-primary-dark px-4 py-3 text-base font-medium transition-colors duration-200 rounded-lg shadow-md"
+                    onClick={closeMenu}
+                  >
+                    تسجيل الدخول
+                  </Link>
+                )}
+
+                {/* Admin-only signup button in mobile menu */}
+                {isAuthenticated() && isAdmin() && (
+                  <Link
+                    to="/signup"
+                    className="block w-full text-right text-gray-700 hover:text-primary hover:bg-gray-50 px-4 py-3 text-base font-medium transition-colors duration-200 rounded-lg border border-gray-200"
+                    onClick={closeMenu}
+                  >
+                    إنشاء حساب جديد
+                  </Link>
                 )}
               </div>
             </div>

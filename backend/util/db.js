@@ -2,15 +2,15 @@ const mysql = require("mysql2");
 const Sequelize = require("sequelize");
 require("dotenv").config();
 
-// DATABASE CONNECTION (hardcoded for production)
+// DATABASE CONNECTION using environment variables
 const sequelize = new Sequelize(
-  "u354738377_deaconschool",
-  "u354738377_deaconschool",
-  "@6pv7BOIvC",
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
   {
-    host: "92.113.22.53",
-    port: 3306,
-    dialect: "mysql",
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306,
+    dialect: process.env.DB_DIALECT || "mysql",
     logging: false,
   }
 );

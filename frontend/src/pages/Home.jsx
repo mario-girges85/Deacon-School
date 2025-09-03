@@ -5,11 +5,59 @@ import { getCurrentUser } from "../util/auth";
 import axios from "axios";
 
 const UserData = () => {
-  const user = getCurrentUser();
-  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-  const profileImage = storedUser?.image || null;
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [storedUser, setStoredUser] = useState(null);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Small delay to show loading state
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        const userData = getCurrentUser();
+        const storedUserData = JSON.parse(
+          localStorage.getItem("user") || "null"
+        );
+
+        setUser(userData);
+        setStoredUser(storedUserData);
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 w-full max-w-2xl mx-auto mt-8">
+        <div className="animate-pulse">
+          <div className="flex items-center justify-between mb-6">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/6"></div>
+          </div>
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+            <div className="w-28 h-28 md:w-32 md:h-32 bg-gray-200 rounded-full"></div>
+            <div className="flex-1 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-200 rounded-xl"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return null;
+
+  const profileImage = storedUser?.image || null;
 
   const roleLabels = {
     student: "طالب",
@@ -289,10 +337,93 @@ const SchoolStats = () => {
 };
 
 const Home = () => {
-  const authed = isAuthenticated();
-  const user = authed ? getCurrentUser() : null;
+  const [isLoading, setIsLoading] = useState(true);
+  const [authed, setAuthed] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Simulate loading time for authentication check and user data
+    const checkAuth = async () => {
+      try {
+        // Small delay to show loading state
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const authStatus = isAuthenticated();
+        const userData = authStatus ? getCurrentUser() : null;
+
+        setAuthed(authStatus);
+        setUser(userData);
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   const showUserData = authed && user?.role === "student";
   const showStats = isAdmin();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          {/* Loading Spinner */}
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+
+          {/* Loading Text */}
+          <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+            جاري التحميل...
+          </h2>
+          <p className="text-gray-500">
+            نرجو الانتظار قليلاً بينما نقوم بتحميل البيانات
+          </p>
+
+          {/* Loading Skeleton for main content */}
+          <div className="mt-8 max-w-4xl mx-auto px-4">
+            <div className="animate-pulse">
+              {/* Title skeleton */}
+              <div className="h-12 bg-gray-200 rounded-lg w-3/4 mx-auto mb-4"></div>
+              <div className="h-12 bg-gray-200 rounded-lg w-2/3 mx-auto mb-8"></div>
+
+              {/* Content skeleton */}
+              <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-20 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* User data skeleton */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 w-full max-w-2xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-6 bg-gray-200 rounded w-1/6"></div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+                  <div className="w-28 h-28 md:w-32 md:h-32 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[...Array(6)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-16 bg-gray-200 rounded-xl"
+                        ></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
