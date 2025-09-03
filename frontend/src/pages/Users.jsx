@@ -9,7 +9,7 @@ const Users = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
-  const [filterClass, setFilterClass] = useState("all");
+  const [filterLevel, setFilterLevel] = useState("all");
 
   useEffect(() => {
     fetchUsers();
@@ -25,7 +25,8 @@ const Users = () => {
         (user) =>
           user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user.phone.includes(searchTerm) ||
-          user.code.toLowerCase().includes(searchTerm.toLowerCase())
+          (user.code &&
+            user.code.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -34,13 +35,17 @@ const Users = () => {
       filtered = filtered.filter((user) => user.role === filterRole);
     }
 
-    // Filter by class
-    if (filterClass !== "all") {
-      filtered = filtered.filter((user) => user.class === filterClass);
+    // Filter by level
+    if (filterLevel !== "all") {
+      filtered = filtered.filter((user) => {
+        if (!user.level) return false;
+        const levelKey = `${user.level.level}-${user.level.stage}`;
+        return levelKey === filterLevel;
+      });
     }
 
     setFilteredUsers(filtered);
-  }, [users, searchTerm, filterRole, filterClass]);
+  }, [users, searchTerm, filterRole, filterLevel]);
 
   const handleDelete = async (userId, userName) => {
     if (window.confirm(`هل أنت متأكد من حذف المستخدم "${userName}"؟`)) {
@@ -266,20 +271,25 @@ const Users = () => {
 
             <div className="w-full lg:w-48">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                الصف
+                المستوى
               </label>
               <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="all">جميع الصفوف</option>
-                <option value="الصف الأول">الصف الأول</option>
-                <option value="الصف الثاني">الصف الثاني</option>
-                <option value="الصف الثالث">الصف الثالث</option>
-                <option value="الصف الرابع">الصف الرابع</option>
-                <option value="الصف الخامس">الصف الخامس</option>
-                <option value="الصف السادس">الصف السادس</option>
+                <option value="all">جميع المستويات</option>
+                <option value="0-1">المستوى التمهيدي - المرحلة الأولى</option>
+                <option value="0-2">المستوى التمهيدي - المرحلة الثانية</option>
+                <option value="1-1">المستوى الأول - المرحلة الأولى</option>
+                <option value="1-2">المستوى الأول - المرحلة الثانية</option>
+                <option value="1-3">المستوى الأول - المرحلة الثالثة</option>
+                <option value="2-1">المستوى الثاني - المرحلة الأولى</option>
+                <option value="2-2">المستوى الثاني - المرحلة الثانية</option>
+                <option value="2-3">المستوى الثاني - المرحلة الثالثة</option>
+                <option value="3-1">المستوى الثالث - المرحلة الأولى</option>
+                <option value="3-2">المستوى الثالث - المرحلة الثانية</option>
+                <option value="3-3">المستوى الثالث - المرحلة الثالثة</option>
               </select>
             </div>
 
@@ -287,7 +297,7 @@ const Users = () => {
               onClick={() => {
                 setSearchTerm("");
                 setFilterRole("all");
-                setFilterClass("all");
+                setFilterLevel("all");
               }}
               className="w-full lg:w-auto bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
             >
