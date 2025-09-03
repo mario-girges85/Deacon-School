@@ -90,10 +90,13 @@ module.exports.register = async (req, res) => {
         fs.unlinkSync(req.file.path);
       }
 
-      const field = "رقم الهاتف";
+      const isStudent = String(role).toLowerCase() === "student";
+      const message = isStudent
+        ? "رقم الهاتف أو الكود مستخدم بالفعل"
+        : "رقم الهاتف مستخدم بالفعل";
       return res.status(409).json({
         success: false,
-        message: `${field} مستخدم بالفعل`,
+        message,
       });
     }
 
@@ -190,8 +193,23 @@ module.exports.register = async (req, res) => {
 
     // Handle unique constraint errors
     if (error.name === "SequelizeUniqueConstraintError") {
+      const pathField = error.errors && error.errors[0] && error.errors[0].path;
+      const isStudent =
+        String((req.body && req.body.role) || "").toLowerCase() === "student";
+
+      if (isStudent && (pathField === "phone" || pathField === "code")) {
+        return res.status(409).json({
+          success: false,
+          message: "رقم الهاتف أو الكود مستخدم بالفعل",
+        });
+      }
+
       const field =
-        error.errors[0].path === "phone" ? "رقم الهاتف" : "الرقم التعريفي";
+        pathField === "phone"
+          ? "رقم الهاتف"
+          : pathField === "code"
+          ? "الكود"
+          : "الحقل";
       return res.status(409).json({
         success: false,
         message: `${field} مستخدم بالفعل`,

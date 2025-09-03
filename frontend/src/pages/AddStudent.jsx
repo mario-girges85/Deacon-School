@@ -13,6 +13,8 @@ const AddStudent = () => {
     gender: "male",
     code: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -72,16 +74,22 @@ const AddStudent = () => {
         return;
       }
 
-      // Create user with level and class relations.
-      // Do NOT send role; backend defaults to 'student'.
+      // Create user with level and class relations. Send image if provided.
+      const fd = new FormData();
+      fd.append("name", formData.name);
+      fd.append("phone", formData.phone);
+      fd.append("birthday", formData.birthday);
+      fd.append("gender", formData.gender);
+      fd.append("code", formData.code);
+      fd.append("password", formData.code); // default password
+      fd.append("class_id", classId);
+      fd.append("level_id", levelId);
+      if (imageFile) fd.append("image", imageFile);
+
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/register`,
-        {
-          ...formData,
-          password: formData.code, // Use code as default password
-          class_id: classId,
-          level_id: levelId,
-        }
+        fd,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       // Navigate back to class details
@@ -187,7 +195,7 @@ const AddStudent = () => {
               </span>
             </div>
             <div>
-              <span className="text-gray-600">معرف الفصل:</span>
+              <span className="text-gray-600">id الفصل:</span>
               <span className="font-medium mr-2 font-mono text-sm">
                 {classId}
               </span>
@@ -306,6 +314,38 @@ const AddStudent = () => {
                   placeholder="ST001"
                   required
                 />
+              </div>
+
+              {/* Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  الصورة الشخصية (اختياري)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setImageFile(f);
+                    if (f) {
+                      const r = new FileReader();
+                      r.onload = () => setImagePreview(r.result);
+                      r.readAsDataURL(f);
+                    } else {
+                      setImagePreview(null);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+                {imagePreview && (
+                  <div className="mt-3">
+                    <img
+                      src={imagePreview}
+                      alt="preview"
+                      className="w-20 h-20 rounded-full object-cover border"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

@@ -187,7 +187,7 @@ const getClassDetails = async (req, res) => {
     }
 
     // Get students in this class
-    const students = await User.findAll({
+    const rawStudents = await User.findAll({
       where: {
         class_id: id,
         role: "student",
@@ -195,6 +195,24 @@ const getClassDetails = async (req, res) => {
       attributes: { exclude: ["password"] },
       include: [{ model: Levels, as: "level" }],
     });
+    // Normalize student payload: add base64 image and classes array for table
+    const students = await Promise.all(
+      rawStudents.map(async (s) => {
+        const data = s.toJSON();
+        const img = data.image ? imageToBase64(data.image) : null;
+        return {
+          ...data,
+          image: img,
+          classes: [
+            {
+              id: classItem.id,
+              location: classItem.location,
+              level: classItem.level ? classItem.level : null,
+            },
+          ],
+        };
+      })
+    );
 
     // Get all teachers and supervisors for assignment dropdowns
     const teachers = await User.findAll({
