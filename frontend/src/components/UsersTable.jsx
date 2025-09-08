@@ -108,6 +108,19 @@ const UsersTable = ({
     return gender === "male" ? "ذكر" : "أنثى";
   };
 
+  // Build initials from first and second names
+  const getInitials = (fullName = "") => {
+    try {
+      const parts = String(fullName).trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return "?";
+      const first = parts[0].charAt(0).toUpperCase();
+      const second = parts.length > 1 ? parts[1].charAt(0).toUpperCase() : "";
+      return first + second || first || "?";
+    } catch {
+      return "?";
+    }
+  };
+
   const getRoleName = (role) => {
     switch (role) {
       case "student":
@@ -445,8 +458,8 @@ const UsersTable = ({
                         />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center ring-2 ring-gray-200">
-                          <span className="text-lg font-bold text-white">
-                            {user.name.charAt(0).toUpperCase()}
+                          <span className="text-sm font-bold text-white tracking-wide">
+                            {getInitials(user.name)}
                           </span>
                         </div>
                       )}
