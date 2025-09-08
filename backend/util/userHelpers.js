@@ -5,27 +5,14 @@ const { Op } = require("sequelize");
 const { User, Classes, Levels } = require("../models/relationships");
 const TeacherSubjectAssignment = require("../models/teacherSubjectAssignment");
 
-const imageToBase64 = (relativePath) => {
+// Build absolute URL for an uploaded file path based on the incoming request
+const buildImageUrl = (req, relativePath) => {
   try {
     if (!relativePath) return null;
-    const imagePath = path.join(__dirname, "..", relativePath);
-    if (!fs.existsSync(imagePath)) return null;
-    const imageBuffer = fs.readFileSync(imagePath);
-    const imageExtension = path.extname(relativePath).toLowerCase();
-    let mimeType = "image/jpeg";
-    switch (imageExtension) {
-      case ".png":
-        mimeType = "image/png";
-        break;
-      case ".jpg":
-      case ".jpeg":
-        mimeType = "image/jpeg";
-        break;
-      case ".heic":
-        mimeType = "image/heic";
-        break;
-    }
-    return `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
+    if (/^https?:\/\//i.test(relativePath)) return relativePath;
+    const host = req.get("host");
+    const protocol = req.protocol || "http";
+    return `${protocol}://${host}/${String(relativePath).replace(/^\/+/, "")}`;
   } catch {
     return null;
   }
@@ -69,13 +56,14 @@ const resolveTeacherClasses = async (userId, teachingClassesArray) => {
 
 // Build a consistent user JSON payload for API responses
 const buildUserResponse = async (
+  req,
   userInstance,
   { includeTeachingClasses = false } = {}
 ) => {
   const user = userInstance.toJSON();
 
   // Normalize image
-  user.image = imageToBase64(user.image);
+  user.image = buildImageUrl(req, user.image);
 
   // Consolidate classes depending on role
   if (["teacher", "supervisor"].includes(user.role)) {
@@ -96,7 +84,7 @@ const buildUserResponse = async (
 };
 
 module.exports = {
-  imageToBase64,
+  buildImageUrl,
   resolveTeacherClasses,
   buildUserResponse,
 };

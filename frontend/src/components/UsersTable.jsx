@@ -13,6 +13,7 @@ const UsersTable = ({
     key: null,
     direction: "asc",
   });
+  const [previewImage, setPreviewImage] = useState(null); // { url, name }
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -452,9 +453,16 @@ const UsersTable = ({
                     <div className="flex-shrink-0 h-12 w-12">
                       {user.image ? (
                         <img
-                          className="h-12 w-12 rounded-full object-cover ring-2 ring-gray-200"
+                          className="h-12 w-12 rounded-full object-cover ring-2 ring-gray-200 cursor-pointer"
                           src={user.image}
                           alt={user.name}
+                          title="تكبير الصورة"
+                          onClick={() =>
+                            setPreviewImage({
+                              url: user.image,
+                              name: user.name,
+                            })
+                          }
                         />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center ring-2 ring-gray-200">
@@ -559,8 +567,47 @@ const UsersTable = ({
           </tbody>
         </table>
       </div>
+
+      {/* Image lightbox overlay */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-2 border-b">
+              <h3 className="text-sm font-semibold text-gray-800 truncate">
+                {previewImage.name || "صورة المستخدم"}
+              </h3>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setPreviewImage(null)}
+                aria-label="إغلاق"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <img
+                src={previewImage.url}
+                alt={previewImage.name || "صورة"}
+                className="mx-auto max-h-[70vh] object-contain rounded"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default UsersTable;
+
+// Image preview modal (lightbox)
+// Rendered inline at the end to avoid separate component wiring
+// Note: This relies on the state defined above; keep it after export for clarity
+// eslint-disable-next-line no-unused-vars
+const _UsersTableImagePreviewOverlay = () => null;

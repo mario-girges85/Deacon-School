@@ -160,6 +160,12 @@ module.exports.register = async (req, res) => {
     const userResponse = { ...newUser.toJSON() };
     delete userResponse.password;
 
+    const { buildImageUrl } = require("../util/userHelpers");
+    // Convert image path to absolute URL
+    if (userResponse.image) {
+      userResponse.image = buildImageUrl(req, userResponse.image);
+    }
+
     res.status(201).json({
       success: true,
       message: "تم إنشاء الحساب بنجاح",
@@ -306,37 +312,10 @@ module.exports.login = async (req, res) => {
       image: null, // Default to null
     };
 
-    // Convert image file to base64 if exists
+    // Build absolute image URL if present
+    const { buildImageUrl } = require("../util/userHelpers");
     if (user.image) {
-      try {
-        const imagePath = path.join(__dirname, "..", user.image);
-        if (fs.existsSync(imagePath)) {
-          const imageBuffer = fs.readFileSync(imagePath);
-          const imageExtension = path.extname(user.image).toLowerCase();
-          let mimeType = "image/jpeg"; // default
-
-          // Determine MIME type based on extension
-          switch (imageExtension) {
-            case ".png":
-              mimeType = "image/png";
-              break;
-            case ".jpg":
-            case ".jpeg":
-              mimeType = "image/jpeg";
-              break;
-            case ".heic":
-              mimeType = "image/heic";
-              break;
-          }
-
-          userData.image = `data:${mimeType};base64,${imageBuffer.toString(
-            "base64"
-          )}`;
-        }
-      } catch (imageError) {
-        console.error("Error reading image file:", imageError);
-        // Keep image as null if there's an error
-      }
+      userData.image = buildImageUrl(req, user.image);
     }
 
     res.status(200).json({
@@ -446,7 +425,8 @@ module.exports.updateUserImage = async (req, res) => {
     user.image = `uploads/profiles/${req.file.filename}`;
     await user.save();
 
-    const base64 = imageToBase64(user.image);
+    const { buildImageUrl } = require("../util/userHelpers");
+    const base64 = buildImageUrl(req, user.image);
     return res.json({
       success: true,
       message: "تم تحديث الصورة بنجاح",
@@ -510,7 +490,7 @@ module.exports.getUsers = async (req, res) => {
     const { buildUserResponse } = require("../util/userHelpers");
     const usersWithImages = await Promise.all(
       users.map(async (u) =>
-        buildUserResponse(u, { includeTeachingClasses: includeTeaching })
+        buildUserResponse(req, u, { includeTeachingClasses: includeTeaching })
       )
     );
 
