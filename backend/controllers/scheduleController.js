@@ -299,28 +299,22 @@ module.exports.saveSchedule = async (req, res) => {
             .status(400)
             .json({ success: false, error: `Unknown teacher ${tId}` });
         if (t.subject && t.subject !== row[slotKey].subject)
-          return res
-            .status(400)
-            .json({
-              success: false,
-              error: `Teacher ${t.name} is not specialized in ${row[slotKey].subject}`,
-            });
+          return res.status(400).json({
+            success: false,
+            error: `Teacher ${t.name} is not specialized in ${row[slotKey].subject}`,
+          });
         if (bySlot[slotKey].has(tId))
-          return res
-            .status(400)
-            .json({
-              success: false,
-              error: `Teacher ${t.name} appears twice in slot ${slotKey}`,
-            });
+          return res.status(400).json({
+            success: false,
+            error: `Teacher ${t.name} appears twice in slot ${slotKey}`,
+          });
         bySlot[slotKey].add(tId);
         totals.set(tId, (totals.get(tId) || 0) + 1);
         if (totals.get(tId) > MAX)
-          return res
-            .status(400)
-            .json({
-              success: false,
-              error: `Teacher ${t.name} exceeds max 3 classes`,
-            });
+          return res.status(400).json({
+            success: false,
+            error: `Teacher ${t.name} exceeds max 3 classes`,
+          });
       }
     }
 
@@ -355,5 +349,79 @@ module.exports.saveSchedule = async (req, res) => {
   } catch (error) {
     console.error("saveSchedule error:", error);
     return res.status(500).json({ success: false, error: "save failed" });
+  }
+};
+
+// Fetch the currently saved schedule from DB
+module.exports.getCurrentSchedule = async (req, res) => {
+  try {
+    // Load classes with levels (ordered consistently)
+    const classes = await Classes.findAll({
+      where: { level_id: { [Op.ne]: null } },
+      include: [
+        { model: Levels, as: "level", attributes: ["level", "stage"] },
+        { model: TeacherSubjectAssignment, as: "teacherAssignment" },
+      ],
+      order: [
+        [{ model: Levels, as: "level" }, "level", "ASC"],
+        [{ model: Levels, as: "level" }, "stage", "ASC"],
+      ],
+    });
+
+    // Preload teachers for name/subject mapping (optional, can be used by UI)
+    const teachers = await User.findAll({
+      where: { role: "teacher", subject: { [Op.in]: SUBJECTS } },
+      attributes: ["id", "name", "subject"],
+    });
+    const teacherById = new Map(teachers.map((t) => [t.id, t]));
+
+    // Build subject→slot mapping per class (same as generator, to keep UI shape)
+    const subjectSlotByClass = {};
+    classes.forEach((c, idx) => {
+      subjectSlotByClass[c.id] = getSubjectSlotForClassIndex(idx);
+    });
+
+    // Construct rows using saved teacher assignments
+    const rows = classes.map((c) => {
+      const assign = c.teacherAssignment || {};
+      const teacherForSubject = (subject) => {
+        if (subject === "taks") return assign.taks_teacher_id || null;
+        if (subject === "al7an") return assign.al7an_teacher_id || null;
+        if (subject === "coptic") return assign.coptic_teacher_id || null;
+        return null;
+      };
+
+      // Determine which subject is in each slot for this class index
+      const slotMap = subjectSlotByClass[c.id];
+      const buildCell = (slotKey) => {
+        const subject = slotMap[slotKey];
+        const teacherId = teacherForSubject(subject);
+        return { subject, teacherId };
+      };
+
+      return {
+        class: { id: c.id, location: c.location, level: c.level },
+        A: buildCell("A"),
+        B: buildCell("B"),
+        C: buildCell("C"),
+      };
+    });
+
+    return res.json({
+      success: true,
+      timeSlots: TIME_SLOTS,
+      subjects: SUBJECTS,
+      subjectSlotByClass,
+      rows,
+      teacherLookup: Object.fromEntries(
+        Array.from(teacherById.entries()).map(([id, t]) => [
+          id,
+          { name: t.name, subject: t.subject },
+        ])
+      ),
+    });
+  } catch (error) {
+    console.error("getCurrentSchedule error:", error);
+    return res.status(500).json({ success: false, error: "fetch failed" });
   }
 };

@@ -6,6 +6,7 @@ const Events = require("./events");
 const Hymns = require("./hymns");
 const CurriculumHymns = require("./curriculumHymns");
 const sequelize = require("../util/db");
+const TeacherSubjectAssignment = require("./teacherSubjectAssignment");
 
 // Define relationships
 
@@ -104,3 +105,15 @@ module.exports = {
   Hymns,
   CurriculumHymns,
 };
+
+// Classes -> TeacherSubjectAssignment (One-to-One per class)
+Classes.hasOne(TeacherSubjectAssignment, {
+  foreignKey: "class_id",
+  as: "teacherAssignment",
+  onDelete: "CASCADE",
+});
+
+TeacherSubjectAssignment.belongsTo(Classes, {
+  foreignKey: "class_id",
+  as: "class",
+});

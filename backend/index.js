@@ -261,14 +261,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // CORS configuration
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || "*", // Allow all origins in development
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    credentials: false, // Set to false when using wildcard origin
-  })
-);
+// Allow all origins and handle preflight across the app
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("Hello school");

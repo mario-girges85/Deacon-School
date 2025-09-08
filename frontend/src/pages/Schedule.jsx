@@ -1,9 +1,37 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
+import {
+  isAuthenticated,
+  isAdmin,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../util/auth";
 
 const SUBJECT_LABELS = { taks: "طقس", al7an: "ألحان", coptic: "قبطي" };
+const SUBJECT_STYLES = {
+  taks: {
+    icon: "📜",
+    badgeBg: "bg-blue-100",
+    badgeText: "text-blue-800",
+    cellBg: "bg-blue-50/40",
+    cellRing: "ring-blue-200",
+  },
+  al7an: {
+    icon: "🎵",
+    badgeBg: "bg-purple-100",
+    badgeText: "text-purple-800",
+    cellBg: "bg-purple-50/40",
+    cellRing: "ring-purple-200",
+  },
+  coptic: {
+    icon: "✝️",
+    badgeBg: "bg-amber-100",
+    badgeText: "text-amber-900",
+    cellBg: "bg-amber-50/40",
+    cellRing: "ring-amber-200",
+  },
+};
 
 const Schedule = () => {
   const navigate = useNavigate();
@@ -20,6 +48,8 @@ const Schedule = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [editedRows, setEditedRows] = useState(null); // local editable schedule
+  const [isEditing, setIsEditing] = useState(false);
+  const [showTeacherSelection, setShowTeacherSelection] = useState(false);
   const [error, setError] = useState("");
   const [dragInfo, setDragInfo] = useState(null); // { classId, slotKey }
 
@@ -56,7 +86,26 @@ const Schedule = () => {
         setTeachersBySubject({ taks: [], al7an: [], coptic: [] });
       }
     };
+    const fetchExistingSchedule = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/schedule/current`,
+          { headers: { ...getAuthHeaders() } }
+        );
+        if (
+          res.data?.success &&
+          Array.isArray(res.data.rows) &&
+          res.data.rows.length > 0
+        ) {
+          setResult(res.data);
+          setEditedRows(res.data.rows);
+        }
+      } catch (e) {
+        // ignore if none exists
+      }
+    };
     fetchTeachers();
+    fetchExistingSchedule();
   }, [navigate]);
 
   const teacherNameById = useMemo(() => {
@@ -88,6 +137,11 @@ const Schedule = () => {
 
   const generate = async () => {
     try {
+      // First click reveals selection UI; second click actually generates
+      if (!showTeacherSelection) {
+        setShowTeacherSelection(true);
+        return;
+      }
       setLoading(true);
       setError("");
       setResult(null);
@@ -165,10 +219,12 @@ const Schedule = () => {
   };
 
   const handleDragStart = (classId, slotKey) => {
+    if (!isEditing) return;
     setDragInfo({ classId, slotKey });
   };
 
   const handleDrop = (targetClassId, targetSlotKey) => {
+    if (!isEditing) return;
     if (!dragInfo || !editedRows) return;
     const { classId: sourceClassId, slotKey: sourceSlotKey } = dragInfo;
     setDragInfo(null);
@@ -199,6 +255,14 @@ const Schedule = () => {
 
   const handleSubmit = async () => {
     if (!editedRows) return;
+    // Confirm when there are changes
+    const serialize = (rows) => JSON.stringify(rows);
+    const changed =
+      serialize(result?.rows || []) !== serialize(editedRows || []);
+    if (changed) {
+      const ok = window.confirm("هل تريد حفظ التغييرات الحالية على الجدول؟");
+      if (!ok) return;
+    }
     try {
       setLoading(true);
       setError("");
@@ -235,37 +299,39 @@ const Schedule = () => {
           </p>
         </div>
 
-        {/* Select teachers per subject (no IDs) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {Object.entries(SUBJECT_LABELS).map(([key, label]) => (
-            <div key={key} className="bg-white border rounded-md p-4">
-              <h3 className="font-semibold mb-2">{label}</h3>
-              {teachersBySubject[key].length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  لا يوجد معلمون لهذا التخصص
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-64 overflow-auto pr-1">
-                  {teachersBySubject[key].map((t) => (
-                    <label
-                      key={t.id}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={(selectedTeachers[key] || []).includes(t.id)}
-                        onChange={(e) =>
-                          toggleTeacher(key, t.id, e.target.checked)
-                        }
-                      />
-                      <span>{t.name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        {/* Select teachers per subject (only after first Generate click) */}
+        {showTeacherSelection && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {Object.entries(SUBJECT_LABELS).map(([key, label]) => (
+              <div key={key} className="bg-white border rounded-md p-4">
+                <h3 className="font-semibold mb-2">{label}</h3>
+                {teachersBySubject[key].length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    لا يوجد معلمون لهذا التخصص
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-auto pr-1">
+                    {teachersBySubject[key].map((t) => (
+                      <label
+                        key={t.id}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(selectedTeachers[key] || []).includes(t.id)}
+                          onChange={(e) =>
+                            toggleTeacher(key, t.id, e.target.checked)
+                          }
+                        />
+                        <span>{t.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-3 mb-4">
           <button
@@ -273,15 +339,55 @@ const Schedule = () => {
             disabled={loading}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "جارٍ التوليد..." : "توليد الجدول"}
+            {loading
+              ? "جارٍ التوليد..."
+              : showTeacherSelection
+              ? "توليد الجدول"
+              : "اختيار المعلمين"}
           </button>
+          {showTeacherSelection && (
+            <button
+              onClick={() => setShowTeacherSelection(false)}
+              disabled={loading}
+              className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+          )}
+          {result && (
+            <>
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  disabled={loading || !editedRows}
+                  className="bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                >
+                  تعديل الجدول
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    if (result?.rows) setEditedRows(result.rows);
+                  }}
+                  disabled={loading}
+                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 disabled:opacity-50"
+                >
+                  إلغاء التعديل
+                </button>
+              )}
+            </>
+          )}
           <button
             onClick={handleSubmit}
-            disabled={loading || !editedRows}
+            disabled={loading || !editedRows || !isEditing}
             className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
           >
-            إرسال الجدول
+            حفظ الجدول
           </button>
+          {isEditing && (
+            <span className="text-sm text-yellow-700">وضع التعديل مفعل</span>
+          )}
         </div>
 
         {error && (
@@ -295,12 +401,31 @@ const Schedule = () => {
           <div className="mt-8">
             <h2 className="text-2xl font-semibold mb-4">النتيجة</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border">
-                <thead>
+              <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
+                {Object.entries(SUBJECT_LABELS).map(([k, label]) => {
+                  const s = SUBJECT_STYLES[k] || {};
+                  return (
+                    <span
+                      key={k}
+                      className={`inline-flex items-center gap-2 px-2 py-1 rounded-full ${s.badgeBg} ${s.badgeText}`}
+                    >
+                      <span>{s.icon}</span>
+                      <span>{label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+              <table className="min-w-full bg-white border rounded-md overflow-hidden">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-3 py-2 text-right">الفصل</th>
+                    <th className="border px-3 py-3 text-right font-semibold">
+                      الفصل
+                    </th>
                     {result.timeSlots.map((ts) => (
-                      <th key={ts.key} className="border px-3 py-2 text-right">
+                      <th
+                        key={ts.key}
+                        className="border px-3 py-3 text-right font-semibold"
+                      >
                         {ts.label}
                       </th>
                     ))}
@@ -308,8 +433,11 @@ const Schedule = () => {
                 </thead>
                 <tbody>
                   {editedRows.map((row) => (
-                    <tr key={row.class.id} className="hover:bg-gray-50">
-                      <td className="border px-3 py-2 text-right">
+                    <tr
+                      key={row.class.id}
+                      className="odd:bg-white even:bg-gray-50/50"
+                    >
+                      <td className="border px-3 py-3 text-right align-top">
                         <div className="font-medium">{row.class.location}</div>
                         <div className="text-xs text-gray-500">
                           المستوى {row.class.level?.level} - المرحلة{" "}
@@ -322,11 +450,16 @@ const Schedule = () => {
                           ? teacherNameById.get(cell.teacherId) ||
                             cell.teacherId
                           : null;
+                        const s = SUBJECT_STYLES[cell.subject] || {};
                         return (
                           <td
                             key={ts.key}
-                            className="border px-3 py-2 text-right cursor-move select-none"
-                            draggable
+                            className={`border px-3 py-3 text-right select-none transition ${
+                              isEditing
+                                ? "cursor-move"
+                                : "cursor-default opacity-90"
+                            } ${s.cellBg} hover:ring-1 ${s.cellRing}`}
+                            draggable={isEditing}
                             onDragStart={() =>
                               handleDragStart(row.class.id, ts.key)
                             }
@@ -334,17 +467,26 @@ const Schedule = () => {
                             onDrop={() => handleDrop(row.class.id, ts.key)}
                             title="اسحب وافلت للتبديل"
                           >
-                            <div className="font-medium">
-                              {SUBJECT_LABELS[cell.subject] || cell.subject}
-                            </div>
-                            <div
-                              className={`text-xs ${
-                                teacherName ? "text-green-700" : "text-red-700"
-                              }`}
-                            >
-                              {teacherName
-                                ? `معلم: ${teacherName}`
-                                : "غير معيّن"}
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs ${s.badgeBg} ${s.badgeText}`}
+                              >
+                                <span>{s.icon}</span>
+                                <span className="font-medium">
+                                  {SUBJECT_LABELS[cell.subject] || cell.subject}
+                                </span>
+                              </span>
+                              <span
+                                className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                                  teacherName
+                                    ? "bg-green-50 text-green-700 border-green-200"
+                                    : "bg-red-50 text-red-700 border-red-200"
+                                }`}
+                              >
+                                {teacherName
+                                  ? `معلم: ${teacherName}`
+                                  : "غير معيّن"}
+                              </span>
                             </div>
                           </td>
                         );
