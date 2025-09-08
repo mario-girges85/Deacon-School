@@ -8,6 +8,34 @@ const SUBJECTS = [
   { key: "coptic", label: "قبطي" },
 ];
 
+// Visual styles and icons per subject
+const SUBJECT_STYLES = {
+  taks: {
+    icon: "📜",
+    headerBg: "bg-blue-50",
+    headerText: "text-blue-800",
+    headerBorder: "border-blue-200",
+    chipBg: "bg-blue-100",
+    chipText: "text-blue-800",
+  },
+  al7an: {
+    icon: "🎵",
+    headerBg: "bg-purple-50",
+    headerText: "text-purple-800",
+    headerBorder: "border-purple-200",
+    chipBg: "bg-purple-100",
+    chipText: "text-purple-800",
+  },
+  coptic: {
+    icon: "✝️",
+    headerBg: "bg-amber-50",
+    headerText: "text-amber-900",
+    headerBorder: "border-amber-200",
+    chipBg: "bg-amber-100",
+    chipText: "text-amber-900",
+  },
+};
+
 const LevelCurriculum = () => {
   const { levelId } = useParams();
   const navigate = useNavigate();
@@ -279,16 +307,29 @@ const LevelCurriculum = () => {
         {/* Subjects */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {SUBJECTS.map((subj) => (
-            <div key={subj.key} className="bg-white rounded-lg shadow">
+            <div
+              key={subj.key}
+              className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden"
+            >
               <button
-                className="w-full text-right p-4 font-semibold border-b hover:bg-gray-50"
+                className={`w-full text-right p-4 font-semibold border-b flex items-center justify-between ${
+                  SUBJECT_STYLES[subj.key]?.headerBg || ""
+                } ${
+                  SUBJECT_STYLES[subj.key]?.headerBorder || "border-gray-200"
+                } ${SUBJECT_STYLES[subj.key]?.headerText || "text-gray-900"}`}
                 onClick={() =>
                   setExpandedSubject((prev) =>
                     prev === subj.key ? null : subj.key
                   )
                 }
               >
-                {subj.label}
+                <span className="flex items-center gap-2">
+                  <span>{SUBJECT_STYLES[subj.key]?.icon}</span>
+                  <span>{subj.label}</span>
+                </span>
+                <span className="text-xs text-gray-500">
+                  {expandedSubject === subj.key ? "إخفاء" : "عرض"}
+                </span>
               </button>
               {expandedSubject === subj.key && (
                 <div className="p-4 grid grid-cols-2 gap-2">
@@ -300,9 +341,21 @@ const LevelCurriculum = () => {
                           `/levels/${levelId}/curriculum/${subj.key}/semesters/${selectedSemester}/lectures/${lec}`
                         )
                       }
-                      className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded text-right flex items-center justify-between"
+                      className={`px-3 py-3 text-sm bg-white border rounded-md text-right flex items-center justify-between hover:shadow transition ${
+                        SUBJECT_STYLES[subj.key]?.headerBorder ||
+                        "border-gray-200"
+                      }`}
                     >
-                      <span>المحاضرة {lec}</span>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                            SUBJECT_STYLES[subj.key]?.chipBg
+                          } ${SUBJECT_STYLES[subj.key]?.chipText}`}
+                        >
+                          <span>{SUBJECT_STYLES[subj.key]?.icon}</span>
+                          <span>محاضرة {lec}</span>
+                        </span>
+                      </span>
                       <div className="flex items-center">
                         {renderFileIndicators(subj.key, lec)}
                       </div>
