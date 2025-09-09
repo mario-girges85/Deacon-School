@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET;
 const sequelize = require("../util/db");
 module.exports.register = async (req, res) => {
   try {

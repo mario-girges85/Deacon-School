@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Middleware to authenticate JWT token
@@ -23,7 +23,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Get user from database to ensure they still exist and get latest data
     const user = await User.findByPk(decoded.id, {
       attributes: { exclude: ["password"] }, // Don't include password
@@ -51,14 +51,14 @@ const authenticateToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Authentication error:", error);
-    
+
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
         message: "رمز الوصول غير صحيح",
       });
     }
-    
+
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
@@ -210,7 +210,7 @@ const checkRole = (roles) => {
     }
 
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
-    
+
     if (!requiredRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,

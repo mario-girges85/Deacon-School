@@ -307,7 +307,7 @@ const Schedule = () => {
                 <h3 className="font-semibold mb-2">{label}</h3>
                 {teachersBySubject[key].length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    لا يوجد معلمون لهذا التخصص
+                    لا يوجد معلمون لهذة مادة
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-auto pr-1">

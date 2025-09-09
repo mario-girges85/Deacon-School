@@ -120,7 +120,7 @@ const HymnsLibrary = () => {
                 onClick={() => navigate("/hymns/add")}
                 className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
               >
-                إضافة ترنيمة جديدة
+                إضافة لحن جديد
               </button>
             </div>
           )}
@@ -137,7 +137,7 @@ const HymnsLibrary = () => {
           <div className="relative max-w-md">
             <input
               type="text"
-              placeholder="البحث في الترانيم..."
+              placeholder="البحث في الالحان..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={(e) => {
@@ -185,7 +185,7 @@ const HymnsLibrary = () => {
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                 >
-                  جميع الترانيم
+                  جميع الالحان
                 </button>
                 {events.map((event) => (
                   <button
@@ -213,7 +213,7 @@ const HymnsLibrary = () => {
                     {selectedEvent.name_arabic || selectedEvent.name}
                   </h3>
                   <span className="text-sm text-gray-500">
-                    ({filteredHymns.length} ترنيمة)
+                    ({filteredHymns.length} لحن)
                   </span>
                 </div>
                 {selectedEvent.description && (
@@ -230,7 +230,7 @@ const HymnsLibrary = () => {
                   نتائج البحث عن: "{searchTerm}"
                 </h3>
                 <span className="text-sm text-gray-500">
-                  ({filteredHymns.length} ترنيمة)
+                  ({filteredHymns.length} لحن)
                 </span>
               </div>
             )}
@@ -243,7 +243,7 @@ const HymnsLibrary = () => {
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-4">🎵</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  لا توجد ترانيم
+                  لا توجد الحان
                 </h3>
                 <p className="text-gray-500">
                   {selectedEvent

@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import CopticKeyboard from "../../components/CopticKeyboard";
-import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../../util/auth";
+import {
+  isAuthenticated,
+  isAdmin,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../../util/auth";
 
 const AddEditHymn = () => {
   const { id } = useParams();
@@ -67,7 +72,7 @@ const AddEditHymn = () => {
       setHymn(response.data.hymn);
     } catch (error) {
       console.error("Error fetching hymn:", error);
-      setError("حدث خطأ أثناء جلب الترانيمة");
+      setError("حدث خطأ أثناء جلب اللحن");
     }
   };
 
@@ -109,15 +114,13 @@ const AddEditHymn = () => {
         await uploadAudio(hymnId);
       }
 
-      setSuccess(
-        isEdit ? "تم تحديث الترانيمة بنجاح" : "تم إنشاء الترانيمة بنجاح"
-      );
+      setSuccess(isEdit ? "تم تحديث اللحن بنجاح" : "تم إنشاء اللحن بنجاح");
       setTimeout(() => {
         navigate(`/hymns/${hymnId}`);
       }, 1500);
     } catch (error) {
       console.error("Error saving hymn:", error);
-      setError(error.response?.data?.error || "حدث خطأ أثناء حفظ الترانيمة");
+      setError(error.response?.data?.error || "حدث خطأ أثناء حفظ اللحن");
     } finally {
       setLoading(false);
     }
@@ -171,7 +174,7 @@ const AddEditHymn = () => {
             العودة للمكتبة
           </button>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isEdit ? "تعديل الترانيمة" : "إضافة ترنيمة جديدة"}
+            {isEdit ? "تعديل اللحن" : "إضافة لحن جديدة"}
           </h1>
         </div>
 
@@ -265,7 +268,7 @@ const AddEditHymn = () => {
                   }
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="أدخل كلمات الترانيمة باللغة العربية..."
+                  placeholder="أدخل كلمات اللحن باللغة العربية..."
                 />
               </div>
 
@@ -291,7 +294,7 @@ const AddEditHymn = () => {
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent coptic-text"
                   style={{ fontFamily: "CopticFont, serif", fontSize: "1.1em" }}
-                  placeholder="أدخل كلمات الترانيمة باللغة القبطية..."
+                  placeholder="أدخل كلمات اللحن باللغة القبطية..."
                 />
                 {keyboardOpen && (
                   <CopticKeyboard
@@ -314,7 +317,7 @@ const AddEditHymn = () => {
                   }
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="أدخل كلمات الترانيمة بالعربية القبطية (نطق عربي للحروف القبطية)..."
+                  placeholder="أدخل كلمات اللحن بالقبطي المعرب..."
                 />
               </div>
             </div>

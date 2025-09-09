@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as ExcelJS from "exceljs";
-import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
+import {
+  isAuthenticated,
+  isAdmin,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../util/auth";
 
 const BulkStudentUpload = () => {
   const navigate = useNavigate();
@@ -265,7 +270,7 @@ const BulkStudentUpload = () => {
               </span>
             </div>
             <div>
-              <span className="text-gray-600">معرف الفصل:</span>
+              <span className="text-gray-600">id الفصل:</span>
               <span className="font-medium mr-2 font-mono text-sm">
                 {classId}
               </span>

@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../../util/auth";
+import {
+  isAuthenticated,
+  isAdmin,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../../util/auth";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -206,7 +211,7 @@ const EventsManagement = () => {
                     </button>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500">المعرف: {evt.id}</div>
+                <div className="text-xs text-gray-500">ال id: {evt.id}</div>
               </div>
             ))
           )}
