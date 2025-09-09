@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UsersTable from "../components/UsersTable";
-import { isAuthenticated, isAdmin, getAuthHeaders, notifyForbidden } from "../util/auth";
+import {
+  isAuthenticated,
+  isAdmin,
+  getAuthHeaders,
+  notifyForbidden,
+} from "../util/auth";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -172,6 +177,16 @@ const Users = () => {
             <p className="mt-2 text-gray-600 text-center">
               عرض وإدارة جميع المستخدمين في النظام
             </p>
+            {isAdmin() && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="px-5 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg"
+                >
+                  إنشاء حساب جديد
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

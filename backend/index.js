@@ -226,7 +226,7 @@ const seedAdmin = async () => {
 
     // Admin credentials
     const adminData = {
-      name: "System Administrator",
+      name: "Mario gerges",
       phone: "01285948011", // Admin phone
       password: await bcrypt.hash("000000", 10), // Admin password
       birthday: "1990-01-01",
@@ -256,7 +256,7 @@ const seedAdmin = async () => {
   }
 };
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -288,7 +288,7 @@ const initializeServer = async () => {
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
     // Avoid global alter to prevent hitting key limits on existing tables
-    await sequelize.sync({ force: false, alter: false });
+    await sequelize.sync({ force: true, alter: false });
     // Ensure the new curriculum_hymns table exists/updates
     if (typeof CurriculumHymns?.sync === "function") {
       await CurriculumHymns.sync({ alter: true });

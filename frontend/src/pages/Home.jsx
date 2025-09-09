@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { isAuthenticated, isAdmin } from "../util/auth";
 import { getCurrentUser } from "../util/auth";
 import axios from "axios";
+import logo from "../assets/logo.png";
 
 const UserData = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -429,6 +430,7 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center flex flex-col items-center justify-center">
+          <img src={logo} alt="Logo" className="h-16 w-auto mb-4 opacity-90" />
           <h1 className="text-4xl font-bold text-primary mb-4">
             مرحباً بكم في موقع مدرسة شمامسة{" "}
           </h1>

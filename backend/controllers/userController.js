@@ -401,7 +401,7 @@ module.exports.updateUserImage = async (req, res) => {
     const User = require("../models/user");
     const path = require("path");
     const fs = require("fs");
-    const { imageToBase64 } = require("../util/userHelpers");
+    const { buildImageUrl } = require("../util/userHelpers");
 
     const user = await User.findByPk(id);
     if (!user) {
@@ -425,12 +425,11 @@ module.exports.updateUserImage = async (req, res) => {
     user.image = `uploads/profiles/${req.file.filename}`;
     await user.save();
 
-    const { buildImageUrl } = require("../util/userHelpers");
-    const base64 = buildImageUrl(req, user.image);
+    const imageUrl = buildImageUrl(req, user.image);
     return res.json({
       success: true,
       message: "تم تحديث الصورة بنجاح",
-      image: base64,
+      image: imageUrl,
     });
   } catch (error) {
     console.error("updateUserImage error:", error);
@@ -549,35 +548,10 @@ module.exports.getUserById = async (req, res) => {
 
     const userData = user.toJSON();
 
-    // Convert image to base64 if exists
+    // Convert image path to absolute URL if exists
     if (userData.image) {
-      try {
-        const imagePath = path.join(__dirname, "..", userData.image);
-        if (fs.existsSync(imagePath)) {
-          const imageBuffer = fs.readFileSync(imagePath);
-          const imageExtension = path.extname(userData.image).toLowerCase();
-          let mimeType = "image/jpeg";
-          switch (imageExtension) {
-            case ".png":
-              mimeType = "image/png";
-              break;
-            case ".jpg":
-            case ".jpeg":
-              mimeType = "image/jpeg";
-              break;
-            case ".heic":
-              mimeType = "image/heic";
-              break;
-          }
-          userData.image = `data:${mimeType};base64,${imageBuffer.toString(
-            "base64"
-          )}`;
-        } else {
-          userData.image = null;
-        }
-      } catch (e) {
-        userData.image = null;
-      }
+      const { buildImageUrl } = require("../util/userHelpers");
+      userData.image = buildImageUrl(req, userData.image);
     }
 
     if (["teacher", "supervisor"].includes(userData.role)) {
@@ -1330,44 +1304,14 @@ module.exports.getTeachersWithClasses = async (req, res) => {
       attributes: ["id", "name", "phone", "code", "role", "image"],
     });
 
-    // Process images to base64
+    // Process images to URLs
     const teachersWithImages = await Promise.all(
       teachers.map(async (teacher) => {
         const teacherData = teacher.toJSON();
 
         if (teacherData.image) {
-          try {
-            const imagePath = path.join(__dirname, "..", teacherData.image);
-            if (fs.existsSync(imagePath)) {
-              const imageBuffer = fs.readFileSync(imagePath);
-              const imageExtension = path
-                .extname(teacherData.image)
-                .toLowerCase();
-              let mimeType = "image/jpeg";
-
-              switch (imageExtension) {
-                case ".png":
-                  mimeType = "image/png";
-                  break;
-                case ".jpg":
-                case ".jpeg":
-                  mimeType = "image/jpeg";
-                  break;
-                case ".heic":
-                  mimeType = "image/heic";
-                  break;
-              }
-
-              teacherData.image = `data:${mimeType};base64,${imageBuffer.toString(
-                "base64"
-              )}`;
-            } else {
-              teacherData.image = null;
-            }
-          } catch (imageError) {
-            console.error("Error reading image file:", imageError);
-            teacherData.image = null;
-          }
+          const { buildImageUrl } = require("../util/userHelpers");
+          teacherData.image = buildImageUrl(req, teacherData.image);
         } else {
           teacherData.image = null;
         }

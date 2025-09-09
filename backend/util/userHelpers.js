@@ -9,6 +9,8 @@ const TeacherSubjectAssignment = require("../models/teacherSubjectAssignment");
 const buildImageUrl = (req, relativePath) => {
   try {
     if (!relativePath) return null;
+    // Never return base64 data URIs
+    if (/^data:/i.test(String(relativePath))) return null;
     if (/^https?:\/\//i.test(relativePath)) return relativePath;
     const host = req.get("host");
     const protocol = req.protocol || "http";
@@ -87,4 +89,32 @@ module.exports = {
   buildImageUrl,
   resolveTeacherClasses,
   buildUserResponse,
+  imageToBase64: (src) => {
+    try {
+      if (!src) return null;
+      if (/^https?:\/\//i.test(src)) return src;
+
+      const normalized = String(src).replace(/^\/+/, "");
+      const absolutePath = path.isAbsolute(normalized)
+        ? normalized
+        : path.join(__dirname, "..", normalized);
+
+      const buffer = fs.readFileSync(absolutePath);
+      const ext = (path.extname(absolutePath) || "").toLowerCase();
+      const mime =
+        ext === ".png"
+          ? "image/png"
+          : ext === ".jpg" || ext === ".jpeg"
+          ? "image/jpeg"
+          : ext === ".gif"
+          ? "image/gif"
+          : ext === ".webp"
+          ? "image/webp"
+          : "application/octet-stream";
+
+      return `data:${mime};base64,${buffer.toString("base64")}`;
+    } catch (e) {
+      return null;
+    }
+  },
 };

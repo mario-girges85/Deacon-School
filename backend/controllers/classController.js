@@ -1,7 +1,7 @@
 const { Classes, Levels, User } = require("../models/relationships");
 const sequelize = require("../util/db");
 const TeacherSubjectAssignment = require("../models/teacherSubjectAssignment");
-const { imageToBase64 } = require("../util/userHelpers");
+const { buildImageUrl } = require("../util/userHelpers");
 
 // Create a new class
 const createClass = async (req, res) => {
@@ -74,7 +74,7 @@ const getAllClasses = async (req, res) => {
           previewRows.map(async (s) => ({
             id: s.id,
             name: s.name,
-            image: s.image ? imageToBase64(s.image) : null,
+            image: s.image ? buildImageUrl(req, s.image) : null,
           }))
         );
 
@@ -123,7 +123,7 @@ const getClassesByLevel = async (req, res) => {
           previewRows.map(async (s) => ({
             id: s.id,
             name: s.name,
-            image: s.image ? imageToBase64(s.image) : null,
+            image: s.image ? buildImageUrl(req, s.image) : null,
           }))
         );
 
@@ -199,7 +199,7 @@ const getClassDetails = async (req, res) => {
     const students = await Promise.all(
       rawStudents.map(async (s) => {
         const data = s.toJSON();
-        const img = data.image ? imageToBase64(data.image) : null;
+        const img = data.image ? buildImageUrl(req, data.image) : null;
         return {
           ...data,
           image: img,

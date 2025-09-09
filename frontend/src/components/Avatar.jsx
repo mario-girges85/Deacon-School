@@ -131,7 +131,7 @@ const Avatar = ({
       {/* Dropdown Menu */}
       {showMenu && isMenuOpen && (
         <div
-          className={`absolute right-0 mt-2 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 ${
+          className={`absolute left-full top-full ml-2 mt-2 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 ${
             variant === "compact" ? "w-40" : "w-48"
           }`}
         >

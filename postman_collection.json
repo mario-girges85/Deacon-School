@@ -1,0 +1,806 @@
+{
+  "info": {
+    "_postman_id": "deacons-school-api-collection",
+    "name": "Deacons School API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Auto-generated Postman collection for Express routes in Deacons School backend. Uses {{baseUrl}} and {{token}} variables."
+  },
+  "item": [
+    {
+      "name": "Root",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (/api/users)",
+      "item": [
+        {
+          "name": "POST /api/users/register (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "John Doe", "type": "text" },
+                { "key": "phone", "value": "0123456789", "type": "text" },
+                { "key": "password", "value": "000000", "type": "text" },
+                { "key": "birthday", "value": "2000-01-01", "type": "text" },
+                { "key": "gender", "value": "male", "type": "text" },
+                { "key": "role", "value": "student", "type": "text" },
+                { "key": "image", "type": "file" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "register"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/users/:id/image (multipart, Auth)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id", "image"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/users/:id/password (Auth)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"000000\",\n  \"newPassword\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id", "password"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/users/bulk-import (file, Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" },
+                {
+                  "key": "classId",
+                  "type": "text",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/bulk-import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "bulk-import"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/users/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"01285948011\",\n  \"password\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "login"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/get-users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/get-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "get-users"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/teachers-by-subject (Staff)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/teachers-by-subject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "teachers-by-subject"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "stats"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/users/assign-classes",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": 1,\n  \"classIds\": [1,2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/assign-classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "assign-classes"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/teacher/:userId/classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/teacher/:userId/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "teacher", ":userId", "classes"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/users/teacher/:userId/classes",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/teacher/:userId/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "teacher", ":userId", "classes"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/teachers-with-classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/teachers-with-classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "teachers-with-classes"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/users/:id (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/users/delete/:id (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/delete/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "delete", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes (/api/classes)",
+      "item": [
+        {
+          "name": "POST /api/classes (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Room A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/classes/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/classes/:id/details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id/details",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id", "details"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/classes/:id (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Room B\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/classes/:id (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/classes/:id/teacher-assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id/teacher-assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id", "teacher-assignments"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/classes/:id/teacher-assignments",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taks\": 3,\n  \"al7an\": 5,\n  \"coptic\": 7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/:id/teacher-assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", ":id", "teacher-assignments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Levels (/api/levels)",
+      "item": [
+        {
+          "name": "POST /api/levels",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level\": 1,\n  \"stage\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/levels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/levels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/levels/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels", ":id"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/levels/:id",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level\": 2,\n  \"stage\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels", ":id"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/levels/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Curriculum (/api)",
+      "item": [
+        {
+          "name": "GET /api/levels/:levelId/curriculum (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:levelId/curriculum",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "levels", ":levelId", "curriculum"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture (file, Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "levels",
+                ":levelId",
+                "curriculum",
+                ":subject",
+                "semesters",
+                ":semester",
+                "lectures",
+                ":lecture"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/multiple (files, Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "audio", "type": "file", "disabled": true },
+                { "key": "pdf", "type": "file", "disabled": true },
+                { "key": "video", "type": "file", "disabled": true }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/multiple",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "levels",
+                ":levelId",
+                "curriculum",
+                ":subject",
+                "semesters",
+                ":semester",
+                "lectures",
+                ":lecture",
+                "multiple"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType (file, Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "levels",
+                ":levelId",
+                "curriculum",
+                ":subject",
+                "semesters",
+                ":semester",
+                "lectures",
+                ":lecture",
+                ":fileType"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"hymnIds\": [1,2,3]\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "levels",
+                ":levelId",
+                "curriculum",
+                ":subject",
+                "semesters",
+                ":semester",
+                "lectures",
+                ":lecture",
+                "hymns"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schedule (/api/schedule)",
+      "item": [
+        {
+          "name": "POST /api/schedule/generate",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"levelId\": 1\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedule", "generate"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/schedule/apply",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"scheduleId\": 1\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedule", "apply"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/schedule/save",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"entries\": []\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedule", "save"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/schedule/current",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedule/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedule", "current"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events (/api/events)",
+      "item": [
+        {
+          "name": "GET /api/events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/events/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", ":id"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/events (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Event\",\n  \"date\": \"2025-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/events/:id (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Event\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", ":id"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/events/:id (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hymns (/api/hymns)",
+      "item": [
+        {
+          "name": "GET /api/hymns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/hymns/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns", ":id"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/hymns (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hymn\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/hymns/:id (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Hymn\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns", ":id"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/hymns/:id (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns", ":id"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/hymns/:id/audio (multipart, Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "audio", "type": "file" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/hymns/:id/audio",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hymns", ":id", "audio"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" }
+  ]
+}
