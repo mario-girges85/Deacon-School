@@ -319,7 +319,7 @@ const initializeServer = async () => {
 
 // Only start server if not in Vercel environment
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-  app.listen(port, initializeServer);
+  app.listen(port, "0.0.0.0", initializeServer);
 }
 
 // Export for Vercel
