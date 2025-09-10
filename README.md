@@ -73,7 +73,7 @@ Place images in `frontend/public/` (or elsewhere) and update paths below.
 <p align="center">
   <!-- Replace with your images -->
   <img alt="Home" src="frontend/public/screenshots/home.png" width="45%" />
-  <img alt="Hymns" src="frontend/public/screenshots/hymns.png" width="45%" />
+ 
 </p>
 
 ## Local Setup
@@ -166,8 +166,6 @@ Visit the app (Vite dev server) output URL, usually `http://localhost:5173`.
 - Hymns: CRUD + audio upload
 - Events/Schedule: CRUD
 
-See `postman_collection.json` for concrete requests/examples.
-
 ## Roadmap
 
 - Attendance tracking and analytics dashboards
@@ -191,14 +189,5 @@ MIT — see [LICENSE](LICENSE) (add if not present).
 
 - Coptic font and keyboard support included in `frontend/public/fonts` and `frontend/src/styles/coptic.css`.
 - Thanks to the open‑source community for the tools and libraries powering this project.
-
-## Links
-
-- Live Demo: add link
-- Frontend Repo/Folder: `frontend/`
-- Backend Repo/Folder: `backend/`
-- Contact: add your preferred contact
-
----
 
 If you use this project or have ideas for improvement, I’d love to hear your feedback and collaborate!
