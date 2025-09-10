@@ -228,7 +228,7 @@ const seedAdmin = async () => {
     const adminData = {
       name: "Mario gerges",
       phone: "01285948011", // Admin phone
-      password: await bcrypt.hash("000000", 10), // Admin password
+      password: await bcrypt.hash(process.env.ADMIN_PASSWORD, 10), // Admin password
       birthday: "1990-01-01",
       gender: "male",
       role: "admin",
@@ -245,11 +245,11 @@ const seedAdmin = async () => {
     if (created) {
       console.log("✅ Admin account created successfully");
       console.log("📱 Phone: 01285948011");
-      console.log("🔑 Password: 000000");
+      console.log("password: ", process.env.ADMIN_PASSWORD);
     } else {
       console.log("⏭️ Admin account already exists");
       console.log("📱 Phone: 01285948011");
-      console.log("🔑 Password: 000000");
+      console.log("password: ", process.env.ADMIN_PASSWORD);
     }
   } catch (err) {
     console.error("❌ Failed to seed admin account:", err);
