@@ -100,7 +100,7 @@ const HymnCard = ({
               {hymn.lyrics_arabic_coptic &&
                 (hymn.lyrics_arabic || hymn.lyrics_coptic) &&
                 " • "}
-              {hymn.lyrics_arabic_coptic && "عربي قبطي"}
+              {hymn.lyrics_arabic_coptic && "قبطي معرب "}
             </span>
             {clickable && <span>انقر للعرض</span>}
           </div>
