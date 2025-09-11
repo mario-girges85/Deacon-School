@@ -47,7 +47,7 @@ const uploadLecture = async (req, res) => {
       await entry.update({ path: relativePath });
     }
 
-    return res.json({ success: true, curriculum: entry });
+    return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
   } catch (err) {
     console.error("uploadLecture error:", err);
     return res.status(500).json({ error: "حدث خطأ أثناء رفع الملف" });
@@ -115,7 +115,7 @@ const uploadMultipleFiles = async (req, res) => {
       await entry.update(updateData);
     }
 
-    return res.json({ success: true, curriculum: entry });
+    return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
   } catch (err) {
     console.error("uploadMultipleFiles error:", err);
     return res.status(500).json({ error: "حدث خطأ أثناء رفع الملفات" });
@@ -168,7 +168,7 @@ const uploadSpecificFile = async (req, res) => {
     updateData[`${fileType}_path`] = relativePath;
     await entry.update(updateData);
 
-    return res.json({ success: true, curriculum: entry });
+    return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
   } catch (err) {
     console.error("uploadSpecificFile error:", err);
     return res.status(500).json({ error: "حدث خطأ أثناء رفع الملف" });
@@ -223,13 +223,21 @@ const getCurriculum = async (req, res) => {
       }, {});
 
       const withHymns = rows.map((r) => ({
-        ...r.toJSON(),
-        hymns: grouped[r.id] || [],
+        ...urlifyRow(r.toJSON(), req),
+        hymns: (grouped[r.id] || []).map((link) => ({
+          ...link,
+          hymn: link.hymn
+            ? urlifyHymn(link.hymn.toJSON ? link.hymn.toJSON() : link.hymn, req)
+            : null,
+        })),
       }));
       return res.json({ success: true, curriculum: withHymns });
     }
 
-    return res.json({ success: true, curriculum: rows });
+    return res.json({
+      success: true,
+      curriculum: rows.map((r) => urlifyRow(r.toJSON(), req)),
+    });
   } catch (err) {
     console.error("getCurriculum error:", err);
     return res.status(500).json({ error: "حدث خطأ أثناء جلب المنهج" });
@@ -351,3 +359,43 @@ module.exports = {
   getCurriculum,
   setLectureHymns,
 };
+
+// Helpers: convert stored relative paths to absolute URLs
+function buildBaseUrl(req) {
+  const envBase = process.env.PUBLIC_BASE_URL;
+  if (envBase && envBase.trim().length > 0) return envBase.replace(/\/?$/, "");
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.get("host");
+  return `${protocol}://${host}`;
+}
+
+function toUrl(req, p) {
+  if (!p) return p;
+  const base = buildBaseUrl(req);
+  const normalized = String(p).replace(/^\/+/, "");
+  return `${base}/${normalized}`;
+}
+
+function urlifyRow(row, req) {
+  if (!row) return row;
+  return {
+    ...row,
+    path: row.path ? toUrl(req, row.path) : row.path,
+    audio_path: row.audio_path ? toUrl(req, row.audio_path) : row.audio_path,
+    pdf_path: row.pdf_path ? toUrl(req, row.pdf_path) : row.pdf_path,
+    video_path: row.video_path ? toUrl(req, row.video_path) : row.video_path,
+  };
+}
+
+function urlifyHymn(hymn, req) {
+  if (!hymn) return hymn;
+  return {
+    ...hymn,
+    audio_path: hymn.audio_path ? toUrl(req, hymn.audio_path) : hymn.audio_path,
+  };
+}
+
+function urlifyEntry(entry, req) {
+  const row = entry.toJSON ? entry.toJSON() : entry;
+  return urlifyRow(row, req);
+}
