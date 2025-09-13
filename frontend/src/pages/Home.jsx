@@ -4,6 +4,7 @@ import { isAuthenticated, isAdmin } from "../util/auth";
 import { getCurrentUser } from "../util/auth";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import LoginForm from "../components/LoginForm";
 
 const UserData = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -248,88 +249,92 @@ const SchoolStats = () => {
   if (!stats) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+    <div className="bg-white rounded-lg shadow-lg p-4 mb-6 max-w-4xl mx-auto">
+      <h2 className="text-lg font-bold text-gray-800 mb-4 text-center">
         إحصائيات المدرسة
       </h2>
 
-      {/* User Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="text-center p-4 bg-blue-50 rounded-lg">
-          <div className="text-3xl font-bold text-blue-600 mb-2">
+      {/* User Statistics - Compact */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="text-center p-3 bg-blue-50 rounded-lg">
+          <div className="text-xl font-bold text-blue-600 mb-1">
             {stats.users.total}
           </div>
-          <h3 className="font-semibold text-gray-800">إجمالي المستخدمين</h3>
+          <h3 className="text-sm font-medium text-gray-800">
+            إجمالي المستخدمين
+          </h3>
         </div>
-        <div className="text-center p-4 bg-green-50 rounded-lg">
-          <div className="text-3xl font-bold text-green-600 mb-2">
+        <div className="text-center p-3 bg-green-50 rounded-lg">
+          <div className="text-xl font-bold text-green-600 mb-1">
             {stats.users.students}
           </div>
-          <h3 className="font-semibold text-gray-800">الطلاب</h3>
+          <h3 className="text-sm font-medium text-gray-800">الطلاب</h3>
         </div>
-        <div className="text-center p-4 bg-purple-50 rounded-lg">
-          <div className="text-3xl font-bold text-purple-600 mb-2">
+        <div className="text-center p-3 bg-purple-50 rounded-lg">
+          <div className="text-xl font-bold text-purple-600 mb-1">
             {stats.users.teachers}
           </div>
-          <h3 className="font-semibold text-gray-800">المدرسين</h3>
+          <h3 className="text-sm font-medium text-gray-800">المدرسين</h3>
         </div>
-        <div className="text-center p-4 bg-orange-50 rounded-lg">
-          <div className="text-3xl font-bold text-orange-600 mb-2">
+        <div className="text-center p-3 bg-orange-50 rounded-lg">
+          <div className="text-xl font-bold text-orange-600 mb-1">
             {stats.users.admins + stats.users.supervisors}
           </div>
-          <h3 className="font-semibold text-gray-800">ادمن</h3>
+          <h3 className="text-sm font-medium text-gray-800">ادمن</h3>
         </div>
       </div>
 
-      {/* Classes and Levels Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="text-center p-4 bg-indigo-50 rounded-lg">
-          <div className="text-3xl font-bold text-indigo-600 mb-2">
+      {/* Classes and Levels Statistics - Compact */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div className="text-center p-3 bg-indigo-50 rounded-lg">
+          <div className="text-xl font-bold text-indigo-600 mb-1">
             {stats.classes.total}
           </div>
-          <h3 className="font-semibold text-gray-800">إجمالي الفصول</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-sm font-medium text-gray-800">إجمالي الفصول</h3>
+          <p className="text-xs text-gray-600">
             موزعة على {stats.levels.total} مستوى
           </p>
         </div>
-        <div className="text-center p-4 bg-teal-50 rounded-lg">
-          <div className="text-3xl font-bold text-teal-600 mb-2">
+        <div className="text-center p-3 bg-teal-50 rounded-lg">
+          <div className="text-xl font-bold text-teal-600 mb-1">
             {stats.levels.total}
           </div>
-          <h3 className="font-semibold text-gray-800">المستويات التعليمية</h3>
-          <p className="text-sm text-gray-600">تمهيدي + 3 مستويات × 3 مراحل</p>
+          <h3 className="text-sm font-medium text-gray-800">
+            المستويات التعليمية
+          </h3>
+          <p className="text-xs text-gray-600">تمهيدي + 3 مستويات × 3 مراحل</p>
         </div>
       </div>
 
-      {/* Students Distribution by Level */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+      {/* Students Distribution by Level - Compact */}
+      <div className="bg-gray-50 rounded-lg p-3">
+        <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">
           توزيع الطلاب حسب المستوى
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-blue-100 rounded-lg">
-            <div className="text-xl font-bold text-blue-700 mb-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="text-center p-2 bg-blue-100 rounded">
+            <div className="text-lg font-bold text-blue-700 mb-1">
               {stats.levels.studentsByLevel["preparatory"] || 0}
             </div>
-            <div className="text-sm text-blue-600">المستوى التمهيدي</div>
+            <div className="text-xs text-blue-600">المستوى التمهيدي</div>
           </div>
-          <div className="text-center p-3 bg-green-100 rounded-lg">
-            <div className="text-xl font-bold text-green-700 mb-1">
+          <div className="text-center p-2 bg-green-100 rounded">
+            <div className="text-lg font-bold text-green-700 mb-1">
               {stats.levels.studentsByLevel["level1"] || 0}
             </div>
-            <div className="text-sm text-green-600">المستوى الأول</div>
+            <div className="text-xs text-green-600">المستوى الأول</div>
           </div>
-          <div className="text-center p-3 bg-yellow-100 rounded-lg">
-            <div className="text-xl font-bold text-yellow-700 mb-1">
+          <div className="text-center p-2 bg-yellow-100 rounded">
+            <div className="text-lg font-bold text-yellow-700 mb-1">
               {stats.levels.studentsByLevel["level2"] || 0}
             </div>
-            <div className="text-sm text-yellow-600">المستوى الثاني</div>
+            <div className="text-xs text-yellow-600">المستوى الثاني</div>
           </div>
-          <div className="text-center p-3 bg-purple-100 rounded-lg">
-            <div className="text-xl font-bold text-purple-700 mb-1">
+          <div className="text-center p-2 bg-purple-100 rounded">
+            <div className="text-lg font-bold text-purple-700 mb-1">
               {stats.levels.studentsByLevel["level3"] || 0}
             </div>
-            <div className="text-sm text-purple-600">المستوى الثالث</div>
+            <div className="text-xs text-purple-600">المستوى الثالث</div>
           </div>
         </div>
       </div>
@@ -364,8 +369,14 @@ const Home = () => {
     checkAuth();
   }, []);
 
+  const handleLoginSuccess = () => {
+    // Refresh the page to show the authenticated content
+    window.location.reload();
+  };
+
   const showUserData = authed && user?.role === "student";
   const showStats = isAdmin();
+  const showLogin = !authed;
 
   if (isLoading) {
     return (
@@ -427,17 +438,40 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center flex flex-col items-center justify-center">
-          <img src={logo} alt="Logo" className="h-16 w-auto mb-4 opacity-90" />
-          <h1 className="text-4xl font-bold text-primary mb-4">
-            مرحباً بكم في موقع مدرسة شمامسة{" "}
-          </h1>
-          <h1 className="text-4xl font-bold text-primary mb-4">
-            كنيسة القديسة دميانة
-          </h1>
+        {/* Main Content - Horizontal Layout */}
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 mb-12">
+          {/* Welcome Section */}
+          <div className="text-center lg:text-right flex-1 max-w-2xl">
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-20 w-auto mb-6 mx-auto lg:mx-0 opacity-90"
+            />
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4">
+              مرحباً بكم في موقع مدرسة شمامسة
+            </h1>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-6">
+              كنيسة القديسة دميانة
+            </h2>
+            <p className="text-lg text-gray-600 leading-relaxed">
+              مرحباً بكم في الموقع الرسمي لمدرسة شمامسة كنيسة القديسة دميانة.
+              هنا يمكنكم الوصول إلى جميع المواد التعليمية والمناهج والموارد التي
+              تحتاجونها لرحلتكم التعليمية.
+            </p>
+          </div>
 
+          {/* Login Section */}
+          {showLogin && (
+            <div className="flex-shrink-0 w-full max-w-md">
+              <LoginForm isCompact={true} onLoginSuccess={handleLoginSuccess} />
+            </div>
+          )}
+        </div>
+
+        {/* Stats and User Data */}
+        <div className="w-full">
           {showStats && <SchoolStats />}
           {showUserData && <UserData />}
         </div>
