@@ -102,6 +102,17 @@ const LecturePage = () => {
       return;
     }
 
+    // If a file already exists for this type, ask for confirmation to overwrite
+    const existingUrl =
+      (fileType === "audio" && (info?.audio_url || info?.audio_path || info?.path)) ||
+      (fileType === "pdf" && (info?.pdf_url || info?.pdf_path || info?.path)) ||
+      (fileType === "video" && (info?.video_url || info?.video_path || info?.path)) ||
+      null;
+    if (existingUrl) {
+      const ok = window.confirm("يوجد ملف لهذا النوع بالفعل. هل تريد استبداله؟");
+      if (!ok) return;
+    }
+
     const form = new FormData();
     form.append("file", file);
 
@@ -170,13 +181,15 @@ const LecturePage = () => {
     }
   };
 
-  const renderFilePreview = (filePath, fileType) => {
-    if (!filePath) return null;
+  const renderFilePreview = (filePathOrUrl, fileType) => {
+    if (!filePathOrUrl) return null;
 
-    const fullUrl = `${import.meta.env.VITE_API_BASE_URL}/${filePath.replace(
-      /^\/+/,
-      ""
-    )}`;
+    // If already an absolute URL, use it as is; else treat as relative path under API base
+    const isAbsolute = /^(https?:)?\/\//i.test(String(filePathOrUrl));
+    const normalized = String(filePathOrUrl);
+    const fullUrl = isAbsolute
+      ? normalized
+      : `${import.meta.env.VITE_API_BASE_URL}/${normalized.replace(/^\/+/, "")}`;
 
     if (fileType === "pdf") {
       return (
@@ -337,9 +350,21 @@ const LecturePage = () => {
         {/* File Previews */}
         {info && (
           <div className="mb-6">
-            {info.audio_path && renderFilePreview(info.audio_path, "audio")}
-            {info.pdf_path && renderFilePreview(info.pdf_path, "pdf")}
-            {info.video_path && renderFilePreview(info.video_path, "video")}
+            {(info.audio_url || info.audio_path || info.path) &&
+              renderFilePreview(
+                info.audio_url || info.audio_path || info.path,
+                "audio"
+              )}
+            {(info.pdf_url || info.pdf_path || info.path) &&
+              renderFilePreview(
+                info.pdf_url || info.pdf_path || info.path,
+                "pdf"
+              )}
+            {(info.video_url || info.video_path || info.path) &&
+              renderFilePreview(
+                info.video_url || info.video_path || info.path,
+                "video"
+              )}
           </div>
         )}
 

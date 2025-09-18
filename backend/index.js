@@ -232,6 +232,7 @@ const seedAdmin = async () => {
       birthday: "1990-01-01",
       gender: "male",
       role: "admin",
+      code: "admin",
     };
 
     const [admin, created] = await User.findOrCreate({

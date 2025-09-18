@@ -72,12 +72,13 @@ const Signup = () => {
 
   const validate = () => {
     const newErrors = {};
-    const { name, phone, password, birthday, gender } = formData;
+    const { name, phone, password, birthday, gender, code } = formData;
     if (!name.trim()) newErrors.name = "الاسم مطلوب";
     if (!/^\d{11}$/.test(String(phone))) newErrors.phone = "رقم هاتف غير صحيح";
     if (!password) newErrors.password = "كلمة المرور مطلوبة";
     if (!birthday) newErrors.birthday = "تاريخ الميلاد مطلوب";
     if (!gender) newErrors.gender = "النوع مطلوب";
+    if (!code) newErrors.code = "الكود مطلوب";
     if (["teacher"].includes(formData.role)) {
       if (!formData.subject) newErrors.subject = "التخصص مطلوب";
     }
@@ -331,16 +332,21 @@ const Signup = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  كود المستخدم (اختياري)
+                  كود المستخدم *
                 </label>
                 <input
                   type="text"
                   name="code"
                   value={formData.code}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border rounded-lg text-right border-gray-300"
+                  className={`w-full px-4 py-3 border rounded-lg text-right ${
+                    errors.code ? "border-red-500" : "border-gray-300"
+                  }`}
                   dir="rtl"
                 />
+                {errors.code && (
+                  <p className="text-red-500 text-sm mt-1">{errors.code}</p>
+                )}
               </div>
             </div>
 

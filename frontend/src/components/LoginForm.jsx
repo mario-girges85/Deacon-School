@@ -5,7 +5,7 @@ import { isAuthenticated } from "../util/auth";
 
 const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
   const [formData, setFormData] = useState({
-    phoneOrCode: "",
+    code: "",
     password: "",
   });
 
@@ -33,8 +33,8 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
     const newErrors = {};
 
     // Required fields validation
-    if (!formData.phoneOrCode.trim()) {
-      newErrors.phoneOrCode = " رقم الهاتف أو الكود مطلوب";
+    if (!formData.code.trim()) {
+      newErrors.code = "الكود مطلوب";
     }
     if (!formData.password) {
       newErrors.password = "كلمة المرور مطلوبة";
@@ -54,7 +54,7 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
 
         // Prepare login data
         const loginData = {
-          phoneOrCode: formData.phoneOrCode,
+          code: formData.code,
           password: formData.password,
         };
 
@@ -89,7 +89,7 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
 
         // Reset form
         setFormData({
-          phoneOrCode: "",
+          code: "",
           password: "",
         });
         setErrors({});
@@ -126,28 +126,28 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Phone or ID Field */}
+          {/* Code Field */}
           <div>
             <label
-              htmlFor="phoneOrCode"
+              htmlFor="code"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              رقم الهاتف أو الكود *
+              الكود *
             </label>
             <input
               type="text"
-              id="phoneOrCode"
-              name="phoneOrCode"
-              value={formData.phoneOrCode}
+              id="code"
+              name="code"
+              value={formData.code}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 text-right ${
-                errors.phoneOrCode ? "border-red-500" : "border-gray-300"
+                errors.code ? "border-red-500" : "border-gray-300"
               }`}
-              placeholder="أدخل رقم الهاتف أو الكود"
+              placeholder="أدخل الكود"
               dir="rtl"
             />
-            {errors.phoneOrCode && (
-              <p className="text-red-500 text-xs mt-1">{errors.phoneOrCode}</p>
+            {errors.code && (
+              <p className="text-red-500 text-xs mt-1">{errors.code}</p>
             )}
           </div>
 
@@ -206,30 +206,28 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
 
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Phone or ID Field */}
+            {/* Code Field */}
             <div>
               <label
-                htmlFor="phoneOrCode"
+                htmlFor="code"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                رقم الهاتف أو الكود *
+                الكود *
               </label>
               <input
                 type="text"
-                id="phoneOrCode"
-                name="phoneOrCode"
-                value={formData.phoneOrCode}
+                id="code"
+                name="code"
+                value={formData.code}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 text-right ${
-                  errors.phoneOrCode ? "border-red-500" : "border-gray-300"
+                  errors.code ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="أدخل رقم الهاتف أو الكود"
+                placeholder="أدخل الكود"
                 dir="rtl"
               />
-              {errors.phoneOrCode && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.phoneOrCode}
-                </p>
+              {errors.code && (
+                <p className="text-red-500 text-sm mt-1">{errors.code}</p>
               )}
             </div>
 

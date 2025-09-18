@@ -295,7 +295,7 @@ const BulkAllStudents = () => {
                             الهاتف
                           </th>
                           <th className="text-right py-2 px-3 font-medium text-green-700">
-                            الرمز
+                            الكود
                           </th>
                           <th className="text-right py-2 px-3 font-medium text-green-700">
                             المعرف
@@ -369,14 +369,14 @@ const BulkAllStudents = () => {
                               <div className="text-xs">
                                 <div>الاسم: {item.newData?.name || ""}</div>
                                 <div>الهاتف: {item.newData?.phone || ""}</div>
-                                <div>الرمز: {item.newData?.code || ""}</div>
+                                <div>الكود: {item.newData?.code || ""}</div>
                               </div>
                             </td>
                             <td className="py-2 px-3 text-yellow-900">
                               <div className="text-xs">
                                 <div>الاسم: {item.existingUser?.name}</div>
                                 <div>الهاتف: {item.existingUser?.phone}</div>
-                                <div>الرمز: {item.existingUser?.code}</div>
+                                <div>الكود: {item.existingUser?.code}</div>
                               </div>
                             </td>
                             <td className="py-2 px-3 text-yellow-900">
@@ -389,7 +389,7 @@ const BulkAllStudents = () => {
                               >
                                 {item.conflictType === "phone"
                                   ? "رقم الهاتف"
-                                  : "الرمز"}
+                                  : "الكود"}
                               </span>
                             </td>
                           </tr>

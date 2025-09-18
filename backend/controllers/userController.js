@@ -26,15 +26,15 @@ module.exports.register = async (req, res) => {
       subject = undefined,
     } = req.body;
 
-    // Validate required fields based on role
-    const requiredFields = ["name", "phone", "password", "birthday", "gender"];
+    // Validate required fields for all roles
+    const requiredFields = ["name", "phone", "password", "birthday", "gender", "code"];
 
-    // For students, class_id and level_id and code are required
+    // For students, class_id and level_id are also required
     if (role === "student") {
-      requiredFields.push("class_id", "level_id", "code");
+      requiredFields.push("class_id", "level_id");
     }
-    // For teachers and supervisors, no level required at signup. Code is optional
-    else if (role === "teacher") {
+    // For teachers, require subject
+    if (role === "teacher") {
       // require subject for teachers only
       if (!subject || !["taks", "al7an", "coptic"].includes(String(subject))) {
         if (req.file) {
@@ -46,7 +46,7 @@ module.exports.register = async (req, res) => {
         });
       }
     }
-    // Admins: no class/level required, and code is optional
+    // Admins/supervisors: no class/level required
 
     const missingFields = requiredFields.filter((field) => !req.body[field]);
     if (missingFields.length > 0) {
@@ -71,18 +71,8 @@ module.exports.register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    // Students: check by phone OR code. Staff (admin/teacher/supervisor): check by phone only
-    let existingUser;
-    if (role === "student") {
-      existingUser = await User.findOne({
-        where: {
-          [Op.or]: [{ phone: String(phone) }, { code: code }],
-        },
-      });
-    } else {
-      existingUser = await User.findOne({ where: { phone: String(phone) } });
-    }
+    // Enforce unique code across all users; allow duplicate phone numbers
+    const existingUser = await User.findOne({ where: { code: code } });
 
     if (existingUser) {
       // If image was uploaded but user exists, delete it
@@ -90,13 +80,9 @@ module.exports.register = async (req, res) => {
         fs.unlinkSync(req.file.path);
       }
 
-      const isStudent = String(role).toLowerCase() === "student";
-      const message = isStudent
-        ? "رقم الهاتف أو الكود مستخدم بالفعل"
-        : "رقم الهاتف مستخدم بالفعل";
       return res.status(409).json({
         success: false,
-        message,
+        message: "الكود مستخدم بالفعل",
       });
     }
 
@@ -232,11 +218,19 @@ module.exports.register = async (req, res) => {
 module.exports.login = async (req, res) => {
   console.log(req.body);
 
-  const { phoneOrCode, password } = req.body;
+  const { code, password } = req.body;
   try {
+    // Basic validation
+    if (!code || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "الكود وكلمة المرور مطلوبان",
+      });
+    }
+
     const user = await User.findOne({
       where: {
-        [Op.or]: [{ phone: phoneOrCode }, { code: phoneOrCode }],
+        code: code,
       },
       include: [
         {
@@ -290,6 +284,7 @@ module.exports.login = async (req, res) => {
     // Prepare user data for response
     const userJson = user.toJSON();
     const userData = {
+      id: userJson.id,
       name: userJson.name,
       phone: userJson.phone,
       code: userJson.code,
@@ -815,6 +810,7 @@ module.exports.bulkImport = async (req, res) => {
         }
 
         // Basic validations
+        // phone format recommended but not enforced as unique. Keep validation if present
         if (!/^\d{11}$/.test(String(rowObj.phone))) {
           results.failed.push({
             row: rowIndex,
@@ -845,9 +841,9 @@ module.exports.bulkImport = async (req, res) => {
           return;
         }
 
-        // Duplicate check (ensure student not exist by phone OR code)
+        // Duplicate check by code only (allow duplicate phones)
         const existingUser = await User.findOne({
-          where: { [Op.or]: [{ phone: rowObj.phone }, { code: rowObj.code }] },
+          where: { code: rowObj.code },
           include: [
             {
               model: Classes,
@@ -858,10 +854,7 @@ module.exports.bulkImport = async (req, res) => {
           ],
         });
         if (existingUser) {
-          const conflictType =
-            String(existingUser.phone) === String(rowObj.phone)
-              ? "phone"
-              : "code";
+          const conflictType = "code";
           results.existing.push({
             row: rowIndex,
             reason: `المستخدم موجود بالفعل (${conflictType})`,
@@ -949,6 +942,60 @@ module.exports.bulkImport = async (req, res) => {
         delete userResponse.password;
         results.successful.push({ row: rowIndex, user: userResponse });
       } catch (e) {
+        // Gracefully handle DB unique constraint errors
+        if (e && e.name === "SequelizeUniqueConstraintError") {
+          const pathField =
+            (e.errors && e.errors[0] && e.errors[0].path) || "";
+
+          if (String(pathField).includes("phone")) {
+            // Treat as existing by phone if DB still has unique(phone)
+            results.existing.push({
+              row: rowIndex,
+              reason: "المستخدم موجود بالفعل (phone)",
+              conflictType: "phone",
+              newData: {
+                name: String(rowObj.name || ""),
+                phone: String(rowObj.phone || ""),
+                code: String(rowObj.code || ""),
+              },
+              existingUser: {
+                id: null,
+                name: rowObj.name || "",
+                phone: rowObj.phone || "",
+                code: rowObj.code || "",
+                role: "student",
+                class_id: null,
+                class: null,
+              },
+            });
+            return;
+          }
+
+          if (String(pathField).includes("code")) {
+            // Duplicate code (should have been caught earlier) – treat as existing(code)
+            results.existing.push({
+              row: rowIndex,
+              reason: "المستخدم موجود بالفعل (code)",
+              conflictType: "code",
+              newData: {
+                name: String(rowObj.name || ""),
+                phone: String(rowObj.phone || ""),
+                code: String(rowObj.code || ""),
+              },
+              existingUser: {
+                id: null,
+                name: rowObj.name || "",
+                phone: rowObj.phone || "",
+                code: rowObj.code || "",
+                role: "student",
+                class_id: null,
+                class: null,
+              },
+            });
+            return;
+          }
+        }
+
         results.failed.push({
           row: rowIndex,
           field: "system_error",

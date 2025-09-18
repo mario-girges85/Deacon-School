@@ -42,10 +42,15 @@ const uploadLecture = async (req, res) => {
       },
     });
 
-    // If exists, update path
-    if (entry.path !== relativePath) {
-      await entry.update({ path: relativePath });
+    // If exists, delete old file and update path
+    if (entry.path && entry.path !== relativePath) {
+      try {
+        const fs = require("fs");
+        const oldAbs = path.join(__dirname, "..", entry.path);
+        if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs);
+      } catch {}
     }
+    await entry.update({ path: relativePath });
 
     return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
   } catch (err) {
@@ -110,8 +115,21 @@ const uploadMultipleFiles = async (req, res) => {
       }
     }
 
-    // Update the entry with new file paths
+    // Update the entry with new file paths, deleting old ones if replaced
     if (Object.keys(updateData).length > 0) {
+      try {
+        const fs = require("fs");
+        const toDelete = [];
+        if (updateData.audio_path && entry.audio_path && entry.audio_path !== updateData.audio_path) toDelete.push(entry.audio_path);
+        if (updateData.pdf_path && entry.pdf_path && entry.pdf_path !== updateData.pdf_path) toDelete.push(entry.pdf_path);
+        if (updateData.video_path && entry.video_path && entry.video_path !== updateData.video_path) toDelete.push(entry.video_path);
+        for (const rel of toDelete) {
+          try {
+            const abs = path.join(__dirname, "..", rel);
+            if (fs.existsSync(abs)) fs.unlinkSync(abs);
+          } catch {}
+        }
+      } catch {}
       await entry.update(updateData);
     }
 
@@ -163,10 +181,16 @@ const uploadSpecificFile = async (req, res) => {
       },
     });
 
-    // Update the specific file type field
-    const updateData = {};
-    updateData[`${fileType}_path`] = relativePath;
-    await entry.update(updateData);
+    // Update the specific file type field, deleting old file if replaced
+    const field = `${fileType}_path`;
+    if (entry[field] && entry[field] !== relativePath) {
+      try {
+        const fs = require("fs");
+        const oldAbs = path.join(__dirname, "..", entry[field]);
+        if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs);
+      } catch {}
+    }
+    await entry.update({ [field]: relativePath });
 
     return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
   } catch (err) {

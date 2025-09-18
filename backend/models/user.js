@@ -23,7 +23,6 @@ const User = sequelize.define(
     phone: {
       type: Sequelize.STRING,
       allowNull: false,
-      unique: true,
       validate: {
         notEmpty: true,
         is: /^\d{11}$/, // Exactly 11 digits
@@ -53,8 +52,8 @@ const User = sequelize.define(
     },
     code: {
       type: Sequelize.STRING,
-      allowNull: true, // Optional for non-students (admins/teachers/supervisors)
-      // Removed unique constraint to reduce index count
+      allowNull: false,
+      unique: true,
     },
 
     // Foreign keys for relationships
