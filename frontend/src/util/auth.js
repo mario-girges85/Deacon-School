@@ -72,11 +72,15 @@ export const decodeToken = (token) => {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
     // Convert base64url -> base64 and add padding
-    let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const pad = payload.length % 4;
-    if (pad) payload += "=".repeat(4 - pad);
-    const json = atob(payload);
-    return JSON.parse(json);
+    let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const pad = base64.length % 4;
+    if (pad) base64 += "=".repeat(4 - pad);
+    // Decode to bytes, then UTF-8 string
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const utf8 = new TextDecoder("utf-8").decode(bytes);
+    return JSON.parse(utf8);
   } catch (_) {
     // Silent fallback; return null so callers can use stored user
     return null;
@@ -88,15 +92,16 @@ export const decodeToken = (token) => {
  * @returns {object|null} - User object with id, phone, code, or null if no token
  */
 export const getCurrentUser = () => {
+  // Prefer the stored user object (has richer data and proper UTF-8)
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) return JSON.parse(stored);
+  } catch (_) {}
+  // Fallback to token decoding
   const token = getToken();
   const decoded = decodeToken(token);
   if (decoded) return decoded;
-  try {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  } catch (_) {
-    return null;
-  }
+  return null;
 };
 
 /**
