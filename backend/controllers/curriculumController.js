@@ -453,8 +453,22 @@ async function deleteLectureFile(req, res) {
       return res.status(404).json({ error: "المحاضرة غير موجودة" });
     }
 
+    // Determine existing file considering legacy 'path' field
     const field = `${fileType}_path`;
-    const existing = entry[field];
+    let existing = entry[field];
+    let legacy = false;
+    if (!existing && entry.path) {
+      const lower = String(entry.path).toLowerCase();
+      if (
+        (fileType === "audio" && lower.endsWith(".mp3")) ||
+        (fileType === "pdf" && lower.endsWith(".pdf")) ||
+        (fileType === "video" && (lower.endsWith(".mkv") || lower.endsWith(".webm")))
+      ) {
+        existing = entry.path;
+        legacy = true;
+      }
+    }
+
     if (!existing) {
       return res.status(404).json({ error: "لا يوجد ملف للحذف" });
     }
@@ -465,7 +479,11 @@ async function deleteLectureFile(req, res) {
       if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs);
     } catch {}
 
-    entry[field] = null;
+    if (legacy) {
+      entry.path = null;
+    } else {
+      entry[field] = null;
+    }
     await entry.save();
 
     return res.json({ success: true, curriculum: urlifyEntry(entry, req) });

@@ -181,6 +181,33 @@ const LecturePage = () => {
     }
   };
 
+  const deleteFile = async (fileType) => {
+    try {
+      const ok = window.confirm("هل أنت متأكد من حذف هذا الملف؟");
+      if (!ok) return;
+      const res = await apiClient.delete(
+        `/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
+      );
+      setInfo(res.data?.curriculum || null);
+    } catch (e) {
+      setError(e.response?.data?.error || "فشل حذف الملف");
+    }
+  };
+
+  const getFileForType = (infoObj, type) => {
+    if (!infoObj) return null;
+    const direct = infoObj[`${type}_url`] || infoObj[`${type}_path`];
+    if (direct) return direct;
+    // Legacy single path fallback only if extension matches requested type
+    const p = infoObj.path || "";
+    const lower = String(p).toLowerCase();
+    if (!lower) return null;
+    if (type === "audio" && lower.endsWith(".mp3")) return p;
+    if (type === "pdf" && lower.endsWith(".pdf")) return p;
+    if (type === "video" && (lower.endsWith(".mkv") || lower.endsWith(".webm"))) return p;
+    return null;
+  };
+
   const renderFilePreview = (filePathOrUrl, fileType) => {
     if (!filePathOrUrl) return null;
 
@@ -200,6 +227,16 @@ const LecturePage = () => {
             src={fullUrl}
             className="w-full h-96 border rounded"
           />
+          {isAdmin() && (
+            <div className="mt-2 text-right">
+              <button
+                onClick={() => deleteFile("pdf")}
+                className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+              >
+                حذف
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -211,6 +248,16 @@ const LecturePage = () => {
           <audio controls className="w-full">
             <source src={fullUrl} type="audio/mpeg" />
           </audio>
+          {isAdmin() && (
+            <div className="mt-2 text-right">
+              <button
+                onClick={() => deleteFile("audio")}
+                className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+              >
+                حذف
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -222,6 +269,16 @@ const LecturePage = () => {
           <video controls className="w-full rounded">
             <source src={fullUrl} />
           </video>
+          {isAdmin() && (
+            <div className="mt-2 text-right">
+              <button
+                onClick={() => deleteFile("video")}
+                className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+              >
+                حذف
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -350,21 +407,12 @@ const LecturePage = () => {
         {/* File Previews */}
         {info && (
           <div className="mb-6">
-            {(info.audio_url || info.audio_path || info.path) &&
-              renderFilePreview(
-                info.audio_url || info.audio_path || info.path,
-                "audio"
-              )}
-            {(info.pdf_url || info.pdf_path || info.path) &&
-              renderFilePreview(
-                info.pdf_url || info.pdf_path || info.path,
-                "pdf"
-              )}
-            {(info.video_url || info.video_path || info.path) &&
-              renderFilePreview(
-                info.video_url || info.video_path || info.path,
-                "video"
-              )}
+            {getFileForType(info, "audio") &&
+              renderFilePreview(getFileForType(info, "audio"), "audio")}
+            {getFileForType(info, "pdf") &&
+              renderFilePreview(getFileForType(info, "pdf"), "pdf")}
+            {getFileForType(info, "video") &&
+              renderFilePreview(getFileForType(info, "video"), "video")}
           </div>
         )}
 
