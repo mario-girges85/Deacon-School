@@ -6,6 +6,7 @@ const {
   uploadSpecificFile,
   getCurriculum,
   setLectureHymns,
+  deleteLectureFile,
 } = require("../controllers/curriculumController");
 const {
   uploadCurriculum,
@@ -41,6 +42,14 @@ router.post(
   requireAdmin,
   uploadCurriculum.single("file"),
   uploadSpecificFile
+);
+
+// Delete specific file type (audio, PDF, or video) - Admin only
+router.delete(
+  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
+  authenticateToken,
+  requireAdmin,
+  deleteLectureFile
 );
 
 // Set hymns for an al7an lecture (replace set) - Admin only

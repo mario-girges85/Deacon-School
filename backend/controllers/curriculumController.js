@@ -382,6 +382,7 @@ module.exports = {
   uploadSpecificFile,
   getCurriculum,
   setLectureHymns,
+  deleteLectureFile,
 };
 
 // Helpers: convert stored relative paths to absolute URLs
@@ -422,4 +423,54 @@ function urlifyHymn(hymn, req) {
 function urlifyEntry(entry, req) {
   const row = entry.toJSON ? entry.toJSON() : entry;
   return urlifyRow(row, req);
+}
+
+// Delete a specific file type from a lecture (admin only)
+async function deleteLectureFile(req, res) {
+  try {
+    const { levelId, subject, semester, lecture, fileType } = req.params;
+
+    const validFileTypes = ["audio", "pdf", "video"];
+    if (!validFileTypes.includes(fileType)) {
+      return res.status(400).json({ error: "نوع الملف غير صحيح" });
+    }
+
+    const level = await Levels.findByPk(levelId);
+    if (!level) {
+      return res.status(404).json({ error: "المستوى غير موجود" });
+    }
+
+    const entry = await Curriculum.findOne({
+      where: {
+        level_id: levelId,
+        subject,
+        semester: Number(semester),
+        lecture: Number(lecture),
+      },
+    });
+
+    if (!entry) {
+      return res.status(404).json({ error: "المحاضرة غير موجودة" });
+    }
+
+    const field = `${fileType}_path`;
+    const existing = entry[field];
+    if (!existing) {
+      return res.status(404).json({ error: "لا يوجد ملف للحذف" });
+    }
+
+    try {
+      const fs = require("fs");
+      const oldAbs = path.join(__dirname, "..", existing);
+      if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs);
+    } catch {}
+
+    entry[field] = null;
+    await entry.save();
+
+    return res.json({ success: true, curriculum: urlifyEntry(entry, req) });
+  } catch (err) {
+    console.error("deleteLectureFile error:", err);
+    return res.status(500).json({ error: "حدث خطأ أثناء حذف الملف" });
+  }
 }
