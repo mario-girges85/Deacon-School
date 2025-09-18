@@ -2,6 +2,7 @@ const { Classes, Levels, User } = require("../models/relationships");
 const sequelize = require("../util/db");
 const TeacherSubjectAssignment = require("../models/teacherSubjectAssignment");
 const { buildImageUrl } = require("../util/userHelpers");
+const { Op } = require("sequelize");
 
 // Create a new class
 const createClass = async (req, res) => {
@@ -222,11 +223,73 @@ const getClassDetails = async (req, res) => {
       attributes: { exclude: ["password"] },
     });
 
+    // Build embedded schedule from saved teacher assignments, if any
+    let schedule = null;
+    try {
+      const TIME_SLOTS = [
+        { key: "A", label: "3:30 - 4:10" },
+        { key: "B", label: "4:25 - 5:05" },
+        { key: "C", label: "5:20 - 6:00" },
+      ];
+      const SUBJECTS = ["taks", "al7an", "coptic"];
+      const getSubjectSlotForClassIndex = (classIndex) => {
+        const mapping = {};
+        for (let s = 0; s < SUBJECTS.length; s += 1) {
+          const slotIndex = s; // A,B,C in order
+          const subjectIndex = (s + (classIndex % 3)) % SUBJECTS.length;
+          mapping[TIME_SLOTS[slotIndex].key] = SUBJECTS[subjectIndex];
+        }
+        return mapping;
+      };
+
+      // Compute class index among all leveled classes (sorted like schedule)
+      const allClasses = await Classes.findAll({
+        where: { level_id: { [Op.ne]: null } },
+        include: [{ model: Levels, as: "level", attributes: ["level", "stage"] }],
+        order: [
+          [{ model: Levels, as: "level" }, "level", "ASC"],
+          [{ model: Levels, as: "level" }, "stage", "ASC"],
+        ],
+        attributes: ["id", "level_id"],
+      });
+      const idx = allClasses.findIndex((c) => String(c.id) === String(id));
+      if (idx >= 0) {
+        const slotMap = getSubjectSlotForClassIndex(idx);
+        const assign = await TeacherSubjectAssignment.findOne({
+          where: { class_id: id },
+          attributes: ["taks_teacher_id", "al7an_teacher_id", "coptic_teacher_id"],
+        });
+        if (assign) {
+          const teacherForSubject = (subj) => {
+            if (subj === "taks") return assign.taks_teacher_id || null;
+            if (subj === "al7an") return assign.al7an_teacher_id || null;
+            if (subj === "coptic") return assign.coptic_teacher_id || null;
+            return null;
+          };
+          const buildCell = (slotKey) => {
+            const subject = slotMap[slotKey];
+            const teacherId = teacherForSubject(subject);
+            return { subject, teacherId };
+          };
+          schedule = {
+            timeSlots: TIME_SLOTS,
+            A: buildCell("A"),
+            B: buildCell("B"),
+            C: buildCell("C"),
+          };
+        }
+      }
+    } catch (e) {
+      // Schedule embedding is best-effort; ignore errors
+      schedule = null;
+    }
+
     const classWithDetails = {
       ...classItem.toJSON(),
       students: students,
       teachers: teachers,
       students_count: students.length,
+      schedule,
     };
 
     res.json({ success: true, class: classWithDetails });

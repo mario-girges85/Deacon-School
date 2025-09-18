@@ -37,15 +37,10 @@ const ClassDetails = () => {
     try {
       setLoading(true);
 
-      const [classResponse, scheduleResponse] = await Promise.all([
-        axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}/details`
-        ),
-        axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
-          {}
-        ),
-      ]);
+      const classResponse = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}/details`
+      );
+      console.log("[ClassDetails] /api/classes/:id/details response:", classResponse.data);
 
       if (!classResponse.data?.success) {
         setError("فشل في جلب تفاصيل الفصل");
@@ -54,6 +49,7 @@ const ClassDetails = () => {
         setTeachers([]);
       } else {
         const classData = classResponse.data.class;
+        console.log("[ClassDetails] Embedded schedule:", classData?.schedule);
         setClassData(classData);
 
         // Set students and teachers from the class details response
@@ -61,12 +57,12 @@ const ClassDetails = () => {
         setTeachers(classData.teachers || []);
       }
 
-      // Schedule for this class
-      if (scheduleResponse.data?.success) {
-        const timeSlots = scheduleResponse.data.timeSlots || [];
-        const rows = scheduleResponse.data.rows || [];
-        const row = rows.find((r) => r.class?.id === id) || null;
-        setClassSchedule(row ? { timeSlots, row } : null);
+      // Prefer embedded schedule if available; otherwise leave null
+      const embedded = classResponse.data?.class?.schedule || null;
+      if (embedded) {
+        setClassSchedule({ timeSlots: embedded.timeSlots, row: embedded });
+      } else {
+        setClassSchedule(null);
       }
     } catch (error) {
       setError("حدث خطأ أثناء جلب تفاصيل الفصل");
