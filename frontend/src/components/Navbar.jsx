@@ -83,10 +83,6 @@ const Navbar = () => {
     { path: "/", label: "الرئيسية", icon: "🏠" },
     { path: "/levels", label: "المستويات", icon: "📚" },
     { path: "/classes", label: "الفصول", icon: "👥" },
-    // Only show bulk upload link for admins
-    ...(isAdmin()
-      ? [{ path: "/bulk-upload", label: "رفع طلاب", icon: "📤" }]
-      : []),
     ...(isAdmin()
       ? [{ path: "/schedule", label: "جدول المعلمين", icon: "📅" }]
       : []),

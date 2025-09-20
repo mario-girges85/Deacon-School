@@ -8,12 +8,13 @@ async function deleteAllUsers() {
     console.log('Connecting to database...');
     
     // Create database connection
+
     connection = await mysql.createConnection({
-        host: "92.113.22.53",
+        host: "localhost",
         port: 3306,
-        user: "u354738377_deaconschool",
-        password: "@6pv7BOIvC",
-        database: "u354738377_deaconschool",
+        user: "root",
+        password: "stopthisshit@ma",
+        database: "deacons",
         charset: "utf8mb4",
     });
 

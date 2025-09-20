@@ -57,6 +57,12 @@ const App = () => {
           }
         />
         <Route
+          path="/bulk-all-students"
+          element={
+            <ProtectedRoute requireAdmin element={<BulkAllStudents />} />
+          }
+        />
+        <Route
           path="/schedule"
           element={<ProtectedRoute requireAdmin element={<Schedule />} />}
         />

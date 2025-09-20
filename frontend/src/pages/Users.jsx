@@ -178,12 +178,19 @@ const Users = () => {
               عرض وإدارة جميع المستخدمين في النظام
             </p>
             {isAdmin() && (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex justify-center gap-3">
                 <button
                   onClick={() => navigate("/signup")}
                   className="px-5 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg"
                 >
                   إنشاء حساب جديد
+                </button>
+                <button
+                  onClick={() => navigate("/bulk-all-students")}
+                  className="px-5 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <span>📤</span>
+                  رفع طلاب لجميع الفصول
                 </button>
               </div>
             )}

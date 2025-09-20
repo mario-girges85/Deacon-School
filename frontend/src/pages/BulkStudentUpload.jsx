@@ -15,8 +15,11 @@ const BulkStudentUpload = () => {
   const [classData, setClassData] = useState(null);
   const [levels, setLevels] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState("");
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [startTime, setStartTime] = useState(null);
 
   useEffect(() => {
     // Check authentication and admin role
@@ -140,8 +143,27 @@ const BulkStudentUpload = () => {
     }
 
     setUploading(true);
+    setUploadProgress(0);
     setError("");
     setUploadResult(null);
+    setTimeRemaining(null);
+    setStartTime(Date.now());
+
+    // Simulate progress during upload with time tracking
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prevProgress) => {
+        if (prevProgress < 85) {
+          // More gradual progress increments for smoother time estimation
+          const increment = Math.random() * 5 + 2; // 2-7% increments
+          const newProgress = Math.min(prevProgress + increment, 85);
+          const elapsedTime = (Date.now() - startTime) / 1000;
+          const remaining = calculateTimeRemaining(newProgress, elapsedTime);
+          setTimeRemaining(remaining);
+          return newProgress;
+        }
+        return prevProgress;
+      });
+    }, 500); // Slower interval for more stable estimates
 
     try {
       const formData = new FormData();
@@ -156,11 +178,41 @@ const BulkStudentUpload = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
         formData,
-        { headers }
+        { 
+          headers,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            // Use the higher of simulated progress or actual upload progress, but cap at 85%
+            setUploadProgress((prevProgress) => {
+              const actualProgress = Math.min(percentCompleted, 85);
+              const newProgress = Math.max(prevProgress, actualProgress);
+              
+              // Calculate time remaining based on actual upload progress
+              const elapsedTime = (Date.now() - startTime) / 1000;
+              const remaining = calculateTimeRemaining(newProgress, elapsedTime);
+              setTimeRemaining(remaining);
+              
+              return newProgress;
+            });
+          }
+        }
       );
 
-      setUploadResult(response.data);
+      // Complete the progress bar
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      // Small delay to show 100% before showing results
+      setTimeout(() => {
+        setUploadResult(response.data);
+        setUploading(false);
+        setUploadProgress(0);
+      }, 1000);
+
     } catch (error) {
+      clearInterval(progressInterval);
       console.error("Error uploading file:", error);
 
       if (error.response?.status === 401) {
@@ -176,8 +228,9 @@ const BulkStudentUpload = () => {
       }
 
       setError(error.response?.data?.error || "حدث خطأ أثناء رفع الملف");
-    } finally {
       setUploading(false);
+      setUploadProgress(0);
+      setTimeRemaining(null);
     }
   };
 
@@ -207,6 +260,37 @@ const BulkStudentUpload = () => {
       default:
         return `المرحلة ${stage}`;
     }
+  };
+
+  const formatTimeRemaining = (seconds) => {
+    const roundedSeconds = Math.round(seconds);
+    
+    if (roundedSeconds < 60) {
+      return `${roundedSeconds} ثانية`;
+    } else if (roundedSeconds < 3600) {
+      const minutes = Math.round(roundedSeconds / 60);
+      return `${minutes} دقيقة`;
+    } else {
+      const hours = Math.round(roundedSeconds / 3600);
+      return `${hours} ساعة`;
+    }
+  };
+
+  const calculateTimeRemaining = (progress, elapsedTime) => {
+    if (progress <= 0 || elapsedTime < 2) return null;
+    
+    // Only calculate after we have meaningful progress (at least 5%)
+    if (progress < 5) return null;
+    
+    const estimatedTotalTime = (elapsedTime / progress) * 100;
+    const remainingTime = estimatedTotalTime - elapsedTime;
+    
+    // Cap the maximum estimated time to 10 minutes (600 seconds)
+    const maxReasonableTime = 600;
+    const cappedRemainingTime = Math.min(remainingTime, maxReasonableTime);
+    
+    // Don't show time if it's less than 5 seconds
+    return cappedRemainingTime > 5 ? cappedRemainingTime : null;
   };
 
   if (!classData) {
@@ -370,6 +454,39 @@ const BulkStudentUpload = () => {
               {uploading ? "يرجى الانتظار..." : "أو اسحب وأفلت الملف هنا"}
             </p>
           </div>
+
+          {/* Progress Bar */}
+          {uploading && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  جاري معالجة الملف...
+                </span>
+                <div className="flex items-center gap-3">
+                  {timeRemaining && timeRemaining > 0 && (
+                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                      متبقي: {formatTimeRemaining(timeRemaining)}
+                    </span>
+                  )}
+                  <span className="text-sm text-gray-500">
+                    {Math.round(uploadProgress)}%
+                  </span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {uploadProgress < 30 && "جاري رفع الملف..."}
+                {uploadProgress >= 30 && uploadProgress < 70 && "جاري معالجة البيانات..."}
+                {uploadProgress >= 70 && uploadProgress < 100 && "جاري إنهاء المعالجة..."}
+                {uploadProgress >= 100 && "تم بنجاح!"}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error Display */}
