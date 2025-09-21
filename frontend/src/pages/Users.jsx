@@ -192,6 +192,13 @@ const Users = () => {
                   <span>📤</span>
                   رفع طلاب لجميع الفصول
                 </button>
+                <button
+                  onClick={() => navigate("/bulk-teachers")}
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg flex items-center gap-2"
+                >
+                  <span>👨‍🏫</span>
+                  رفع معلمين
+                </button>
               </div>
             )}
           </div>

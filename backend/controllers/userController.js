@@ -1382,6 +1382,353 @@ module.exports.getTeachersWithClasses = async (req, res) => {
   }
 };
 
+// Bulk import for teachers (CSV or Excel). Field name: 'file'.
+module.exports.bulkImportTeachers = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "يرجى رفع ملف CSV أو Excel في الحقل 'file'",
+      });
+    }
+
+    const originalName = (req.file.originalname || "").toLowerCase();
+    const isCsv = originalName.endsWith(".csv");
+    const isExcel =
+      originalName.endsWith(".xlsx") || originalName.endsWith(".xls");
+
+    if (!isCsv && !isExcel) {
+      return res.status(400).json({
+        success: false,
+        message: "صيغة الملف غير مدعومة. استخدم CSV أو Excel فقط",
+      });
+    }
+
+    const results = {
+      total: 0,
+      successful: [],
+      failed: [],
+      existing: [],
+    };
+
+    const ensureBirthday = (value) => {
+      const ExcelJS = require("exceljs");
+      const coerceStringToDate = (strVal) => {
+        const str = String(strVal || "").trim();
+        if (!str) return null;
+        let match = str.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+        if (match) {
+          const monthFirst = parseInt(match[1], 10) - 1;
+          const daySecond = parseInt(match[2], 10);
+          const year = parseInt(match[3], 10);
+          let d = new Date(year, monthFirst, daySecond);
+          if (
+            !isNaN(d.getTime()) &&
+            d.getFullYear() === year &&
+            d.getMonth() === monthFirst &&
+            d.getDate() === daySecond
+          ) {
+            return d;
+          }
+          const dayFirst = parseInt(match[1], 10);
+          const monthSecond = parseInt(match[2], 10) - 1;
+          d = new Date(year, monthSecond, dayFirst);
+          if (
+            !isNaN(d.getTime()) &&
+            d.getFullYear() === year &&
+            d.getMonth() === monthSecond &&
+            d.getDate() === dayFirst
+          ) {
+            return d;
+          }
+        }
+        const iso = new Date(str);
+        if (!isNaN(iso.getTime())) return iso;
+        return null;
+      };
+      if (value instanceof Date) return value;
+      if (typeof value === "number") {
+        const baseDate = new Date(Date.UTC(1899, 11, 30));
+        const result = new Date(
+          baseDate.getTime() + value * 24 * 60 * 60 * 1000
+        );
+        return new Date(
+          result.getFullYear(),
+          result.getMonth(),
+          result.getDate()
+        );
+      }
+      if (value && typeof value === "object" && value.text) {
+        return coerceStringToDate(value.text);
+      }
+      return coerceStringToDate(value);
+    };
+
+    const upsertFromRow = async (rowObj, rowIndex) => {
+      try {
+        const required = ["name", "phone", "birthday", "gender", "code", "subject"];
+        const missing = required.filter(
+          (f) => !rowObj[f] || String(rowObj[f]).trim() === ""
+        );
+        if (missing.length > 0) {
+          results.failed.push({
+            row: rowIndex,
+            field: "required_fields",
+            message: `الحقول المطلوبة مفقودة: ${missing.join(", ")}`,
+            data: rowObj,
+          });
+          return;
+        }
+
+        // Basic validations
+        if (!/^\d{11}$/.test(String(rowObj.phone))) {
+          results.failed.push({
+            row: rowIndex,
+            field: "phone",
+            message: "رقم الهاتف يجب أن يتكون من 11 رقمًا",
+            data: rowObj,
+          });
+          return;
+        }
+        
+        const birthday = ensureBirthday(rowObj.birthday);
+        if (!birthday || isNaN(birthday.getTime())) {
+          results.failed.push({
+            row: rowIndex,
+            field: "birthday",
+            message: "تاريخ الميلاد غير صحيح",
+            data: rowObj,
+          });
+          return;
+        }
+        
+        const gender = String(rowObj.gender || "").toLowerCase();
+        if (!["male", "female"].includes(gender)) {
+          results.failed.push({
+            row: rowIndex,
+            field: "gender",
+            message: "الجنس يجب أن يكون male أو female",
+            data: rowObj,
+          });
+          return;
+        }
+
+        // Validate subject
+        const subject = String(rowObj.subject || "").toLowerCase();
+        if (!["taks", "al7an", "coptic"].includes(subject)) {
+          results.failed.push({
+            row: rowIndex,
+            field: "subject",
+            message: "التخصص يجب أن يكون taks أو al7an أو coptic",
+            data: rowObj,
+          });
+          return;
+        }
+
+        // Duplicate check by code only
+        const existingUser = await User.findOne({
+          where: { code: rowObj.code },
+        });
+        if (existingUser) {
+          results.existing.push({
+            row: rowIndex,
+            reason: `المعلم موجود بالفعل (${existingUser.role})`,
+            conflictType: "code",
+            newData: {
+              name: String(rowObj.name || ""),
+              phone: String(rowObj.phone || ""),
+              code: String(rowObj.code || ""),
+              subject: String(rowObj.subject || ""),
+            },
+            existingUser: {
+              id: existingUser.id,
+              name: existingUser.name,
+              phone: existingUser.phone,
+              code: existingUser.code,
+              role: existingUser.role,
+              subject: existingUser.subject,
+            },
+          });
+          return;
+        }
+
+        // Hash password (use 'password' if provided; else fallback to 'code')
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(
+          rowObj.password ? String(rowObj.password) : String(rowObj.code),
+          saltRounds
+        );
+
+        const newUser = await User.create({
+          name: String(rowObj.name),
+          phone: String(rowObj.phone),
+          password: hashedPassword,
+          birthday,
+          gender,
+          code: String(rowObj.code),
+          role: "teacher",
+          subject: subject,
+        });
+
+        const userResponse = { ...newUser.toJSON() };
+        delete userResponse.password;
+        results.successful.push({ row: rowIndex, user: userResponse });
+      } catch (e) {
+        if (e && e.name === "SequelizeUniqueConstraintError") {
+          const pathField =
+            (e.errors && e.errors[0] && e.errors[0].path) || "";
+
+          if (String(pathField).includes("code")) {
+            results.existing.push({
+              row: rowIndex,
+              reason: "المعلم موجود بالفعل (code)",
+              conflictType: "code",
+              newData: {
+                name: String(rowObj.name || ""),
+                phone: String(rowObj.phone || ""),
+                code: String(rowObj.code || ""),
+                subject: String(rowObj.subject || ""),
+              },
+              existingUser: {
+                id: null,
+                name: rowObj.name || "",
+                phone: rowObj.phone || "",
+                code: rowObj.code || "",
+                role: "teacher",
+                subject: rowObj.subject || "",
+              },
+            });
+            return;
+          }
+        }
+
+        results.failed.push({
+          row: rowIndex,
+          field: "system_error",
+          message: e.message,
+          data: rowObj,
+        });
+      }
+    };
+
+    // Helper to normalize incoming header names (Arabic -> internal keys)
+    const normalizeHeader = (h) => {
+      const trimmed = String(h || "").trim();
+      const lower = trimmed.toLowerCase();
+      const map = {
+        الاسم: "name",
+        الهاتف: "phone",
+        "تاريخ الميلاد": "birthday",
+        الجنس: "gender",
+        الكود: "code",
+        التخصص: "subject",
+        المادة: "subject",
+      };
+      return map[trimmed] || map[lower] || lower;
+    };
+
+    if (isCsv) {
+      const csvContent = req.file.buffer.toString("utf-8");
+      const lines = csvContent.split("\n").filter((line) => line.trim());
+      if (lines.length < 2) {
+        return res.status(400).json({
+          success: false,
+          message: "الملف فارغ أو يحتوي على صف واحد فقط",
+        });
+      }
+      const rawHeaders = lines[0].split(",").map((h) => h.trim());
+      const headers = rawHeaders.map((h) => normalizeHeader(h));
+      const requiredHeaders = ["name", "phone", "birthday", "gender", "code", "subject"];
+      const missingHeaders = requiredHeaders.filter(
+        (f) => !headers.includes(f)
+      );
+      if (missingHeaders.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
+            ", "
+          )}`,
+        });
+      }
+
+      results.total = lines.length - 1;
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",").map((v) => v.trim());
+        if (values.length < headers.length) continue;
+        const rowObj = {};
+        headers.forEach((h, index) => {
+          rowObj[h] = values[index] || "";
+        });
+        await upsertFromRow(rowObj, i + 1);
+      }
+    } else if (isExcel) {
+      const ExcelJS = require("exceljs");
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(req.file.buffer);
+      const worksheet = workbook.getWorksheet(1);
+      if (!worksheet) {
+        return res
+          .status(400)
+          .json({ success: false, message: "لا يمكن قراءة ورقة Excel الأولى" });
+      }
+      const headerRow = worksheet.getRow(1);
+      const headers = headerRow.values.slice(1).map((v) => normalizeHeader(v));
+      const requiredHeaders = ["name", "phone", "birthday", "gender", "code", "subject"];
+      const missingHeaders = requiredHeaders.filter(
+        (f) => !headers.includes(f)
+      );
+      if (missingHeaders.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
+            ", "
+          )}`,
+        });
+      }
+
+      results.total = 0;
+      for (let i = 2; i <= worksheet.rowCount; i++) {
+        const row = worksheet.getRow(i);
+        if (!row.values || row.values.length <= 1) continue;
+        const rowObj = {};
+        headers.forEach((h, idx) => {
+          const cell = row.getCell(idx + 1).value;
+          rowObj[h] = cell && cell.text !== undefined ? cell.text : cell;
+        });
+        if (!rowObj.name || Object.keys(rowObj).length <= 1) continue;
+        results.total++;
+        await upsertFromRow(rowObj, i);
+      }
+    }
+
+    const summary = {
+      totalProcessed: results.total,
+      successful: results.successful.length,
+      failed: results.failed.length,
+      existing: results.existing.length,
+      skipped: results.existing.length,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: `تمت معالجة ${results.total} صف`,
+      summary,
+      successful: results.successful,
+      failed: results.failed,
+      existing: results.existing,
+      existingUsers: results.existing,
+      note: "جميع المستخدمين المرفوعين يتم تعيينهم كمعلمين تلقائياً",
+    });
+  } catch (error) {
+    console.error("bulkImportTeachers error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "فشل في معالجة الملف",
+      error: error.message,
+    });
+  }
+};
+
 // Get school statistics
 module.exports.getSchoolStats = async (req, res) => {
   try {

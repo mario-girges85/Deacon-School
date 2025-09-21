@@ -186,7 +186,7 @@ const Schedule = () => {
         if (specialty && specialty !== cell.subject) {
           return {
             ok: false,
-            message: `المعلم ${
+            message: `انكل ${
               teacherNameById.get(tId) || tId
             } ليس متخصصًا في مادة ${
               SUBJECT_LABELS[cell.subject] || cell.subject
@@ -197,7 +197,7 @@ const Schedule = () => {
         if (teacherBySlot[slotKey].has(tId)) {
           return {
             ok: false,
-            message: `لا يمكن تعيين المعلم ${
+            message: `لا يمكن تعيين الانكل ${
               teacherNameById.get(tId) || tId
             } لفصلين في نفس الفترة`,
           };
@@ -208,7 +208,7 @@ const Schedule = () => {
         if (teacherTotal.get(tId) > MAX_CLASSES_PER_TEACHER) {
           return {
             ok: false,
-            message: `المعلم ${
+            message: `الانكل ${
               teacherNameById.get(tId) || tId
             } تجاوز الحد الأقصى (3 فصول)`,
           };

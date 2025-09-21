@@ -15,6 +15,7 @@ import LevelCurriculum from "./pages/LevelCurriculum";
 import LecturePage from "./pages/LecturePage";
 import BulkStudentUpload from "./pages/BulkStudentUpload";
 import BulkAllStudents from "./pages/BulkAllStudents";
+import BulkTeacherUpload from "./pages/BulkTeacherUpload";
 import Schedule from "./pages/Schedule";
 import AddStudent from "./pages/AddStudent";
 import UserDetails from "./pages/UserDetails";
@@ -60,6 +61,12 @@ const App = () => {
           path="/bulk-all-students"
           element={
             <ProtectedRoute requireAdmin element={<BulkAllStudents />} />
+          }
+        />
+        <Route
+          path="/bulk-teachers"
+          element={
+            <ProtectedRoute requireAdmin element={<BulkTeacherUpload />} />
           }
         />
         <Route

@@ -70,6 +70,15 @@ router.post(
   userController.bulkImport
 );
 
+// Bulk import for teachers (CSV or Excel). Field name: 'file'.
+router.post(
+  "/bulk-import-teachers",
+  authenticateToken,
+  requireAdmin,
+  upload.single("file"),
+  userController.bulkImportTeachers
+);
+
 router.post("/login", userController.login);
 router.get(
   "/get-users",
