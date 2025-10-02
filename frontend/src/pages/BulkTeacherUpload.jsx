@@ -140,16 +140,11 @@ const BulkTeacherUpload = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const headers = {
-        "Content-Type": "multipart/form-data",
-        ...getAuthHeaders(),
-      };
-
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import-teachers`,
         formData,
         { 
-          headers,
+          headers: getAuthHeaders(),
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total

@@ -32,46 +32,58 @@ const UserDetails = () => {
     if (userId) load();
   }, [userId]);
 
-  // If admin or teacher, load a read-only schedule snapshot for display
+  // Load teacher schedule for display
   useEffect(() => {
-    const loadSchedule = async () => {
-      if (!user || !["admin", "teacher"].includes(user.role)) return;
+    const loadTeacherSchedule = async () => {
+      if (!user || user.role !== "teacher") return;
       try {
         setAdminScheduleLoading(true);
-        const res = await apiClient.post("/api/schedule/generate", {});
-        const sched = res.data || null;
-        setAdminSchedule(sched);
-
-        if (user.role === "teacher" && sched) {
-          const keyToLabel = Object.fromEntries(
-            (sched.timeSlots || []).map((ts) => [ts.key, ts.label])
-          );
-          const assignments = [];
-          (sched.rows || []).forEach((row) => {
-            ["A", "B", "C"].forEach((slotKey) => {
-              const cell = row[slotKey];
-              if (cell && cell.teacherId === user.id) {
-                assignments.push({
+        
+        // Get current schedule
+        const scheduleResponse = await apiClient.get("/api/schedule/current");
+        
+        if (scheduleResponse.data?.success && scheduleResponse.data.rows) {
+          // Filter schedule to show only this teacher's assignments
+          const teacherSchedule = [];
+          scheduleResponse.data.rows.forEach((row) => {
+            const timeSlots = scheduleResponse.data.timeSlots || [];
+            timeSlots.forEach((timeSlot) => {
+              const cell = row[timeSlot.key];
+              if (cell?.teacherId === user.id) {
+                teacherSchedule.push({
                   classId: row.class.id,
-                  classLocation: row.class.location,
+                  className: row.class.location,
                   level: row.class.level,
-                  slotKey,
-                  slotLabel: keyToLabel[slotKey] || slotKey,
+                  timeSlot: timeSlot.label,
+                  timeSlotKey: timeSlot.key,
                   subject: cell.subject,
+                  subjectLabel: getSubjectLabel(cell.subject),
                 });
               }
             });
           });
-          setTeacherSchedule(assignments);
+          setTeacherSchedule(teacherSchedule);
+        } else {
+          setTeacherSchedule([]);
         }
       } catch (e) {
-        // ignore; optional
+        console.error("Error loading teacher schedule:", e);
+        setTeacherSchedule([]);
       } finally {
         setAdminScheduleLoading(false);
       }
     };
-    loadSchedule();
+    loadTeacherSchedule();
   }, [user]);
+
+  const getSubjectLabel = (subject) => {
+    const labels = {
+      taks: "طقس",
+      al7an: "ألحان", 
+      coptic: "قبطي"
+    };
+    return labels[subject] || subject;
+  };
 
   const getRoleName = (role) => {
     switch (role) {
@@ -223,12 +235,7 @@ const UserDetails = () => {
                     form.append("image", file);
                     const res = await apiClient.put(
                       `/api/users/${user.id}/image`,
-                      form,
-                      {
-                        headers: {
-                          "Content-Type": "multipart/form-data",
-                        },
-                      }
+                      form
                     );
                     if (res.data?.success && res.data?.image) {
                       setUser((prev) => ({ ...prev, image: res.data.image }));
@@ -363,46 +370,60 @@ const UserDetails = () => {
           </div>
         )}
 
-        {user.role === "teacher" && teacherSchedule.length > 0 && (
+        {user.role === "teacher" && (
           <div className="bg-white rounded-lg shadow p-6 mt-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              جدول المعلم
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-2xl">⏰</span>
+              جدول الحصص
             </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm bg-white border">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-right px-3 py-2">الفصل</th>
-                    <th className="text-right px-3 py-2">المستوى/المرحلة</th>
-                    <th className="text-right px-3 py-2">الفترة</th>
-                    <th className="text-right px-3 py-2">المادة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teacherSchedule.map((a, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 border-t">{a.classLocation}</td>
-                      <td className="px-3 py-2 border-t">
-                        {a.level
-                          ? `${getLevelName(a.level.level)} - ${getStageName(
-                              a.level.stage,
-                              a.level.level
-                            )}`
-                          : "—"}
-                      </td>
-                      <td className="px-3 py-2 border-t">{a.slotLabel}</td>
-                      <td className="px-3 py-2 border-t">
-                        {a.subject === "taks"
-                          ? "طقس"
-                          : a.subject === "al7an"
-                          ? "ألحان"
-                          : "قبطي"}
-                      </td>
+            
+            {adminScheduleLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-500 text-lg mt-4">جاري تحميل الجدول...</p>
+              </div>
+            ) : teacherSchedule.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📅</div>
+                <p>لا يوجد جدول حصص محدد لهذا المعلم بعد</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">الفصل</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">المستوى</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">الفترة</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">المادة</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {teacherSchedule.map((item, index) => (
+                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="px-3 py-3 text-right font-medium">
+                          {item.className}
+                        </td>
+                        <td className="px-3 py-3 text-right text-gray-600">
+                          {item.level ? 
+                            `${getLevelName(item.level.level)} - ${getStageName(item.level.stage, item.level.level)}` 
+                            : "—"
+                          }
+                        </td>
+                        <td className="px-3 py-3 text-right text-gray-600">
+                          {item.timeSlot}
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {item.subjectLabel}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>

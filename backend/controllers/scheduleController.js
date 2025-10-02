@@ -194,22 +194,27 @@ module.exports.applySchedule = async (req, res) => {
     const MAX_CLASSES_PER_TEACHER = 3;
     const teacherTotals = new Map();
     const teacherBySlot = { A: new Set(), B: new Set(), C: new Set() };
+    const conflicts = [];
 
     for (const row of rows) {
       // ensure class object
       if (!row?.class?.id) {
-        return res
-          .status(400)
-          .json({ success: false, error: "row missing class info" });
+        conflicts.push({
+          type: "missing_class_info",
+          classId: row?.class?.id || "unknown",
+          message: "Row missing class info"
+        });
+        continue;
       }
+      
       // class must have 3 distinct subjects
       const subjSet = new Set([row.A?.subject, row.B?.subject, row.C?.subject]);
       if (subjSet.size !== 3) {
-        return res.status(400).json({
-          success: false,
-          error: `Class ${
-            row.class.location || row.class.id
-          } must include 3 distinct subjects`,
+        conflicts.push({
+          type: "duplicate_subjects",
+          classId: row.class.id,
+          className: row.class.location || row.class.id,
+          message: `Class ${row.class.location || row.class.id} must include 3 distinct subjects`
         });
       }
 
@@ -220,39 +225,72 @@ module.exports.applySchedule = async (req, res) => {
         if (!tId) continue; // allow unassigned
         const t = teacherById.get(tId);
         if (!t) {
-          return res
-            .status(400)
-            .json({ success: false, error: `Unknown teacher ${tId}` });
+          conflicts.push({
+            type: "unknown_teacher",
+            classId: row.class.id,
+            className: row.class.location || row.class.id,
+            slot: slotKey,
+            teacherId: tId,
+            message: `Unknown teacher ${tId}`
+          });
+          continue;
         }
+        
         // subject specialty check
         if (t.subject && t.subject !== cell.subject) {
-          return res.status(400).json({
-            success: false,
-            error: `Teacher ${t.name} is not specialized in ${cell.subject}`,
+          conflicts.push({
+            type: "subject_mismatch",
+            classId: row.class.id,
+            className: row.class.location || row.class.id,
+            slot: slotKey,
+            teacherId: tId,
+            teacherName: t.name,
+            subject: cell.subject,
+            teacherSpecialty: t.subject,
+            message: `Teacher ${t.name} is not specialized in ${cell.subject}`
           });
         }
+        
         // per-slot uniqueness
         if (teacherBySlot[slotKey].has(tId)) {
-          return res.status(400).json({
-            success: false,
-            error: `Teacher ${t.name} appears twice in slot ${slotKey}`,
+          conflicts.push({
+            type: "slot_conflict",
+            classId: row.class.id,
+            className: row.class.location || row.class.id,
+            slot: slotKey,
+            teacherId: tId,
+            teacherName: t.name,
+            message: `Teacher ${t.name} appears twice in slot ${slotKey}`
           });
+        } else {
+          teacherBySlot[slotKey].add(tId);
         }
-        teacherBySlot[slotKey].add(tId);
+        
         // total cap
         teacherTotals.set(tId, (teacherTotals.get(tId) || 0) + 1);
         if (teacherTotals.get(tId) > MAX_CLASSES_PER_TEACHER) {
-          return res.status(400).json({
-            success: false,
-            error: `Teacher ${t.name} exceeds max 3 classes`,
+          conflicts.push({
+            type: "teacher_overload",
+            classId: row.class.id,
+            className: row.class.location || row.class.id,
+            slot: slotKey,
+            teacherId: tId,
+            teacherName: t.name,
+            currentLoad: teacherTotals.get(tId),
+            maxLoad: MAX_CLASSES_PER_TEACHER,
+            message: `Teacher ${t.name} exceeds max ${MAX_CLASSES_PER_TEACHER} classes (currently ${teacherTotals.get(tId)})`
           });
         }
       }
     }
 
+    const isValid = conflicts.length === 0;
+    
     return res.json({
-      success: true,
-      message: "Schedule is valid. Not persisted.",
+      success: isValid,
+      message: isValid ? "Schedule is valid. Not persisted." : "Schedule has conflicts.",
+      conflicts: conflicts,
+      conflictCount: conflicts.length
     });
   } catch (error) {
     console.error("applySchedule error:", error);

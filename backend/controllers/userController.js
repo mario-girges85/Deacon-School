@@ -1273,10 +1273,14 @@ module.exports.getTeacherClasses = async (req, res) => {
       });
     }
 
+    // Get subject-based assignments as well
+    const { resolveTeacherClasses } = require("../util/userHelpers");
+    const allClasses = await resolveTeacherClasses(userId, user.teachingClasses || []);
+
     res.status(200).json({
       success: true,
       message: "تم جلب الفصول بنجاح",
-      classes: user.teachingClasses || [],
+      classes: allClasses,
     });
   } catch (error) {
     console.error("Error getting teacher classes:", error);

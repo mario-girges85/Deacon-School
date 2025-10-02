@@ -14,6 +14,7 @@ const Classes = () => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [allClasses, setAllClasses] = useState([]);
+  const [teacherClasses, setTeacherClasses] = useState([]);
   const [levels, setLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,6 +22,7 @@ const Classes = () => {
   const [selectedLevelId, setSelectedLevelId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
   const [creating, setCreating] = useState(false);
+  const [loadingTeacherClasses, setLoadingTeacherClasses] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -57,11 +59,38 @@ const Classes = () => {
       } else {
         setLevels([]);
       }
+
+      // Fetch teacher classes if user is a teacher
+      const user = getCurrentUser();
+      if (user?.role === "teacher") {
+        await fetchTeacherClasses(user.id);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       setError("حدث خطأ أثناء جلب البيانات");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTeacherClasses = async (teacherId) => {
+    try {
+      setLoadingTeacherClasses(true);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/users/teacher/${teacherId}/classes`,
+        { headers: getAuthHeaders() }
+      );
+
+      if (response.data?.success) {
+        setTeacherClasses(response.data.classes || []);
+      } else {
+        setTeacherClasses([]);
+      }
+    } catch (error) {
+      console.error("Error fetching teacher classes:", error);
+      setTeacherClasses([]);
+    } finally {
+      setLoadingTeacherClasses(false);
     }
   };
   const me = isAuthenticated() ? getCurrentUser() : null;
@@ -70,12 +99,19 @@ const Classes = () => {
   const visibleClasses = useMemo(() => {
     if (isUserAdmin) return classes;
     if (!me) return [];
+    
+    // For teachers, show their assigned classes
+    if (me.role === "teacher") {
+      return teacherClasses;
+    }
+    
+    // For other users, show their allowed classes
     const allowedClassIds = new Set();
     if (me.class_id) allowedClassIds.add(me.class_id);
     if (Array.isArray(me.classes))
       me.classes.forEach((c) => c?.id && allowedClassIds.add(c.id));
     return classes.filter((c) => allowedClassIds.has(c.id));
-  }, [classes, me, isUserAdmin]);
+  }, [classes, teacherClasses, me, isUserAdmin]);
 
   const handleCreateRelation = () => {
     if (!isUserAdmin) {
@@ -176,9 +212,14 @@ const Classes = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">الفصول</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {me?.role === "teacher" ? "الفصول المخصصة لي" : "الفصول"}
+          </h1>
           <p className="text-gray-600">
-            عرض الفصول المرتبطة بالمستويات الدراسية
+            {me?.role === "teacher" 
+              ? "عرض الفصول المخصصة لك كمعلم"
+              : "عرض الفصول المرتبطة بالمستويات الدراسية"
+            }
           </p>
         </div>
 
@@ -196,9 +237,19 @@ const Classes = () => {
           )}
         </div>
 
-        {visibleClasses.length === 0 ? (
+        {loadingTeacherClasses ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">لا توجد فصول حالياً</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-500 text-lg mt-4">جاري تحميل فصولك...</p>
+          </div>
+        ) : visibleClasses.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg mb-4">
+              {me?.role === "teacher" 
+                ? "لم يتم تعيين أي فصول لك بعد" 
+                : "لا توجد فصول حالياً"
+              }
+            </p>
             {isUserAdmin && (
               <button
                 onClick={handleCreateRelation}

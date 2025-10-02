@@ -73,7 +73,10 @@ const App = () => {
           path="/schedule"
           element={<ProtectedRoute requireAdmin element={<Schedule />} />}
         />
-        <Route path="/classes/:classId/add-student" element={<AddStudent />} />
+        <Route
+          path="/classes/:classId/add-student"
+          element={<ProtectedRoute requireAdmin element={<AddStudent />} />}
+        />
         <Route path="/levels" element={<Levels />} />
         <Route path="/levels/:levelId" element={<LevelDetails />} />
         <Route

@@ -18,6 +18,11 @@ const Profile = () => {
   const [savingPwd, setSavingPwd] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  // Teacher schedule states
+  const [teacherSchedule, setTeacherSchedule] = useState([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [scheduleError, setScheduleError] = useState("");
 
   useEffect(() => {
     if (!authed) {
@@ -38,8 +43,86 @@ const Profile = () => {
         // Silent fail; keep placeholder
       }
     };
-    if (authed && me?.id) fetchUserImage();
-  }, [authed, navigate]);
+    if (authed && me?.id) {
+      fetchUserImage();
+      // Fetch teacher schedule if user is a teacher
+      if (me.role === "teacher") {
+        fetchTeacherSchedule(me.id);
+      }
+    }
+  }, [authed, navigate, me?.id, me?.role]);
+
+  const fetchTeacherSchedule = async (teacherId) => {
+    try {
+      setLoadingSchedule(true);
+      setScheduleError("");
+      
+      // Get current schedule
+      const scheduleResponse = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/current`,
+        { headers: getAuthHeaders() }
+      );
+
+      if (scheduleResponse.data?.success && scheduleResponse.data.rows) {
+        // Filter schedule to show only this teacher's assignments
+        const teacherSchedule = [];
+        scheduleResponse.data.rows.forEach((row) => {
+          const timeSlots = scheduleResponse.data.timeSlots || [];
+          timeSlots.forEach((timeSlot) => {
+            const cell = row[timeSlot.key];
+            if (cell?.teacherId === teacherId) {
+              teacherSchedule.push({
+                classId: row.class.id,
+                className: row.class.location,
+                level: row.class.level,
+                timeSlot: timeSlot.label,
+                timeSlotKey: timeSlot.key,
+                subject: cell.subject,
+                subjectLabel: getSubjectLabel(cell.subject),
+              });
+            }
+          });
+        });
+        setTeacherSchedule(teacherSchedule);
+      } else {
+        setTeacherSchedule([]);
+      }
+    } catch (error) {
+      console.error("Error fetching teacher schedule:", error);
+      setScheduleError("حدث خطأ أثناء جلب الجدول التدريسي");
+      setTeacherSchedule([]);
+    } finally {
+      setLoadingSchedule(false);
+    }
+  };
+
+  const getSubjectLabel = (subject) => {
+    const labels = {
+      taks: "طقس",
+      al7an: "ألحان", 
+      coptic: "قبطي"
+    };
+    return labels[subject] || subject;
+  };
+
+  const getLevelName = (level) => {
+    const levels = {
+      0: "تمهيدي",
+      1: "المستوى الأول",
+      2: "المستوى الثاني", 
+      3: "المستوى الثالث"
+    };
+    return levels[level] || `المستوى ${level}`;
+  };
+
+  const getStageName = (stage, level) => {
+    const stages = {
+      1: "المرحلة الأولى",
+      2: "المرحلة الثانية",
+      3: "المرحلة الثالثة"
+    };
+    return stages[stage] || `المرحلة ${stage}`;
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
@@ -50,14 +133,10 @@ const Profile = () => {
     try {
       const fd = new FormData();
       fd.append("image", file);
-      const headers = {
-        ...getAuthHeaders(),
-        "Content-Type": "multipart/form-data",
-      };
       const uploadRes = await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/${me.id}/image`,
         fd,
-        { headers }
+        { headers: getAuthHeaders() }
       );
       // Prefer server-returned base64 (ensures final stored image is shown)
       if (uploadRes?.data?.image) {
@@ -253,6 +332,74 @@ const Profile = () => {
               </button>
             </form>
           </div>
+
+          {/* Teacher Schedule Section */}
+          {me?.role === "teacher" && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="text-2xl">⏰</span>
+                جدولي التدريسي
+              </h2>
+              
+              {loadingSchedule ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-500 text-lg mt-4">جاري تحميل الجدول...</p>
+                </div>
+              ) : scheduleError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-lg">{scheduleError}</p>
+                  <button
+                    onClick={() => fetchTeacherSchedule(me.id)}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    إعادة المحاولة
+                  </button>
+                </div>
+              ) : teacherSchedule.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">📅</div>
+                  <p>لا يوجد جدول تدريسي محدد لك بعد</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">الفصل</th>
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">المستوى</th>
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">الفترة</th>
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">المادة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherSchedule.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="px-3 py-3 text-right font-medium">
+                            {item.className}
+                          </td>
+                          <td className="px-3 py-3 text-right text-gray-600">
+                            {item.level ? 
+                              `${getLevelName(item.level.level)} - ${getStageName(item.level.stage, item.level.level)}` 
+                              : "—"
+                            }
+                          </td>
+                          <td className="px-3 py-3 text-right text-gray-600">
+                            {item.timeSlot}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {item.subjectLabel}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -226,21 +226,23 @@ const ClassDetails = () => {
               if (isStudentViewer) return null;
               return (
                 <div className="flex flex-wrap items-center gap-3 space-x-reverse">
-                  <button
-                    aria-label="إضافة طالب واحد"
-                    onClick={() => navigate(`/classes/${id}/add-student`)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-green-500/20 transition-all duration-200 hover:shadow-md hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="h-5 w-5"
+                  {isAdmin() && (
+                    <button
+                      aria-label="إضافة طالب واحد"
+                      onClick={() => navigate(`/classes/${id}/add-student`)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-green-500/20 transition-all duration-200 hover:shadow-md hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
                     >
-                      <path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5Z" />
-                    </svg>
-                    <span>إضافة طالب واحد</span>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5Z" />
+                      </svg>
+                      <span>إضافة طالب واحد</span>
+                    </button>
+                  )}
                   {isAdmin() && (
                     <button
                       aria-label="حذف الفصل"
@@ -259,21 +261,23 @@ const ClassDetails = () => {
                       <span>{deleting ? "جارِ الحذف..." : "حذف الفصل"}</span>
                     </button>
                   )}
-                  <button
-                    aria-label="إضافة مجموعة طلاب"
-                    onClick={() => navigate(`/classes/${id}/bulk-upload`)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-blue-500/20 transition-all duration-200 hover:shadow-md hover:from-blue-700 hover:to-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="h-5 w-5"
+                  {isAdmin() && (
+                    <button
+                      aria-label="إضافة مجموعة طلاب"
+                      onClick={() => navigate(`/classes/${id}/bulk-upload`)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow-sm ring-1 ring-inset ring-blue-500/20 transition-all duration-200 hover:shadow-md hover:from-blue-700 hover:to-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
-                      <path d="M12 3a4 4 0 1 1-3.995 4.2A4 4 0 0 1 12 3Zm-7 15.5a6.5 6.5 0 0 1 13 0V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1.5Zm14.25-7.75a.75.75 0 0 1 .75.75v2h2a.75.75 0 0 1 0 1.5h-2v2a.75.75 0 0 1-1.5 0v-2h-2a.75.75 0 0 1 0-1.5h2v-2a.75.75 0 0 1 .75-.75Z" />
-                    </svg>
-                    <span>إضافة مجموعة طلاب</span>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M12 3a4 4 0 1 1-3.995 4.2A4 4 0 0 1 12 3Zm-7 15.5a6.5 6.5 0 0 1 13 0V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1.5Zm14.25-7.75a.75.75 0 0 1 .75.75v2h2a.75.75 0 0 1 0 1.5h-2v2a.75.75 0 0 1-1.5 0v-2h-2a.75.75 0 0 1 0-1.5h2v-2a.75.75 0 0 1 .75-.75Z" />
+                      </svg>
+                      <span>إضافة مجموعة طلاب</span>
+                    </button>
+                  )}
                   <button
                     aria-label="العودة للفصول"
                     onClick={() => navigate("/classes")}

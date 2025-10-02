@@ -136,10 +136,7 @@ const AddEditHymn = () => {
         `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${hymnId}/audio`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            ...getAuthHeaders(),
-          },
+          headers: getAuthHeaders(),
         }
       );
     } catch (error) {

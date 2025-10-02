@@ -187,16 +187,11 @@ const BulkAllStudents = () => {
       const fd = new FormData();
       fd.append("file", file);
       // No classId in body here; each row must include الفصل
-      const headers = {
-        "Content-Type": "multipart/form-data",
-        ...getAuthHeaders(),
-      };
-
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
         fd,
         { 
-          headers,
+          headers: getAuthHeaders(),
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total

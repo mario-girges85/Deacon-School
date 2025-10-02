@@ -51,7 +51,10 @@ const Schedule = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showTeacherSelection, setShowTeacherSelection] = useState(false);
   const [error, setError] = useState("");
+  const [conflicts, setConflicts] = useState([]);
   const [dragInfo, setDragInfo] = useState(null); // { classId, slotKey }
+  const [editingCell, setEditingCell] = useState(null); // { classId, slotKey, cell }
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -230,7 +233,7 @@ const Schedule = () => {
     setDragInfo(null);
     if (sourceClassId === targetClassId && sourceSlotKey === targetSlotKey)
       return;
-    // simulate swap then validate
+    // simulate swap without validation
     const next = editedRows.map((row) => ({
       ...row,
       A: { ...row.A },
@@ -245,12 +248,39 @@ const Schedule = () => {
     sRow[sourceSlotKey] = { ...tRow[targetSlotKey] };
     tRow[targetSlotKey] = tmp;
 
-    const validation = validateSchedule(next);
-    if (!validation.ok) {
-      alert(validation.message);
-      return; // reject change
-    }
+    // Apply change without validation - validation will happen on submit
     setEditedRows(next);
+  };
+
+  const handleCellClick = (classId, slotKey, cell) => {
+    if (!isEditing) return;
+    setEditingCell({ classId, slotKey, cell });
+    setShowEditModal(true);
+  };
+
+  const handleCellEdit = (newSubject, newTeacherId) => {
+    if (!editingCell || !editedRows) return;
+    
+    const { classId, slotKey } = editingCell;
+    const next = editedRows.map((row) => ({
+      ...row,
+      A: { ...row.A },
+      B: { ...row.B },
+      C: { ...row.C },
+    }));
+    
+    const findRow = (cid) => next.find((r) => r.class.id === cid);
+    const row = findRow(classId);
+    if (!row) return;
+    
+    row[slotKey] = {
+      subject: newSubject,
+      teacherId: newTeacherId
+    };
+    
+    setEditedRows(next);
+    setShowEditModal(false);
+    setEditingCell(null);
   };
 
   const handleSubmit = async () => {
@@ -266,12 +296,21 @@ const Schedule = () => {
     try {
       setLoading(true);
       setError("");
+      setConflicts([]);
+      
       // First validate (no persistence)
-      await axios.post(
+      const validationRes = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/schedule/apply`,
         { rows: editedRows },
         { headers: { ...getAuthHeaders() } }
       );
+      
+      if (!validationRes.data.success) {
+        setConflicts(validationRes.data.conflicts || []);
+        setError(`تم العثور على ${validationRes.data.conflictCount || 0} تعارض في الجدول. راجع التقرير أدناه.`);
+        return;
+      }
+      
       // Then save
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/schedule/save`,
@@ -279,6 +318,7 @@ const Schedule = () => {
         { headers: { ...getAuthHeaders() } }
       );
       alert(res.data?.message || "تم حفظ الجدول بنجاح");
+      setConflicts([]);
     } catch (e) {
       setError(e?.response?.data?.error || "تعذر حفظ الجدول");
     } finally {
@@ -295,7 +335,7 @@ const Schedule = () => {
           </h1>
           <p className="text-gray-600">
             اختر معلمي كل مادة من القوائم، ثم اضغط توليد. يمكنك سحب أي خانة
-            وإفلاتها للتبديل قبل الإرسال.
+            وإفلاتها للتبديل أو النقر على الخلية لتعديل المادة والمعلم. سيتم التحقق من صحة الجدول عند الضغط على "حفظ الجدول".
           </p>
         </div>
 
@@ -333,11 +373,12 @@ const Schedule = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-3 mb-4">
+        {/* Primary Actions - Always visible */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <button
             onClick={generate}
             disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex-shrink-0"
           >
             {loading
               ? "جارٍ التوليد..."
@@ -349,50 +390,110 @@ const Schedule = () => {
             <button
               onClick={() => setShowTeacherSelection(false)}
               disabled={loading}
-              className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 disabled:opacity-50"
+              className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 disabled:opacity-50 flex-shrink-0"
             >
               إلغاء
             </button>
           )}
-          {result && (
-            <>
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  disabled={loading || !editedRows}
-                  className="bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 disabled:opacity-50"
-                >
-                  تعديل الجدول
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    if (result?.rows) setEditedRows(result.rows);
-                  }}
-                  disabled={loading}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 disabled:opacity-50"
-                >
-                  إلغاء التعديل
-                </button>
-              )}
-            </>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !editedRows || !isEditing}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            حفظ الجدول
-          </button>
-          {isEditing && (
-            <span className="text-sm text-yellow-700">وضع التعديل مفعل</span>
-          )}
         </div>
+
+        {/* Secondary Actions - Only show when schedule exists */}
+        {result && (
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                disabled={loading || !editedRows}
+                className="bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 disabled:opacity-50 flex-shrink-0"
+              >
+                تعديل الجدول
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  if (result?.rows) setEditedRows(result.rows);
+                }}
+                disabled={loading}
+                className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 disabled:opacity-50 flex-shrink-0"
+              >
+                إلغاء التعديل
+              </button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !editedRows || !isEditing}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 flex-shrink-0"
+            >
+              حفظ الجدول
+            </button>
+            {isEditing && (
+              <span className="text-sm text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full">
+                وضع التعديل مفعل
+              </span>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="mt-4 bg-red-50 border border-red-200 rounded p-4 text-red-800">
             {error}
+          </div>
+        )}
+
+        {/* Conflict Report */}
+        {conflicts.length > 0 && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-red-800 mb-4">
+              تقرير التعارضات ({conflicts.length})
+            </h3>
+            <div className="space-y-3">
+              {conflicts.map((conflict, index) => (
+                <div key={index} className="bg-white border border-red-200 rounded p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-red-800 mb-1">
+                        {conflict.type === "duplicate_subjects" && "مواد مكررة"}
+                        {conflict.type === "subject_mismatch" && "عدم تطابق التخصص"}
+                        {conflict.type === "slot_conflict" && "تعارض في الفترة الزمنية"}
+                        {conflict.type === "teacher_overload" && "تجاوز الحد الأقصى للفصول"}
+                        {conflict.type === "unknown_teacher" && "معلم غير معروف"}
+                        {conflict.type === "missing_class_info" && "معلومات فصل مفقودة"}
+                      </div>
+                      <div className="text-sm text-red-700 mb-2">
+                        {conflict.message}
+                      </div>
+                      <div className="text-xs text-gray-600 space-y-1">
+                        {conflict.className && (
+                          <div>الفصل: {conflict.className}</div>
+                        )}
+                        {conflict.slot && (
+                          <div>الفترة: {conflict.slot}</div>
+                        )}
+                        {conflict.teacherName && (
+                          <div>المعلم: {conflict.teacherName}</div>
+                        )}
+                        {conflict.subject && (
+                          <div>المادة: {SUBJECT_LABELS[conflict.subject] || conflict.subject}</div>
+                        )}
+                        {conflict.teacherSpecialty && (
+                          <div>تخصص المعلم: {SUBJECT_LABELS[conflict.teacherSpecialty] || conflict.teacherSpecialty}</div>
+                        )}
+                        {conflict.currentLoad && (
+                          <div>عدد الفصول الحالي: {conflict.currentLoad} / {conflict.maxLoad}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-red-100 rounded text-sm text-red-700">
+              <strong>ملاحظة:</strong> يجب حل جميع التعارضات قبل حفظ الجدول.
+            </div>
           </div>
         )}
 
@@ -456,7 +557,7 @@ const Schedule = () => {
                             key={ts.key}
                             className={`border px-3 py-3 text-right select-none transition ${
                               isEditing
-                                ? "cursor-move"
+                                ? "cursor-pointer hover:bg-opacity-60"
                                 : "cursor-default opacity-90"
                             } ${s.cellBg} hover:ring-1 ${s.cellRing}`}
                             draggable={isEditing}
@@ -465,7 +566,8 @@ const Schedule = () => {
                             }
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={() => handleDrop(row.class.id, ts.key)}
-                            title="اسحب وافلت للتبديل"
+                            onClick={() => handleCellClick(row.class.id, ts.key, cell)}
+                            title={isEditing ? "انقر للتعديل أو اسحب للتبديل" : "اسحب وافلت للتبديل"}
                           >
                             <div className="flex items-center justify-between gap-2">
                               <span
@@ -476,17 +578,24 @@ const Schedule = () => {
                                   {SUBJECT_LABELS[cell.subject] || cell.subject}
                                 </span>
                               </span>
-                              <span
-                                className={`text-[11px] px-2 py-0.5 rounded-full border ${
-                                  teacherName
-                                    ? "bg-green-50 text-green-700 border-green-200"
-                                    : "bg-red-50 text-red-700 border-red-200"
-                                }`}
-                              >
-                                {teacherName
-                                  ? `معلم: ${teacherName}`
-                                  : "غير معيّن"}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                                    teacherName
+                                      ? "bg-green-50 text-green-700 border-green-200"
+                                      : "bg-red-50 text-red-700 border-red-200"
+                                  }`}
+                                >
+                                  {teacherName
+                                    ? `معلم: ${teacherName}`
+                                    : "غير معيّن"}
+                                </span>
+                                {isEditing && (
+                                  <span className="text-xs text-blue-600 font-medium">
+                                    ✏️
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </td>
                         );
@@ -510,6 +619,105 @@ const Schedule = () => {
                 </ul>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Cell Edit Modal */}
+        {showEditModal && editingCell && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                تعديل الخلية
+              </h3>
+              
+              <div className="space-y-4">
+                {/* Subject Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    المادة
+                  </label>
+                  <select
+                    value={editingCell.cell.subject || ""}
+                    onChange={(e) => {
+                      const newSubject = e.target.value;
+                      const availableTeachers = teachersBySubject[newSubject] || [];
+                      const currentTeacherId = editingCell.cell.teacherId;
+                      const isCurrentTeacherAvailable = availableTeachers.some(t => t.id === currentTeacherId);
+                      
+                      setEditingCell(prev => ({
+                        ...prev,
+                        cell: { 
+                          ...prev.cell, 
+                          subject: newSubject,
+                          teacherId: isCurrentTeacherAvailable ? currentTeacherId : null
+                        }
+                      }));
+                    }}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">اختر المادة</option>
+                    {Object.entries(SUBJECT_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Teacher Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    المعلم
+                  </label>
+                  <select
+                    value={editingCell.cell.teacherId || ""}
+                    onChange={(e) => {
+                      setEditingCell(prev => ({
+                        ...prev,
+                        cell: { ...prev.cell, teacherId: e.target.value || null }
+                      }));
+                    }}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">غير معيّن</option>
+                    {editingCell.cell.subject && teachersBySubject[editingCell.cell.subject]?.map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Current Selection Display */}
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">
+                    <div>الفصل: {editedRows?.find(r => r.class.id === editingCell.classId)?.class.location}</div>
+                    <div>الفترة: {editingCell.slotKey}</div>
+                    <div>المادة الحالية: {SUBJECT_LABELS[editingCell.cell.subject] || "غير محدد"}</div>
+                    <div>المعلم الحالي: {editingCell.cell.teacherId ? teacherNameById.get(editingCell.cell.teacherId) || "غير معروف" : "غير معيّن"}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingCell(null);
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={() => handleCellEdit(editingCell.cell.subject, editingCell.cell.teacherId)}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                >
+                  حفظ التغييرات
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

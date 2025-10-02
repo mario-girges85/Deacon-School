@@ -225,10 +225,11 @@ const seedAdmin = async () => {
     const bcrypt = require("bcrypt");
 
     // Admin credentials
+    const adminPassword = process.env.ADMIN_PASSWORD || "admin123"; // Default password if env var not set
     const adminData = {
       name: "Mario gerges",
       phone: "01285948011", // Admin phone
-      password: await bcrypt.hash(process.env.ADMIN_PASSWORD, 10), // Admin password
+      password: await bcrypt.hash(adminPassword, 10), // Admin password
       birthday: "1990-01-01",
       gender: "male",
       role: "admin",
