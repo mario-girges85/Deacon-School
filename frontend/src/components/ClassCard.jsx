@@ -77,7 +77,7 @@ const ClassCard = ({
         </div>
 
         <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md">
-          <span className="text-gray-600 text-sm">المرحلة:</span>
+          <span className="text-gray-600 text-sm">السنة :</span>
           <span className="font-medium text-gray-900">
             {classItem.level
               ? getStageName(classItem.level.stage, classItem.level.level)
@@ -86,7 +86,7 @@ const ClassCard = ({
         </div>
 
         <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md">
-          <span className="text-gray-600 text-sm">الموقع:</span>
+          <span className="text-gray-600 text-sm">المكان :</span>
           <span className="font-medium text-gray-900">
             {classItem.location}
           </span>
@@ -147,7 +147,7 @@ const ClassCard = ({
         </div>
 
         <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md">
-          <span className="text-gray-600 text-sm">المرحلة:</span>
+          <span className="text-gray-600 text-sm">السنة :</span>
           <span className="font-medium text-gray-900">
             {classItem.level
               ? getStageName(classItem.level.stage, classItem.level.level)
@@ -156,10 +156,8 @@ const ClassCard = ({
         </div>
 
         <div className="flex justify-between py-2 px-3 bg-gray-50 rounded-md">
-          <span className="text-gray-600 text-sm">الموقع:</span>
-          <span className="font-medium text-wrap   text-gray-900">
-            {classItem.location}
-          </span>
+          <span className="text-gray-600 text-sm">المكان : {classItem.location}</span>
+          
         </div>
       </div>
 

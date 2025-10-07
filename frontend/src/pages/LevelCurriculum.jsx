@@ -206,7 +206,7 @@ const LevelCurriculum = () => {
         <span
           key="hymns"
           className="inline-block mr-1 h-2 w-2 rounded-full bg-yellow-500"
-          title="ترانيم مرتبطة"
+          title="الحان مرتبطة"
         />
       );
     }
@@ -282,7 +282,7 @@ const LevelCurriculum = () => {
             </div>
             <div className="flex items-center gap-1">
               <span className="inline-block h-2 w-2 rounded-full bg-yellow-500"></span>
-              <span>ترانيم مرتبطة</span>
+              <span>الحان مرتبطة</span>
             </div>
           </div>
         </div>

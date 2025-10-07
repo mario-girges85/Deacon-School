@@ -1,4 +1,4 @@
-const { Levels, Classes, User } = require("../models/relationships");
+const { Levels, Classes, User, Curriculum } = require("../models/relationships");
 
 // Create a new level
 const createLevel = async (req, res) => {
@@ -50,7 +50,7 @@ const getAllLevels = async (req, res) => {
   }
 };
 
-// Get level by ID
+// Get level by ID with related aggregates
 const getLevelById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,7 +60,29 @@ const getLevelById = async (req, res) => {
       return res.status(404).json({ error: "المستوى غير موجود" });
     }
 
-    res.json({ success: true, level });
+    // Aggregate counts
+    const [classesCount, studentsCount, curriculumCount] = await Promise.all([
+      Classes.count({ where: { level_id: id } }),
+      User.count({ where: { level_id: id, role: "student" } }),
+      Curriculum.count({ where: { level_id: id } }),
+    ]);
+
+    // Fetch related simple data (lightweight)
+    const classes = await Classes.findAll({
+      where: { level_id: id },
+      attributes: ["id", "location"],
+      order: [["location", "ASC"]],
+    });
+
+    const responseLevel = {
+      ...level.toJSON(),
+      students_count: studentsCount,
+      classes_count: classesCount,
+      curriculum_count: curriculumCount,
+      classes,
+    };
+
+    res.json({ success: true, level: responseLevel });
   } catch (error) {
     console.error("Error fetching level:", error);
     res.status(500).json({ error: "حدث خطأ أثناء جلب المستوى" });

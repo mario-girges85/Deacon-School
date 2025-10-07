@@ -23,7 +23,11 @@ const CurriculumHymnCard = ({
 
   const getAudioUrl = () => {
     if (!hymn.audio_path) return null;
-    return `${import.meta.env.VITE_API_BASE_URL}/${hymn.audio_path}`;
+    const p = String(hymn.audio_path);
+    const isAbsolute = /^(https?:)?\/\//i.test(p);
+    return isAbsolute
+      ? p
+      : `${import.meta.env.VITE_API_BASE_URL}/${p.replace(/^\/+/, "")}`;
   };
 
   const handleHymnClick = () => {
@@ -74,7 +78,7 @@ const CurriculumHymnCard = ({
               onRemove();
             }}
             className="ml-3 p-1 text-gray-400 hover:text-red-600 transition-colors"
-            title="إزالة الترانيمة"
+            title="إزالة الالحان"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path

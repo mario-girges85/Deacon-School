@@ -152,16 +152,16 @@ const ClassDetails = () => {
   const getStageName = (stage, level) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
         if (level === 0) {
           return "مرحلة غير صحيحة";
         }
-        return "المرحلة الثالثة";
+        return "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
@@ -308,7 +308,7 @@ const ClassDetails = () => {
               </h2>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">الموقع:</span>
+                  <span className="text-gray-600 font-medium">المكان :</span>
                   <span className="text-gray-900">{classData.location}</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -320,7 +320,7 @@ const ClassDetails = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">المرحلة:</span>
+                  <span className="text-gray-600 font-medium">السنة:</span>
                   <span className="text-gray-900">
                     {classData.level
                       ? getStageName(
@@ -334,10 +334,7 @@ const ClassDetails = () => {
                   <span className="text-gray-600 font-medium">عدد الطلاب:</span>
                   <span className="text-gray-900">{students.length}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">id الفصل:</span>
-                  <span className="text-gray-900 font-mono text-sm">{id}</span>
-                </div>
+                
               </div>
             </div>
             <div className="text-center">
@@ -428,6 +425,7 @@ const ClassDetails = () => {
                       const teacherName = teacher ? teacher.name : null;
                       const teacherImage =
                         teacher && teacher.image ? teacher.image : null;
+                      const teacherPhone = teacher ? teacher.phone : null;
                       return (
                         <td
                           key={ts.key}
@@ -435,22 +433,44 @@ const ClassDetails = () => {
                         >
                           <div className="font-medium">{subjectLabel}</div>
                           {teacherName ? (
-                            <div className="mt-1 flex items-center justify-end gap-2 text-xs text-gray-700">
-                              {teacherImage && (
-                                <img
-                                  src={teacherImage}
-                                  alt={teacherName}
-                                  className="w-6 h-6 rounded-full object-cover border"
-                                />
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => navigate(`/users/${teacher.id}`)}
-                                className="hover:underline"
-                                title="عرض الملف الشخصي"
-                              >
-                                معلم: {teacherName}
-                              </button>
+                            <div className="mt-1 flex items-start justify-end gap-2 text-xs text-gray-700">
+                              <div className="shrink-0">
+                                {teacherImage ? (
+                                  <img
+                                    src={teacherImage}
+                                    alt={teacherName}
+                                    className="w-8 h-8 rounded-full object-cover border"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border">
+                                    <span className="text-sm">👤</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right leading-snug">
+                                {(() => {
+                                  const viewer = isAuthenticated() ? getCurrentUser() : null;
+                                  const isStudentViewer = viewer?.role === "student";
+                                  if (isStudentViewer) {
+                                    return <div className="text-gray-800">الخادم: {teacherName}</div>;
+                                  }
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={() => navigate(`/users/${teacher.id}`)}
+                                      className="hover:underline text-blue-700"
+                                      title="عرض الملف الشخصي"
+                                    >
+                                      الخادم: {teacherName}
+                                    </button>
+                                  );
+                                })()}
+                                {teacherPhone && (
+                                  <div className="text-[11px] text-gray-500 font-mono mt-0.5">
+                                    {teacherPhone}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           ) : (
                             <div className="text-xs text-red-700">

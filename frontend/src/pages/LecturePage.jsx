@@ -158,7 +158,7 @@ const LecturePage = () => {
 
       setSelectedHymns(hymns);
       setError(""); // Clear any previous errors
-      setSuccessMessage("تم حفظ الترانيم بنجاح!"); // Show success message
+      setSuccessMessage("تم حفظ الالحان بنجاح!"); // Show success message
       // Refresh the curriculum data to get updated hymns
       loadInfo();
     } catch (e) {
@@ -177,7 +177,7 @@ const LecturePage = () => {
       );
       await handleHymnSelection(updatedHymns);
     } catch (e) {
-      setError(e.response?.data?.error || "فشل إزالة الترانيمة");
+      setError(e.response?.data?.error || "فشل إزالة الالحانة");
     }
   };
 
@@ -351,39 +351,43 @@ const LecturePage = () => {
           <span className="font-medium">المحاضرة:</span> {lecture}
         </div>
 
-        {/* Hymn Selection for al7an */}
-        {subject === "al7an" && isAdmin() && (
+        {/* Hymns for al7an - visible to all; controls only for admins */}
+        {subject === "al7an" && (
           <div className="mb-6 bg-white p-4 rounded shadow">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">ترانيم المحاضرة</h3>
-              <button
-                onClick={() => setShowHymnSelection(true)}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <h3 className="text-lg font-semibold">الحان المحاضرة</h3>
+              {isAdmin() && (
+                <button
+                  onClick={() => setShowHymnSelection(true)}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                إضافة ترانيم من المكتبة
-              </button>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  إضافة الحان من المكتبة
+                </button>
+              )}
             </div>
 
             {selectedHymns.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">🎵</div>
-                <p>لم يتم اختيار أي ترانيم لهذه المحاضرة</p>
-                <p className="text-sm">
-                  انقر على "إضافة ترانيم من المكتبة" لاختيار الترانيم
-                </p>
+                <p>لم يتم اختيار أي الحان لهذه المحاضرة</p>
+                {isAdmin() && (
+                  <p className="text-sm">
+                    انقر على "إضافة الحان من المكتبة" لاختيار الالحان
+                  </p>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -392,11 +396,13 @@ const LecturePage = () => {
                     key={`${selectedHymn.hymn_id}-${index}`}
                     hymn={selectedHymn.hymn}
                     lyricsVariants={
-                      selectedHymn.lyrics_variants || [
+                      selectedHymns[index].lyrics_variants || [
                         selectedHymn.lyrics_variant,
                       ] || ["arabic"]
                     }
-                    onRemove={() => handleRemoveHymn(selectedHymn)}
+                    {...(isAdmin()
+                      ? { onRemove: () => handleRemoveHymn(selectedHymn) }
+                      : {})}
                   />
                 ))}
               </div>
@@ -436,12 +442,14 @@ const LecturePage = () => {
       </div>
 
       {/* Hymn Selection Panel */}
-      <HymnSelectionPanel
-        isOpen={showHymnSelection}
-        onClose={() => setShowHymnSelection(false)}
-        onSelectHymns={handleHymnSelection}
-        selectedHymns={selectedHymns}
-      />
+      {isAdmin() && (
+        <HymnSelectionPanel
+          isOpen={showHymnSelection}
+          onClose={() => setShowHymnSelection(false)}
+          onSelectHymns={handleHymnSelection}
+          selectedHymns={selectedHymns}
+        />
+      )}
     </div>
   );
 };

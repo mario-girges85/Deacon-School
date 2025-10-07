@@ -55,7 +55,7 @@ const HymnSelectionPanel = ({
       setHymns(response.data.hymns || []);
     } catch (error) {
       console.error("Error fetching hymns:", error);
-      setError("حدث خطأ أثناء جلب الترانيم");
+      setError("حدث خطأ أثناء جلب الالحان");
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ const HymnSelectionPanel = ({
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              اختيار الترانيم
+              اختيار الالحان
             </h2>
             <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
               <div className="flex items-center gap-1">
@@ -188,7 +188,7 @@ const HymnSelectionPanel = ({
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="البحث في الترانيم..."
+                  placeholder="البحث في الالحان..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -231,7 +231,7 @@ const HymnSelectionPanel = ({
                           : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                       }`}
                     >
-                      جميع الترانيم
+                      جميع الالحان
                     </button>
                     {events.map((event) => (
                       <button
@@ -260,14 +260,14 @@ const HymnSelectionPanel = ({
                   <div className="text-center py-12">
                     <div className="text-gray-400 text-6xl mb-4">🎵</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      لا توجد ترانيم
+                      لا توجد الحان
                     </h3>
                     <p className="text-gray-500">
                       {selectedEvent
-                        ? "لا توجد ترانيم لهذا الحدث"
+                        ? "لا توجد الحان لهذا الحدث"
                         : searchTerm
-                        ? "لم يتم العثور على ترانيم تطابق البحث"
-                        : "لم يتم إضافة أي ترانيم بعد"}
+                        ? "لم يتم العثور على الحان تطابق البحث"
+                        : "لم يتم إضافة أي الحان بعد"}
                     </p>
                   </div>
                 ) : (
@@ -368,14 +368,14 @@ const HymnSelectionPanel = ({
               </div>
 
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                الترانيم المختارة ({tempSelectedHymns.length})
+                الالحان المختارة ({tempSelectedHymns.length})
               </h3>
 
               {/* Show already added hymns */}
               {selectedHymns.length > 0 && (
                 <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <h4 className="text-sm font-medium text-green-800 mb-2">
-                    الترانيم الموجودة في المحاضرة ({selectedHymns.length})
+                    الالحان الموجودة في المحاضرة ({selectedHymns.length})
                   </h4>
                   <div className="space-y-2">
                     {selectedHymns.map((hymn) => (
@@ -407,7 +407,7 @@ const HymnSelectionPanel = ({
 
               {tempSelectedHymns.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
-                  لم يتم اختيار أي ترانيم
+                  لم يتم اختيار أي الحان
                 </p>
               ) : (
                 <div className="space-y-3">

@@ -79,6 +79,7 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   // Navigation items with icons
+  const isStudent = user?.role === "student";
   const navigationItems = [
     { path: "/", label: "الرئيسية", icon: "🏠" },
     { path: "/levels", label: "المستويات", icon: "📚" },
@@ -86,7 +87,7 @@ const Navbar = () => {
     ...(isAdmin()
       ? [{ path: "/schedule", label: "جدول المعلمين", icon: "📅" }]
       : []),
-    { path: "/hymns", label: "مكتبة الألحان", icon: "🎵" },
+    ...(!isStudent ? [{ path: "/hymns", label: "مكتبة الألحان", icon: "🎵" }] : []),
     // Only show Users link for admins
     ...(isAdmin() ? [{ path: "/users", label: "المستخدمين", icon: "👤" }] : []),
     { path: "/contact", label: "تواصل معنا", icon: "📞" },
@@ -144,7 +145,7 @@ const Navbar = () => {
                         : user?.role === "teacher"
                         ? "معلم"
                         : user?.role === "admin"
-                        ? "مدير"
+                        ? "ادمن"
                         : user?.role === "supervisor"
                         ? "مشرف"
                         : "مستخدم"}
@@ -337,7 +338,7 @@ const Navbar = () => {
               { path: "/", label: "الرئيسية", icon: "🏠" },
               { path: "/levels", label: "المستويات", icon: "📚" },
               { path: "/classes", label: "الفصول", icon: "👥" },
-              { path: "/hymns", label: "الألحان", icon: "🎵" },
+              ...(!isStudent ? [{ path: "/hymns", label: "الألحان", icon: "🎵" }] : []),
               isAuthenticated()
                 ? { path: "/profile", label: "حسابي", icon: "👤" }
                 : { path: "/login", label: "دخول", icon: "🔑" },

@@ -305,7 +305,7 @@ const AddEditHymn = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  الكلمات (عربي قبطي)
+                  الكلمات (قبطي معرب)
                 </label>
                 <textarea
                   value={hymn.lyrics_arabic_coptic}

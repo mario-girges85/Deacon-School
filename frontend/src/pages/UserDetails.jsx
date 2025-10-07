@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../util/axiosConfig";
+import { isAuthenticated, getCurrentUser } from "../util/auth";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -31,6 +32,16 @@ const UserDetails = () => {
     };
     if (userId) load();
   }, [userId]);
+
+  // Prevent students from viewing teacher profiles
+  useEffect(() => {
+    if (!user) return;
+    const viewer = isAuthenticated() ? getCurrentUser() : null;
+    const isStudentViewer = viewer?.role === "student";
+    if (isStudentViewer && user.role === "teacher") {
+      navigate(-1);
+    }
+  }, [user, navigate]);
 
   // Load teacher schedule for display
   useEffect(() => {

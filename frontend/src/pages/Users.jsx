@@ -219,9 +219,9 @@ const Users = () => {
 
   const getStageName = (stage, level) => {
     const stages = {
-      1: "المرحلة الأولى",
-      2: "المرحلة الثانية",
-      3: "المرحلة الثالثة"
+      1: "السنة الأولى",
+      2: "السنة الثانية",
+      3: "السنة الثالثة"
     };
     return stages[stage] || `المرحلة ${stage}`;
   };
@@ -293,7 +293,7 @@ const Users = () => {
                   className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 rounded-lg shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <span>👨‍🏫</span>
-                  رفع معلمين
+                  رفع بيانات خدام
                 </button>
               </div>
             )}
@@ -413,7 +413,7 @@ const Users = () => {
                     </div>
                   </div>
                   <div className="mr-4">
-                    <p className="text-sm font-medium text-gray-500">المديرين</p>
+                    <p className="text-sm font-medium text-gray-500">الادمنز</p>
                     <p className="text-2xl font-semibold text-gray-900">
                       {users.filter((u) => u.role === "admin").length}
                     </p>
@@ -435,7 +435,7 @@ const Users = () => {
                     </div>
                   </div>
                   <div className="mr-4">
-                    <p className="text-sm font-medium text-gray-500">المدرسين</p>
+                    <p className="text-sm font-medium text-gray-500">الخدام</p>
                     <p className="text-2xl font-semibold text-gray-900">
                       {users.filter((u) => u.role === "teacher").length}
                     </p>
@@ -493,7 +493,7 @@ const Users = () => {
                   >
                     <option value="all">جميع الأدوار</option>
                     <option value="admin">مدير</option>
-                    <option value="teacher">معلم</option>
+                    <option value="teacher">خادم</option>
                     <option value="student">طالب</option>
                   </select>
                 </div>
@@ -508,17 +508,17 @@ const Users = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="all">جميع المستويات</option>
-                    <option value="0-1">المستوى التمهيدي - المرحلة الأولى</option>
-                    <option value="0-2">المستوى التمهيدي - المرحلة الثانية</option>
-                    <option value="1-1">المستوى الأول - المرحلة الأولى</option>
-                    <option value="1-2">المستوى الأول - المرحلة الثانية</option>
-                    <option value="1-3">المستوى الأول - المرحلة الثالثة</option>
-                    <option value="2-1">المستوى الثاني - المرحلة الأولى</option>
-                    <option value="2-2">المستوى الثاني - المرحلة الثانية</option>
-                    <option value="2-3">المستوى الثاني - المرحلة الثالثة</option>
-                    <option value="3-1">المستوى الثالث - المرحلة الأولى</option>
-                    <option value="3-2">المستوى الثالث - المرحلة الثانية</option>
-                    <option value="3-3">المستوى الثالث - المرحلة الثالثة</option>
+                    <option value="0-1">المستوى التمهيدي - السنة الأولى</option>
+                    <option value="0-2">المستوى التمهيدي - السنة الثانية</option>
+                    <option value="1-1">المستوى الأول - السنة الأولى</option>
+                    <option value="1-2">المستوى الأول - السنة الثانية</option>
+                    <option value="1-3">المستوى الأول - السنة الثالثة</option>
+                    <option value="2-1">المستوى الثاني - السنة الأولى</option>
+                    <option value="2-2">المستوى الثاني - السنة الثانية</option>
+                    <option value="2-3">المستوى الثاني - السنة الثالثة</option>
+                    <option value="3-1">المستوى الثالث - السنة الأولى</option>
+                    <option value="3-2">المستوى الثالث - السنة الثانية</option>
+                    <option value="3-3">المستوى الثالث - السنة الثالثة</option>
                   </select>
                 </div>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 
@@ -25,6 +25,15 @@ import AddEditHymn from "./pages/library/AddEditHymn";
 import EventsManagement from "./pages/library/EventsManagement";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { isAuthenticated, getCurrentUser } from "./util/auth";
+
+const LibraryGuard = ({ element }) => {
+  const viewer = isAuthenticated() ? getCurrentUser() : null;
+  if (viewer?.role === "student") {
+    return <Navigate to="/" replace />;
+  }
+  return element;
+};
 
 const App = () => {
   return (
@@ -87,7 +96,7 @@ const App = () => {
           path="/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture"
           element={<LecturePage />}
         />
-        <Route path="/hymns" element={<HymnsLibrary />} />
+        <Route path="/hymns" element={<LibraryGuard element={<HymnsLibrary />} />} />
         <Route
           path="/hymns/add"
           element={<ProtectedRoute requireAdmin element={<AddEditHymn />} />}

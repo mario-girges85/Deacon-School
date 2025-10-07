@@ -51,7 +51,7 @@ const HymnDetails = () => {
       setHymn(response.data.hymn);
     } catch (error) {
       console.error("Error fetching hymn:", error);
-      setError("حدث خطأ أثناء جلب الترانيمة");
+      setError("حدث خطأ أثناء جلب الالحان");
     } finally {
       setLoading(false);
     }
@@ -64,8 +64,12 @@ const HymnDetails = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const getAudioUrl = () =>
-    `${import.meta.env.VITE_API_BASE_URL}/${hymn.audio_path}`;
+  const getAudioUrl = () => {
+    const p = hymn?.audio_path || "";
+    const isAbsolute = /^(https?:)?\/\//i.test(String(p));
+    if (isAbsolute) return p;
+    return `${import.meta.env.VITE_API_BASE_URL}/${String(p).replace(/^\/+/, "")}`;
+  };
 
   const buildDownloadFilename = () => {
     const path = hymn?.audio_path || "";
@@ -120,7 +124,7 @@ const HymnDetails = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 text-lg mb-4">
-            {error || "الترانيمة غير موجودة"}
+            {error || "الالحان غير موجودة"}
           </p>
           <button
             onClick={() => navigate("/hymns")}
@@ -318,7 +322,7 @@ const HymnDetails = () => {
               لا توجد كلمات متاحة
             </h3>
             <p className="text-gray-500">
-              لم يتم إضافة كلمات لهذه الترانيمة بعد
+              لم يتم إضافة كلمات لهذه الالحان بعد
             </p>
           </div>
         )}

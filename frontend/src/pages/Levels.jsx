@@ -34,6 +34,7 @@ const Levels = () => {
 
   const me = isAuthenticated() ? getCurrentUser() : null;
   const isUserAdmin = isAdmin();
+  const isStudent = !!me && me.role === "student";
 
   // Client-side visibility filter
   const visibleLevels = useMemo(() => {
@@ -99,13 +100,13 @@ const Levels = () => {
   const getStageName = (stage) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
-        return "المرحلة الثالثة";
+        return "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
@@ -142,7 +143,7 @@ const Levels = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">المستويات</h1>
-          <p className="text-gray-600">إدارة المستويات والمراحل الدراسية</p>
+          <p className="text-gray-600">إدارة المستويات والسنوات الدراسية</p>
         </div>
 
         {/* Levels Grid */}
@@ -161,65 +162,89 @@ const Levels = () => {
                       {getLevelName(level.level)} - {getStageName(level.stage)}
                     </h3>
                     <p className="text-gray-600">
-                      المستوى: {level.level} | المرحلة: {level.stage}
+                      المستوى: {level.level} | السنة: {level.stage}
                     </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      الفصول {classesCount}
-                    </p>
+                    {!isStudent && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        عدد الفصول : {classesCount}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Classes for this level */}
-                {classesCount > 0 && (
+                {/* Student view: show only location instead of classes list */}
+                {isStudent ? (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      الفصول :
-                    </h4>
-                    <div className="space-y-1">
-                      {visibleClasses
-                        .filter((c) => c.level_id === level.id)
-                        .slice(0, 3) // Show only first 3 classes
-                        .map((classItem) => (
-                          <div
-                            key={classItem.id}
-                            className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded"
-                          >
-                            {classItem.location}
-                          </div>
-                        ))}
-                      {classesCount > 3 && (
-                        <div className="text-xs text-gray-500 italic">
-                          و {classesCount - 3} فصول أخرى...
+                    {(() => {
+                      const studentClassForLevel = visibleClasses.find(
+                        (c) => c.level_id === level.id
+                      );
+                      const locationLabel = studentClassForLevel?.location;
+                      return (
+                        <div className="text-sm text-gray-700">
+                          <span className="font-medium">المكان:</span>{" "}
+                          <span className="text-gray-600">
+                            {locationLabel || "غير متوفر"}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/classes");
-                      }}
-                      className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      عرض جميع الفصول →
-                    </button>
+                      );
+                    })()}
                   </div>
-                )}
+                ) : (
+                  <>
+                    {/* Classes for this level - non-students */}
+                    {classesCount > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          الفصول :
+                        </h4>
+                        <div className="space-y-1">
+                          {visibleClasses
+                            .filter((c) => c.level_id === level.id)
+                            .slice(0, 3) // Show only first 3 classes
+                            .map((classItem) => (
+                              <div
+                                key={classItem.id}
+                                className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded"
+                              >
+                                {classItem.location}
+                              </div>
+                            ))}
+                          {classesCount > 3 && (
+                            <div className="text-xs text-gray-500 italic">
+                              و {classesCount - 3} فصول أخرى...
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/classes");
+                          }}
+                          className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          عرض جميع الفصول →
+                        </button>
+                      </div>
+                    )}
 
-                {classesCount === 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm text-gray-500 italic">
-                      لا توجد فصول بهذا المستوى
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/classes");
-                      }}
-                      className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      ربط فصول →
-                    </button>
-                  </div>
+                    {classesCount === 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-sm text-gray-500 italic">
+                          لا توجد فصول بهذا المستوى
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/classes");
+                          }}
+                          className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          ربط فصول →
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             );

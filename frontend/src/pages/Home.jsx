@@ -184,12 +184,7 @@ const UserData = () => {
               </div>
             )}
 
-            {user.gender && (
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="text-xs text-gray-500 mb-1">النوع</div>
-                <div className="text-gray-900 font-medium">{genderLabel}</div>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
@@ -274,7 +269,7 @@ const SchoolStats = () => {
           <div className="text-xl font-bold text-purple-600 mb-1">
             {stats.users.teachers}
           </div>
-          <h3 className="text-sm font-medium text-gray-800">المدرسين</h3>
+          <h3 className="text-sm font-medium text-gray-800">الخدام</h3>
         </div>
         <div className="text-center p-3 bg-orange-50 rounded-lg">
           <div className="text-xl font-bold text-orange-600 mb-1">
@@ -439,22 +434,21 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Main Content - Horizontal Layout */}
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 mb-12">
+      <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center">
+        {/* Main Content - Centered Layout */}
+        <div className="flex flex-col items-center justify-center gap-8 mb-12 w-full">
           {/* Welcome Section */}
-          <div className="text-center lg:text-right flex-1 max-w-2xl">
+          <div className="text-center flex-1 max-w-2xl w-full flex flex-col items-center justify-center">
             <img
               src={logo}
               alt="Logo"
-              className="h-20 w-auto mb-6 mx-auto lg:mx-0 opacity-90"
+              className="h-20 w-auto mb-6 mx-auto opacity-90"
             />
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4">
-              مرحباً بكم في موقع مدرسة شمامسة
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-4 leading-relaxed">
+              مرحباً بكم في موقع مدرسة<br className="block md:hidden" />
+              كنيسة القديسة دميانة بالهرم <br className="block md:hidden" />
+              للشمامسة
             </h1>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-6">
-              كنيسة القديسة دميانة
-            </h2>
             <p className="text-lg text-gray-600 leading-relaxed">
               مرحباً بكم في الموقع الرسمي لمدرسة شمامسة كنيسة القديسة دميانة.
               هنا يمكنكم الوصول إلى جميع المواد التعليمية والمناهج والموارد التي
@@ -464,14 +458,14 @@ const Home = () => {
 
           {/* Login Section */}
           {showLogin && (
-            <div className="flex-shrink-0 w-full max-w-md">
+            <div className="flex-shrink-0 w-full max-w-md flex justify-center">
               <LoginForm isCompact={true} onLoginSuccess={handleLoginSuccess} />
             </div>
           )}
         </div>
 
         {/* Stats and User Data */}
-        <div className="w-full">
+        <div className="w-full flex flex-col items-center justify-center">
           {showStats && <SchoolStats />}
           {showUserData && <UserData />}
         </div>

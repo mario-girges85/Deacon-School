@@ -331,11 +331,11 @@ const Schedule = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            جدولة المعلمين
+            جدولة الخدام
           </h1>
           <p className="text-gray-600">
-            اختر معلمي كل مادة من القوائم، ثم اضغط توليد. يمكنك سحب أي خانة
-            وإفلاتها للتبديل أو النقر على الخلية لتعديل المادة والمعلم. سيتم التحقق من صحة الجدول عند الضغط على "حفظ الجدول".
+            اختر خدام كل مادة من القوائم، ثم اضغط توليد. يمكنك سحب أي خانة
+            وإفلاتها للتبديل أو النقر على الخلية لتعديل المادة والخادم. سيتم التحقق من صحة الجدول عند الضغط على "حفظ الجدول".
           </p>
         </div>
 
@@ -347,7 +347,7 @@ const Schedule = () => {
                 <h3 className="font-semibold mb-2">{label}</h3>
                 {teachersBySubject[key].length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    لا يوجد معلمون لهذة مادة
+                    لا يوجد خادمون لهذة مادة
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-auto pr-1">
@@ -384,7 +384,7 @@ const Schedule = () => {
               ? "جارٍ التوليد..."
               : showTeacherSelection
               ? "توليد الجدول"
-              : "اختيار المعلمين"}
+              : "اختيار الخدام"}
           </button>
           {showTeacherSelection && (
             <button
@@ -460,7 +460,7 @@ const Schedule = () => {
                         {conflict.type === "subject_mismatch" && "عدم تطابق التخصص"}
                         {conflict.type === "slot_conflict" && "تعارض في الفترة الزمنية"}
                         {conflict.type === "teacher_overload" && "تجاوز الحد الأقصى للفصول"}
-                        {conflict.type === "unknown_teacher" && "معلم غير معروف"}
+                        {conflict.type === "unknown_teacher" && "خادم غير معروف"}
                         {conflict.type === "missing_class_info" && "معلومات فصل مفقودة"}
                       </div>
                       <div className="text-sm text-red-700 mb-2">
@@ -474,13 +474,13 @@ const Schedule = () => {
                           <div>الفترة: {conflict.slot}</div>
                         )}
                         {conflict.teacherName && (
-                          <div>المعلم: {conflict.teacherName}</div>
+                          <div>الخادم: {conflict.teacherName}</div>
                         )}
                         {conflict.subject && (
                           <div>المادة: {SUBJECT_LABELS[conflict.subject] || conflict.subject}</div>
                         )}
                         {conflict.teacherSpecialty && (
-                          <div>تخصص المعلم: {SUBJECT_LABELS[conflict.teacherSpecialty] || conflict.teacherSpecialty}</div>
+                          <div>تخصص الخادم: {SUBJECT_LABELS[conflict.teacherSpecialty] || conflict.teacherSpecialty}</div>
                         )}
                         {conflict.currentLoad && (
                           <div>عدد الفصول الحالي: {conflict.currentLoad} / {conflict.maxLoad}</div>
@@ -541,7 +541,7 @@ const Schedule = () => {
                       <td className="border px-3 py-3 text-right align-top">
                         <div className="font-medium">{row.class.location}</div>
                         <div className="text-xs text-gray-500">
-                          المستوى {row.class.level?.level} - المرحلة{" "}
+                          المستوى {row.class.level?.level} - السنة{" "}
                           {row.class.level?.stage}
                         </div>
                       </td>
@@ -587,7 +587,7 @@ const Schedule = () => {
                                   }`}
                                 >
                                   {teacherName
-                                    ? `معلم: ${teacherName}`
+                                    ? `خادم: ${teacherName}`
                                     : "غير معيّن"}
                                 </span>
                                 {isEditing && (
@@ -667,7 +667,7 @@ const Schedule = () => {
                 {/* Teacher Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    المعلم
+                    الخادم
                   </label>
                   <select
                     value={editingCell.cell.teacherId || ""}
@@ -694,7 +694,7 @@ const Schedule = () => {
                     <div>الفصل: {editedRows?.find(r => r.class.id === editingCell.classId)?.class.location}</div>
                     <div>الفترة: {editingCell.slotKey}</div>
                     <div>المادة الحالية: {SUBJECT_LABELS[editingCell.cell.subject] || "غير محدد"}</div>
-                    <div>المعلم الحالي: {editingCell.cell.teacherId ? teacherNameById.get(editingCell.cell.teacherId) || "غير معروف" : "غير معيّن"}</div>
+                    <div>الخادم الحالي: {editingCell.cell.teacherId ? teacherNameById.get(editingCell.cell.teacherId) || "غير معروف" : "غير معيّن"}</div>
                   </div>
                 </div>
               </div>

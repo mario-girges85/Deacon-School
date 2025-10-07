@@ -26,7 +26,7 @@ const HymnsLibrary = () => {
       setEvents(response.data.events || []);
     } catch (error) {
       console.error("Error fetching events:", error);
-      setError("حدث خطأ أثناء جلب الأحداث");
+      setError("حدث خطأ أثناء جلب المناسبات");
     }
   };
 
@@ -39,7 +39,7 @@ const HymnsLibrary = () => {
       setAllHymns(response.data.hymns || []);
     } catch (error) {
       console.error("Error fetching hymns:", error);
-      setError("حدث خطأ أثناء جلب الترانيم");
+      setError("حدث خطأ أثناء جلب الألحان");
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ const HymnsLibrary = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">مكتبة الألحان</h1>
             <p className="mt-2 text-gray-600">
-              استكشف مجموعة الترانيم والألحان الكنسية
+              استكشف مجموعة  الألحان الكنسية
             </p>
           </div>
           {isAdmin() && (
@@ -170,7 +170,7 @@ const HymnsLibrary = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                المناسبات والأحداث
+                المناسبات 
               </h2>
               <div className="space-y-2">
                 <button
@@ -247,10 +247,10 @@ const HymnsLibrary = () => {
                 </h3>
                 <p className="text-gray-500">
                   {selectedEvent
-                    ? "لا توجد ترانيم لهذا الحدث"
+                    ? "لا توجد الحان لهذا الحدث"
                     : searchTerm
-                    ? "لم يتم العثور على ترانيم تطابق البحث"
-                    : "لم يتم إضافة أي ترانيم بعد"}
+                    ? "لم يتم العثور على الحان تطابق البحث"
+                    : "لم يتم إضافة أي الحان بعد"}
                 </p>
               </div>
             ) : (
