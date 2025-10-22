@@ -65,10 +65,13 @@ const HymnDetails = () => {
   };
 
   const getAudioUrl = () => {
-    const p = hymn?.audio_path || "";
-    const isAbsolute = /^(https?:)?\/\//i.test(String(p));
+    const raw = hymn?.audio_path || "";
+    const p = String(raw);
+    const isAbsolute = /^(https?:)?\/\//i.test(p);
     if (isAbsolute) return p;
-    return `${import.meta.env.VITE_API_BASE_URL}/${String(p).replace(/^\/+/, "")}`;
+    const hasSlash = p.includes("/");
+    const relativePath = hasSlash ? p.replace(/^\/+/, "") : `uploads/hymns/${p}`;
+    return `${import.meta.env.VITE_API_BASE_URL}/${relativePath}`;
   };
 
   const buildDownloadFilename = () => {

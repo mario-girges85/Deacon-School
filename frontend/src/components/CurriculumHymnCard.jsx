@@ -23,11 +23,12 @@ const CurriculumHymnCard = ({
 
   const getAudioUrl = () => {
     if (!hymn.audio_path) return null;
-    const p = String(hymn.audio_path);
-    const isAbsolute = /^(https?:)?\/\//i.test(p);
-    return isAbsolute
-      ? p
-      : `${import.meta.env.VITE_API_BASE_URL}/${p.replace(/^\/+/, "")}`;
+    const raw = String(hymn.audio_path);
+    const isAbsolute = /^(https?:)?\/\//i.test(raw);
+    if (isAbsolute) return raw;
+    const hasSlash = raw.includes("/");
+    const relativePath = hasSlash ? raw.replace(/^\/+/, "") : `uploads/hymns/${raw}`;
+    return `${import.meta.env.VITE_API_BASE_URL}/${relativePath}`;
   };
 
   const handleHymnClick = () => {

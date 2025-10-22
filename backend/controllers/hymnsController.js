@@ -2,6 +2,13 @@ const path = require("path");
 const { Op } = require("sequelize");
 const { Hymns, Events } = require("../models/relationships");
 
+// Helper to return only the filename for any stored path
+function filenameOnly(p) {
+  if (!p) return p;
+  const normalized = String(p).replace(/\\/g, "/");
+  return path.basename(normalized);
+}
+
 // Get all hymns with event information
 const getHymns = async (req, res) => {
   try {
@@ -33,7 +40,13 @@ const getHymns = async (req, res) => {
       order: [["title_arabic", "ASC"]],
     });
 
-    return res.json({ success: true, hymns });
+    const transformed = hymns.map((h) => {
+      const obj = h.toJSON();
+      obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+      return obj;
+    });
+
+    return res.json({ success: true, hymns: transformed });
   } catch (error) {
     console.error("getHymns error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء جلب الترانيم" });
@@ -57,8 +70,10 @@ const getHymnById = async (req, res) => {
     if (!hymn) {
       return res.status(404).json({ error: "الترنيمة غير موجودة" });
     }
+    const obj = hymn.toJSON();
+    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
 
-    return res.json({ success: true, hymn });
+    return res.json({ success: true, hymn: obj });
   } catch (error) {
     console.error("getHymnById error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء جلب الترانيمة" });
@@ -108,8 +123,10 @@ const createHymn = async (req, res) => {
         },
       ],
     });
+    const obj = createdHymn.toJSON();
+    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
 
-    return res.status(201).json({ success: true, hymn: createdHymn });
+    return res.status(201).json({ success: true, hymn: obj });
   } catch (error) {
     console.error("createHymn error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء إنشاء الترانيمة" });
@@ -171,8 +188,10 @@ const updateHymn = async (req, res) => {
         },
       ],
     });
+    const obj = updatedHymn.toJSON();
+    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
 
-    return res.json({ success: true, hymn: updatedHymn });
+    return res.json({ success: true, hymn: obj });
   } catch (error) {
     console.error("updateHymn error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء تحديث الترانيمة" });
@@ -218,7 +237,10 @@ const uploadHymnAudio = async (req, res) => {
 
     await hymn.update({ audio_path: relativePath });
 
-    return res.json({ success: true, hymn });
+    const obj = hymn.toJSON();
+    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+
+    return res.json({ success: true, hymn: obj });
   } catch (error) {
     console.error("uploadHymnAudio error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء رفع الملف الصوتي" });
