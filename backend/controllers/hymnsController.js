@@ -2,11 +2,28 @@ const path = require("path");
 const { Op } = require("sequelize");
 const { Hymns, Events } = require("../models/relationships");
 
-// Helper to return only the filename for any stored path
-function filenameOnly(p) {
+// Helpers to convert stored relative paths to absolute URLs
+function buildBaseUrl(req) {
+  const envBase = process.env.PUBLIC_BASE_URL;
+  if (envBase && envBase.trim().length > 0) return envBase.replace(/\/?$/, "");
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.get("host");
+  return `${protocol}://${host}`;
+}
+
+function toUrl(req, p) {
   if (!p) return p;
-  const normalized = String(p).replace(/\\/g, "/");
-  return path.basename(normalized);
+  const base = buildBaseUrl(req);
+  const normalized = String(p).replace(/^\/+/, "");
+  return `${base}/${normalized}`;
+}
+
+function urlifyHymn(hymn, req) {
+  if (!hymn) return hymn;
+  return {
+    ...hymn,
+    audio_path: hymn.audio_path ? toUrl(req, hymn.audio_path) : hymn.audio_path,
+  };
 }
 
 // Get all hymns with event information
@@ -42,8 +59,7 @@ const getHymns = async (req, res) => {
 
     const transformed = hymns.map((h) => {
       const obj = h.toJSON();
-      obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
-      return obj;
+      return urlifyHymn(obj, req);
     });
 
     return res.json({ success: true, hymns: transformed });
@@ -71,9 +87,9 @@ const getHymnById = async (req, res) => {
       return res.status(404).json({ error: "الترنيمة غير موجودة" });
     }
     const obj = hymn.toJSON();
-    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+    const urlifiedHymn = urlifyHymn(obj, req);
 
-    return res.json({ success: true, hymn: obj });
+    return res.json({ success: true, hymn: urlifiedHymn });
   } catch (error) {
     console.error("getHymnById error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء جلب الترانيمة" });
@@ -124,9 +140,9 @@ const createHymn = async (req, res) => {
       ],
     });
     const obj = createdHymn.toJSON();
-    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+    const urlifiedHymn = urlifyHymn(obj, req);
 
-    return res.status(201).json({ success: true, hymn: obj });
+    return res.status(201).json({ success: true, hymn: urlifiedHymn });
   } catch (error) {
     console.error("createHymn error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء إنشاء الترانيمة" });
@@ -189,9 +205,9 @@ const updateHymn = async (req, res) => {
       ],
     });
     const obj = updatedHymn.toJSON();
-    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+    const urlifiedHymn = urlifyHymn(obj, req);
 
-    return res.json({ success: true, hymn: obj });
+    return res.json({ success: true, hymn: urlifiedHymn });
   } catch (error) {
     console.error("updateHymn error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء تحديث الترانيمة" });
@@ -238,9 +254,9 @@ const uploadHymnAudio = async (req, res) => {
     await hymn.update({ audio_path: relativePath });
 
     const obj = hymn.toJSON();
-    obj.audio_path = obj.audio_path ? filenameOnly(obj.audio_path) : obj.audio_path;
+    const urlifiedHymn = urlifyHymn(obj, req);
 
-    return res.json({ success: true, hymn: obj });
+    return res.json({ success: true, hymn: urlifiedHymn });
   } catch (error) {
     console.error("uploadHymnAudio error:", error);
     return res.status(500).json({ error: "حدث خطأ أثناء رفع الملف الصوتي" });
