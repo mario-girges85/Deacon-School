@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/user");
 const userController = require("../controllers/userController");
 const profileImageUpload = require("../middleware/profileImage");
 const upload = require("../middleware/upload");

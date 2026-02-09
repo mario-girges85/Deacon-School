@@ -12,7 +12,7 @@ const {
   uploadCurriculum,
   uploadMultipleCurriculum,
 } = require("../middleware/curriculumUpload");
-const { authenticateToken, requireAdmin, checkRole } = require("../util/auth");
+const { authenticateToken, requireAdmin } = require("../util/auth");
 
 // List curriculum for a class with optional filters - All authenticated users can view
 router.get("/classes/:classId/curriculum", authenticateToken, getCurriculum);

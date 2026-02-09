@@ -94,55 +94,6 @@ const getAllClasses = async (req, res) => {
   }
 };
 
-// Get classes by level ID with student count
-const getClassesByLevel = async (req, res) => {
-  try {
-    const { levelId } = req.params;
-    const classes = await Classes.findAll({
-      where: { level_id: levelId },
-      include: [{ model: Levels, as: "level" }],
-    });
-
-    // Add student count to each class
-    const classesWithStudentCount = await Promise.all(
-      classes.map(async (classItem) => {
-        const studentCount = await User.count({
-          where: {
-            class_id: classItem.id,
-            role: "student",
-          },
-        });
-
-        const previewRows = await User.findAll({
-          where: { class_id: classItem.id, role: "student" },
-          order: [["name", "ASC"]],
-          limit: 5,
-          attributes: ["id", "name", "image"],
-        });
-
-        const students_preview = await Promise.all(
-          previewRows.map(async (s) => ({
-            id: s.id,
-            name: s.name,
-            image: s.image ? buildImageUrl(req, s.image) : null,
-          }))
-        );
-
-        return {
-          ...classItem.toJSON(),
-          students_count: studentCount,
-          students_preview,
-        };
-      })
-    );
-
-    res.json({ success: true, classes: classesWithStudentCount });
-  } catch (error) {
-    console.error("Error fetching classes:", error);
-    res.status(500).json({ error: "حدث خطأ أثناء جلب الفصول" });
-  }
-};
-
 // Get class by ID with student count
 const getClassById = async (req, res) => {
   try {
@@ -411,7 +362,6 @@ const deleteClass = async (req, res) => {
 module.exports = {
   createClass,
   getAllClasses,
-  getClassesByLevel,
   getClassById,
   getClassDetails,
   updateClass,
