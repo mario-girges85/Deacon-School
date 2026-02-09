@@ -37,11 +37,11 @@ const SUBJECT_STYLES = {
 };
 
 const LevelCurriculum = () => {
-  const { levelId } = useParams();
+  const { classId } = useParams();
   const navigate = useNavigate();
   const [selectedSemester, setSelectedSemester] = useState(1);
   const [expandedSubject, setExpandedSubject] = useState(null);
-  const [levelMeta, setLevelMeta] = useState(null);
+  const [classMeta, setClassMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filePresence, setFilePresence] = useState({
@@ -54,32 +54,32 @@ const LevelCurriculum = () => {
   });
 
   useEffect(() => {
-    const loadLevel = async () => {
+    const loadClass = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get(`/api/levels/${levelId}`);
-        setLevelMeta(res.data?.level || null);
+        const res = await apiClient.get(`/api/classes/${classId}/details`);
+        setClassMeta(res.data?.class || null);
       } catch (e) {
-        setError("تعذر تحميل بيانات المستوى");
+        setError("تعذر تحميل بيانات الفصل");
       } finally {
         setLoading(false);
       }
     };
-    loadLevel();
-  }, [levelId]);
+    loadClass();
+  }, [classId]);
 
   // Load curriculum presence per semester
   useEffect(() => {
     const loadPresence = async () => {
       try {
         // Load curriculum for all subjects to get file presence
-        const res = await apiClient.get(`/api/levels/${levelId}/curriculum`, {
+        const res = await apiClient.get(`/api/classes/${classId}/curriculum`, {
           params: { semester: selectedSemester },
         });
 
         // Load al7an curriculum separately to get hymns
         const al7anRes = await apiClient.get(
-          `/api/levels/${levelId}/curriculum`,
+          `/api/classes/${classId}/curriculum`,
           { params: { semester: selectedSemester, subject: "al7an" } }
         );
         const rows = res.data?.curriculum || [];
@@ -154,7 +154,7 @@ const LevelCurriculum = () => {
       }
     };
     loadPresence();
-  }, [levelId, selectedSemester]);
+  }, [classId, selectedSemester]);
 
   const lectures = useMemo(
     () => Array.from({ length: 10 }, (_, i) => i + 1),
@@ -247,18 +247,25 @@ const LevelCurriculum = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">المنهج الدراسي</h1>
           <button
-            onClick={() => navigate("/levels")}
+            onClick={() => navigate("/classes")}
             className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded"
           >
-            رجوع للمستويات
+            رجوع للفصول
           </button>
         </div>
 
-        {levelMeta && (
+        {classMeta && (
           <div className="mb-4 text-gray-700">
-            <span className="font-medium">المستوى:</span> {levelMeta.level}{" "}
-            &nbsp;| &nbsp; <span className="font-medium">المرحلة:</span>{" "}
-            {levelMeta.stage}
+            <span className="font-medium">الفصل:</span> {classMeta.location}
+            {classMeta.level && (
+              <>
+                {" "}
+                &nbsp;| &nbsp; <span className="font-medium">المستوى:</span>{" "}
+                {classMeta.level.level} &nbsp;| &nbsp;{" "}
+                <span className="font-medium">المرحلة:</span>{" "}
+                {classMeta.level.stage}
+              </>
+            )}
           </div>
         )}
 
@@ -338,7 +345,7 @@ const LevelCurriculum = () => {
                       key={lec}
                       onClick={() =>
                         navigate(
-                          `/levels/${levelId}/curriculum/${subj.key}/semesters/${selectedSemester}/lectures/${lec}`
+                          `/classes/${classId}/curriculum/${subj.key}/semesters/${selectedSemester}/lectures/${lec}`
                         )
                       }
                       className={`px-3 py-3 text-sm bg-white border rounded-md text-right flex items-center justify-between hover:shadow transition ${

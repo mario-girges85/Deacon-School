@@ -10,10 +10,10 @@ const Curriculum = sequelize.define(
       primaryKey: true,
       allowNull: false,
     },
-    level_id: {
+    class_id: {
       type: Sequelize.DataTypes.UUID,
       allowNull: false,
-      comment: "Reference to levels table (level, stage)",
+      comment: "Reference to classes table",
     },
     subject: {
       type: Sequelize.ENUM("taks", "al7an", "coptic"),
@@ -64,9 +64,9 @@ const Curriculum = sequelize.define(
     indexes: [
       {
         unique: true,
-        fields: ["level_id", "subject", "semester", "lecture"],
+        fields: ["class_id", "subject", "semester", "lecture"],
       },
-      { fields: ["level_id"] },
+      { fields: ["class_id"] },
       { fields: ["subject"] },
     ],
   }

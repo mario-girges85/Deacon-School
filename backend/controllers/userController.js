@@ -6,7 +6,12 @@ const fs = require("fs");
 const path = require("path");
 const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret_change_in_production";
+
+if (!process.env.JWT_SECRET) {
+  console.warn("⚠️  WARNING: JWT_SECRET is not set in environment variables!");
+  console.warn("⚠️  Using default secret. Please set JWT_SECRET in your .env file for production!");
+}
 const sequelize = require("../util/db");
 module.exports.register = async (req, res) => {
   try {

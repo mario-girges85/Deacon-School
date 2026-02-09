@@ -353,6 +353,27 @@ const ClassDetails = () => {
           </div>
         </div>
 
+        {/* Curriculum Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-8 mb-8 border border-blue-200">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              المنهج الدراسي
+            </h2>
+            <p className="text-gray-600 text-lg mb-6">
+              استكشف المواد الدراسية والمحاضرات لهذا الفصل
+            </p>
+            <button
+              onClick={() => navigate(`/classes/${id}/curriculum`)}
+              className="px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium text-lg shadow-md hover:shadow-lg"
+            >
+              عرض المنهج الدراسي
+            </button>
+            <p className="text-sm text-gray-600 mt-2">
+              اضغط هنا لرؤية جميع المواد والمحاضرات
+            </p>
+          </div>
+        </div>
+
         {/* Students Section - hidden for students */}
         {(() => {
           const viewer = isAuthenticated() ? getCurrentUser() : null;

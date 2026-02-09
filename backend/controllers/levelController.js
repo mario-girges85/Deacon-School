@@ -1,4 +1,10 @@
-const { Levels, Classes, User, Curriculum } = require("../models/relationships");
+const {
+  Levels,
+  Classes,
+  User,
+  Curriculum,
+} = require("../models/relationships");
+const { Op } = require("sequelize");
 
 // Create a new level
 const createLevel = async (req, res) => {
@@ -61,10 +67,19 @@ const getLevelById = async (req, res) => {
     }
 
     // Aggregate counts
+    // Get all classes for this level first
+    const levelClasses = await Classes.findAll({
+      where: { level_id: id },
+      attributes: ["id"],
+    });
+    const classIds = levelClasses.map((c) => c.id);
+
     const [classesCount, studentsCount, curriculumCount] = await Promise.all([
       Classes.count({ where: { level_id: id } }),
       User.count({ where: { level_id: id, role: "student" } }),
-      Curriculum.count({ where: { level_id: id } }),
+      classIds.length > 0
+        ? Curriculum.count({ where: { class_id: { [Op.in]: classIds } } })
+        : 0,
     ]);
 
     // Fetch related simple data (lightweight)

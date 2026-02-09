@@ -1,7 +1,7 @@
 const path = require("path");
 const {
   Curriculum,
-  Levels,
+  Classes,
   CurriculumHymns,
   Hymns,
   Events,
@@ -10,12 +10,12 @@ const {
 // Create or update a lecture entry with uploaded file (legacy single file)
 const uploadLecture = async (req, res) => {
   try {
-    const { levelId, subject, semester, lecture } = req.params;
+    const { classId, subject, semester, lecture } = req.params;
 
-    // Validate level exists
-    const level = await Levels.findByPk(levelId);
-    if (!level) {
-      return res.status(404).json({ error: "المستوى غير موجود" });
+    // Validate class exists
+    const classItem = await Classes.findByPk(classId);
+    if (!classItem) {
+      return res.status(404).json({ error: "الفصل غير موجود" });
     }
 
     if (!req.file) {
@@ -28,13 +28,13 @@ const uploadLecture = async (req, res) => {
 
     const [entry] = await Curriculum.findOrCreate({
       where: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
       },
       defaults: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
@@ -62,12 +62,12 @@ const uploadLecture = async (req, res) => {
 // Upload multiple files for a lecture (audio, PDF, video)
 const uploadMultipleFiles = async (req, res) => {
   try {
-    const { levelId, subject, semester, lecture } = req.params;
+    const { classId, subject, semester, lecture } = req.params;
 
-    // Validate level exists
-    const level = await Levels.findByPk(levelId);
-    if (!level) {
-      return res.status(404).json({ error: "المستوى غير موجود" });
+    // Validate class exists
+    const classItem = await Classes.findByPk(classId);
+    if (!classItem) {
+      return res.status(404).json({ error: "الفصل غير موجود" });
     }
 
     if (!req.files || req.files.length === 0) {
@@ -77,13 +77,13 @@ const uploadMultipleFiles = async (req, res) => {
     // Find or create curriculum entry
     const [entry] = await Curriculum.findOrCreate({
       where: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
       },
       defaults: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
@@ -120,9 +120,24 @@ const uploadMultipleFiles = async (req, res) => {
       try {
         const fs = require("fs");
         const toDelete = [];
-        if (updateData.audio_path && entry.audio_path && entry.audio_path !== updateData.audio_path) toDelete.push(entry.audio_path);
-        if (updateData.pdf_path && entry.pdf_path && entry.pdf_path !== updateData.pdf_path) toDelete.push(entry.pdf_path);
-        if (updateData.video_path && entry.video_path && entry.video_path !== updateData.video_path) toDelete.push(entry.video_path);
+        if (
+          updateData.audio_path &&
+          entry.audio_path &&
+          entry.audio_path !== updateData.audio_path
+        )
+          toDelete.push(entry.audio_path);
+        if (
+          updateData.pdf_path &&
+          entry.pdf_path &&
+          entry.pdf_path !== updateData.pdf_path
+        )
+          toDelete.push(entry.pdf_path);
+        if (
+          updateData.video_path &&
+          entry.video_path &&
+          entry.video_path !== updateData.video_path
+        )
+          toDelete.push(entry.video_path);
         for (const rel of toDelete) {
           try {
             const abs = path.join(__dirname, "..", rel);
@@ -143,12 +158,12 @@ const uploadMultipleFiles = async (req, res) => {
 // Upload specific file type (audio, PDF, or video)
 const uploadSpecificFile = async (req, res) => {
   try {
-    const { levelId, subject, semester, lecture, fileType } = req.params;
+    const { classId, subject, semester, lecture, fileType } = req.params;
 
-    // Validate level exists
-    const level = await Levels.findByPk(levelId);
-    if (!level) {
-      return res.status(404).json({ error: "المستوى غير موجود" });
+    // Validate class exists
+    const classItem = await Classes.findByPk(classId);
+    if (!classItem) {
+      return res.status(404).json({ error: "الفصل غير موجود" });
     }
 
     if (!req.file) {
@@ -168,13 +183,13 @@ const uploadSpecificFile = async (req, res) => {
     // Find or create curriculum entry
     const [entry] = await Curriculum.findOrCreate({
       where: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
       },
       defaults: {
-        level_id: levelId,
+        class_id: classId,
         subject: subject,
         semester: Number(semester),
         lecture: Number(lecture),
@@ -199,12 +214,12 @@ const uploadSpecificFile = async (req, res) => {
   }
 };
 
-// Fetch lectures by level and optional filters
+// Fetch lectures by class and optional filters
 const getCurriculum = async (req, res) => {
   try {
-    const { levelId } = req.params;
+    const { classId } = req.params;
     const { subject, semester } = req.query;
-    const where = { level_id: levelId };
+    const where = { class_id: classId };
     if (subject) where.subject = subject;
     if (semester) where.semester = Number(semester);
 
@@ -271,7 +286,7 @@ const getCurriculum = async (req, res) => {
 // Link hymns to a specific al7an lecture (replace set)
 const setLectureHymns = async (req, res) => {
   try {
-    const { levelId, subject, semester, lecture } = req.params;
+    const { classId, subject, semester, lecture } = req.params;
     if (subject !== "al7an") {
       return res
         .status(400)
@@ -281,7 +296,7 @@ const setLectureHymns = async (req, res) => {
     const { hymns } = req.body; // [{ hymn_id, lyrics_variant, sort_order }]
 
     console.log("setLectureHymns called with:", {
-      levelId,
+      classId,
       subject,
       semester,
       lecture,
@@ -292,18 +307,18 @@ const setLectureHymns = async (req, res) => {
       return res.status(400).json({ error: "صيغة البيانات غير صحيحة" });
     }
 
-    const level = await Levels.findByPk(levelId);
-    if (!level) return res.status(404).json({ error: "المستوى غير موجود" });
+    const classItem = await Classes.findByPk(classId);
+    if (!classItem) return res.status(404).json({ error: "الفصل غير موجود" });
 
     const [entry] = await Curriculum.findOrCreate({
       where: {
-        level_id: levelId,
+        class_id: classId,
         subject,
         semester: Number(semester),
         lecture: Number(lecture),
       },
       defaults: {
-        level_id: levelId,
+        class_id: classId,
         subject,
         semester: Number(semester),
         lecture: Number(lecture),
@@ -428,21 +443,21 @@ function urlifyEntry(entry, req) {
 // Delete a specific file type from a lecture (admin only)
 async function deleteLectureFile(req, res) {
   try {
-    const { levelId, subject, semester, lecture, fileType } = req.params;
+    const { classId, subject, semester, lecture, fileType } = req.params;
 
     const validFileTypes = ["audio", "pdf", "video"];
     if (!validFileTypes.includes(fileType)) {
       return res.status(400).json({ error: "نوع الملف غير صحيح" });
     }
 
-    const level = await Levels.findByPk(levelId);
-    if (!level) {
-      return res.status(404).json({ error: "المستوى غير موجود" });
+    const classItem = await Classes.findByPk(classId);
+    if (!classItem) {
+      return res.status(404).json({ error: "الفصل غير موجود" });
     }
 
     const entry = await Curriculum.findOne({
       where: {
-        level_id: levelId,
+        class_id: classId,
         subject,
         semester: Number(semester),
         lecture: Number(lecture),
@@ -462,7 +477,8 @@ async function deleteLectureFile(req, res) {
       if (
         (fileType === "audio" && lower.endsWith(".mp3")) ||
         (fileType === "pdf" && lower.endsWith(".pdf")) ||
-        (fileType === "video" && (lower.endsWith(".mkv") || lower.endsWith(".webm")))
+        (fileType === "video" &&
+          (lower.endsWith(".mkv") || lower.endsWith(".webm")))
       ) {
         existing = entry.path;
         legacy = true;

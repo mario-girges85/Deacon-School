@@ -89,11 +89,11 @@ const App = () => {
         <Route path="/levels" element={<Levels />} />
         <Route path="/levels/:levelId" element={<LevelDetails />} />
         <Route
-          path="/levels/:levelId/curriculum"
+          path="/classes/:classId/curriculum"
           element={<LevelCurriculum />}
         />
         <Route
-          path="/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture"
+          path="/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture"
           element={<LecturePage />}
         />
         <Route path="/hymns" element={<LibraryGuard element={<HymnsLibrary />} />} />

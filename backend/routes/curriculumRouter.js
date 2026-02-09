@@ -14,12 +14,12 @@ const {
 } = require("../middleware/curriculumUpload");
 const { authenticateToken, requireAdmin, checkRole } = require("../util/auth");
 
-// List curriculum for a level with optional filters - All authenticated users can view
-router.get("/levels/:levelId/curriculum", authenticateToken, getCurriculum);
+// List curriculum for a class with optional filters - All authenticated users can view
+router.get("/classes/:classId/curriculum", authenticateToken, getCurriculum);
 
 // Upload a lecture file (legacy single file) - Admin only
 router.post(
-  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture",
+  "/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture",
   authenticateToken,
   requireAdmin,
   uploadCurriculum.single("file"),
@@ -28,7 +28,7 @@ router.post(
 
 // Upload multiple files for a lecture (audio, PDF, video) - Admin only
 router.post(
-  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/multiple",
+  "/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/multiple",
   authenticateToken,
   requireAdmin,
   uploadMultipleCurriculum,
@@ -37,7 +37,7 @@ router.post(
 
 // Upload specific file type (audio, PDF, or video) - Admin only
 router.post(
-  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
+  "/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
   authenticateToken,
   requireAdmin,
   uploadCurriculum.single("file"),
@@ -46,7 +46,7 @@ router.post(
 
 // Delete specific file type (audio, PDF, or video) - Admin only
 router.delete(
-  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
+  "/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
   authenticateToken,
   requireAdmin,
   deleteLectureFile
@@ -54,7 +54,7 @@ router.delete(
 
 // Set hymns for an al7an lecture (replace set) - Admin only
 router.put(
-  "/levels/:levelId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns",
+  "/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns",
   authenticateToken,
   requireAdmin,
   setLectureHymns

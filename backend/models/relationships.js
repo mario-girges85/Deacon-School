@@ -23,16 +23,16 @@ Classes.belongsTo(Levels, {
   as: "level",
 });
 
-// Levels -> Curriculum (One-to-Many)
-Levels.hasMany(Curriculum, {
-  foreignKey: "level_id",
+// Classes -> Curriculum (One-to-Many)
+Classes.hasMany(Curriculum, {
+  foreignKey: "class_id",
   as: "curriculum",
   onDelete: "CASCADE",
 });
 
-Curriculum.belongsTo(Levels, {
-  foreignKey: "level_id",
-  as: "level",
+Curriculum.belongsTo(Classes, {
+  foreignKey: "class_id",
+  as: "class",
 });
 
 // Classes -> User (One-to-Many for students only)

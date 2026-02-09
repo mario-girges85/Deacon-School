@@ -284,13 +284,24 @@ app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
 // Initialize database and start server
 const initializeServer = async () => {
   try {
+    // Run migration for curriculum table (level_id -> class_id)
+    try {
+      const migrateCurriculumToClasses = require("./migrations/migrateCurriculumToClasses");
+      await migrateCurriculumToClasses();
+    } catch (migrationError) {
+      console.error(
+        "Migration error (may be expected if already migrated):",
+        migrationError.message
+      );
+    }
+
     // Sync database - only create tables if they don't exist
     // Options:
     // - force: false (default) - won't drop existing tables
     // - alter: false (default) - won't modify existing table structure
     // - This ensures data persistence between server restarts
     // Avoid global alter to prevent hitting key limits on existing tables
-    await sequelize.sync({ force: false, alter: false });
+    await sequelize.sync({ force: false, alter: true });
     // Ensure the new curriculum_hymns table exists/updates
     if (typeof CurriculumHymns?.sync === "function") {
       await CurriculumHymns.sync({ alter: true });

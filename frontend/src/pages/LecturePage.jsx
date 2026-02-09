@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../util/axiosConfig";
 import HymnSelectionPanel from "../components/HymnSelectionPanel";
@@ -13,7 +13,7 @@ const humanize = (s) => {
 };
 
 const LecturePage = () => {
-  const { levelId, subject, semester, lecture } = useParams();
+  const { classId, subject, semester, lecture } = useParams();
   const navigate = useNavigate();
   const [files, setFiles] = useState({
     audio: null,
@@ -33,7 +33,7 @@ const LecturePage = () => {
     pdf: useRef(null),
     video: useRef(null),
   };
-  const [levelMeta, setLevelMeta] = useState(null);
+  const [classMeta, setClassMeta] = useState(null);
   const [selectedHymns, setSelectedHymns] = useState([]);
   const [showHymnSelection, setShowHymnSelection] = useState(false);
 
@@ -65,33 +65,34 @@ const LecturePage = () => {
     }
   };
 
-  useEffect(() => {
-    const loadInfo = async () => {
-      try {
-        const [curRes, levelRes] = await Promise.all([
-          apiClient.get(`/api/levels/${levelId}/curriculum`, {
-            params: { subject, semester },
-          }),
-          apiClient.get(`/api/levels/${levelId}`),
-        ]);
+  const loadInfo = useCallback(async () => {
+    try {
+      const [curRes, classRes] = await Promise.all([
+        apiClient.get(`/api/classes/${classId}/curriculum`, {
+          params: { subject, semester },
+        }),
+        apiClient.get(`/api/classes/${classId}/details`),
+      ]);
 
-        const found = (curRes.data?.curriculum || []).find(
-          (c) => Number(c.lecture) === Number(lecture)
-        );
-        setInfo(found || null);
-        setLevelMeta(levelRes.data?.level || null);
+      const found = (curRes.data?.curriculum || []).find(
+        (c) => Number(c.lecture) === Number(lecture)
+      );
+      setInfo(found || null);
+      setClassMeta(classRes.data?.class || null);
 
-        // Load selected hymns for al7an curriculum
-        if (subject === "al7an" && found) {
-          setSelectedHymns(found.hymns || []);
-        }
-      } catch (e) {
-        console.error("Error in loadInfo:", e);
-        console.error("Error response:", e.response?.data);
+      // Load selected hymns for al7an curriculum
+      if (subject === "al7an" && found) {
+        setSelectedHymns(found.hymns || []);
       }
-    };
+    } catch (e) {
+      console.error("Error in loadInfo:", e);
+      console.error("Error response:", e.response?.data);
+    }
+  }, [classId, subject, semester, lecture]);
+
+  useEffect(() => {
     loadInfo();
-  }, [levelId, subject, semester, lecture]);
+  }, [loadInfo]);
 
   const onUpload = async (fileType) => {
     setError("");
@@ -120,7 +121,7 @@ const LecturePage = () => {
       setUploading((prev) => ({ ...prev, [fileType]: true }));
       const url = `${
         import.meta.env.VITE_API_BASE_URL
-      }/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
+      }/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
       const res = await apiClient.post(url, form);
       setInfo(res.data?.curriculum || null);
       setFiles((prev) => ({ ...prev, [fileType]: null }));
@@ -149,7 +150,7 @@ const LecturePage = () => {
       console.log("Payload being sent:", payload);
 
       const response = await apiClient.put(
-        `/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
+        `/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
         { hymns: payload }
       );
 
@@ -186,7 +187,7 @@ const LecturePage = () => {
       const ok = window.confirm("هل أنت متأكد من حذف هذا الملف؟");
       if (!ok) return;
       const res = await apiClient.delete(
-        `/api/levels/${levelId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
+        `/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
       );
       setInfo(res.data?.curriculum || null);
     } catch (e) {
@@ -338,12 +339,18 @@ const LecturePage = () => {
         </div>
 
         <div className="mb-4 text-gray-700">
-          {levelMeta && (
+          {classMeta && (
             <>
-              <span className="font-medium">المستوى:</span>{" "}
-              {getLevelName(levelMeta.level)} |{" "}
-              <span className="font-medium">المرحلة:</span>{" "}
-              {getStageName(levelMeta.stage)} |{" "}
+              <span className="font-medium">الفصل:</span> {classMeta.location}
+              {classMeta.level && (
+                <>
+                  {" "}
+                  | <span className="font-medium">المستوى:</span>{" "}
+                  {getLevelName(classMeta.level.level)} |{" "}
+                  <span className="font-medium">المرحلة:</span>{" "}
+                  {getStageName(classMeta.level.stage)} |{" "}
+                </>
+              )}
             </>
           )}
           <span className="font-medium">المادة:</span> {humanize(subject)} |{" "}
