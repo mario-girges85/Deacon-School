@@ -1,0 +1,92 @@
+erDiagram
+
+  LEVELS {
+    UUID id PK
+    INT level
+    INT stage
+  }
+
+  CLASSES {
+    UUID id PK
+    UUID level_id FK
+    STRING location
+  }
+
+  USERS {
+    UUID id PK
+    STRING name
+    STRING phone
+    STRING password
+    DATEONLY birthday
+    ENUM gender
+    STRING code
+    UUID level_id FK
+    UUID class_id FK
+    STRING image
+    ENUM role
+    ENUM subject
+  }
+
+  CURRICULUMS {
+    UUID id PK
+    UUID class_id FK
+    ENUM subject
+    INT semester
+    INT lecture
+    STRING path
+    STRING audio_path
+    STRING pdf_path
+    STRING video_path
+  }
+
+  EVENTS {
+    UUID id PK
+    STRING name
+    STRING name_arabic
+    TEXT description
+    STRING color
+    STRING icon
+    BOOLEAN is_active
+  }
+
+  HYMNS {
+    UUID id PK
+    STRING title_arabic
+    UUID event_id FK
+    STRING audio_path
+    TEXT lyrics_arabic
+    TEXT lyrics_coptic
+    TEXT lyrics_arabic_coptic
+    TEXT description
+    INT duration
+    BOOLEAN is_active
+  }
+
+  CURRICULUM_HYMNS {
+    UUID id PK
+    UUID curriculum_id FK
+    STRING hymn_id FK_LOGICAL
+    TEXT lyrics_variants
+    INT sort_order
+  }
+
+  TEACHER_SUBJECT_ASSIGNMENTS {
+    UUID class_id PK_FK
+    UUID taks_teacher_id FK
+    UUID al7an_teacher_id FK
+    UUID coptic_teacher_id FK
+  }
+
+  TEACHER_CLASSES {
+    UUID teacher_id FK
+    UUID class_id FK
+  }
+
+  LEVELS ||--o{ CLASSES : "has many"}
+  LEVELS ||--o{ USERS : "has many (students)"}
+  CLASSES ||--o{ USERS : "has many (students)"}
+  CLASSES ||--o{ CURRICULUMS : "has many"}
+  EVENTS ||--o{ HYMNS : "has many"}
+  CURRICULUMS ||--o{ CURRICULUM_HYMNS : "has many"}
+  CLASSES ||--|| TEACHER_SUBJECT_ASSIGNMENTS : "has one"}
+  USERS }o--o{ CLASSES : "via TEACHER_CLASSES (teachers)"}
