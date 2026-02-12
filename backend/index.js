@@ -48,7 +48,7 @@ const seedLevels = async () => {
     }
 
     console.log(
-      `Levels ensured: ${requiredCombinations.length} combinations present.`
+      `Levels ensured: ${requiredCombinations.length} combinations present.`,
     );
   } catch (err) {
     console.error("Failed to seed levels:", err);
@@ -166,13 +166,13 @@ const seedClasses = async () => {
       } catch (itemError) {
         console.error(
           `❌ Error creating ${classItem.location}:`,
-          itemError.message
+          itemError.message,
         );
       }
     }
 
     console.log(
-      `🎉 Classes seeding completed: ${createdCount} created, ${existingCount} already existed. Total: ${classData.length}`
+      `🎉 Classes seeding completed: ${createdCount} created, ${existingCount} already existed. Total: ${classData.length}`,
     );
   } catch (err) {
     console.error("💥 Failed to seed classes:", err);
@@ -262,11 +262,11 @@ const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// CORS configuration
-// Allow all origins and handle preflight across the app
-app.use(cors());
+// CORS configuration – allow requests from any origin
+app.use(cors({ origin: "*" }));
 
-app.get("/", (req, res) => {
+// Root API endpoint
+app.get("/api", (req, res) => {
   res.send("Hello school");
 });
 
@@ -291,7 +291,7 @@ const initializeServer = async () => {
     } catch (migrationError) {
       console.error(
         "Migration error (may be expected if already migrated):",
-        migrationError.message
+        migrationError.message,
       );
     }
 
