@@ -265,18 +265,17 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration – allow requests from any origin
 app.use(cors({ origin: "*" }));
 
-// Root API endpoint
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello school");
 });
 
-app.use("/api/users", userRouter);
-app.use("/api/classes", classRouter);
-app.use("/api/levels", levelRouter);
-app.use("/api", curriculumRouter);
-app.use("/api/schedule", scheduleRouter);
-app.use("/api/events", eventsRouter);
-app.use("/api/hymns", hymnsRouter);
+app.use("/users", userRouter);
+app.use("/classes", classRouter);
+app.use("/levels", levelRouter);
+app.use("/", curriculumRouter);
+app.use("/schedule", scheduleRouter);
+app.use("/events", eventsRouter);
+app.use("/hymns", hymnsRouter);
 
 // Serve uploads statically
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));

@@ -19,8 +19,8 @@ const LevelDetails = () => {
     try {
       setLoading(true);
       const [levelResponse, classesResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/levels/${levelId}`),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/levels/${levelId}`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/classes`),
       ]);
 
       setLevel(levelResponse.data?.level || null);

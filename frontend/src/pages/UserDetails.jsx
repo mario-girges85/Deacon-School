@@ -18,7 +18,7 @@ const UserDetails = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get(`/api/users/${userId}`);
+        const res = await apiClient.get(`/users/${userId}`);
         if (res.data?.success) {
           setUser(res.data.user);
         } else {
@@ -51,7 +51,7 @@ const UserDetails = () => {
         setAdminScheduleLoading(true);
         
         // Get current schedule
-        const scheduleResponse = await apiClient.get("/api/schedule/current");
+        const scheduleResponse = await apiClient.get("/schedule/current");
         
         if (scheduleResponse.data?.success && scheduleResponse.data.rows) {
           // Filter schedule to show only this teacher's assignments
@@ -245,7 +245,7 @@ const UserDetails = () => {
                     const form = new FormData();
                     form.append("image", file);
                     const res = await apiClient.put(
-                      `/api/users/${user.id}/image`,
+                      `/users/${user.id}/image`,
                       form
                     );
                     if (res.data?.success && res.data?.image) {

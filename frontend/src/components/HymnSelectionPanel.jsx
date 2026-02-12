@@ -32,7 +32,7 @@ const HymnSelectionPanel = ({
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/events`
+        `${import.meta.env.VITE_API_BASE_URL}/events`
       );
       setEvents(response.data.events || []);
     } catch (error) {
@@ -49,7 +49,7 @@ const HymnSelectionPanel = ({
       if (search) params.search = search;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns`,
+        `${import.meta.env.VITE_API_BASE_URL}/hymns`,
         { params }
       );
       setHymns(response.data.hymns || []);

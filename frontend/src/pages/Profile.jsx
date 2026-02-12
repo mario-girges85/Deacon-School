@@ -34,7 +34,7 @@ const Profile = () => {
         if (!me?.id) return;
         const headers = { ...getAuthHeaders() };
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/users/${me.id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/users/${me.id}`,
           { headers }
         );
         const img = res?.data?.user?.image || null;
@@ -59,7 +59,7 @@ const Profile = () => {
       
       // Get current schedule
       const scheduleResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/current`,
+        `${import.meta.env.VITE_API_BASE_URL}/schedule/current`,
         { headers: getAuthHeaders() }
       );
 
@@ -134,7 +134,7 @@ const Profile = () => {
       const fd = new FormData();
       fd.append("image", file);
       const uploadRes = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/${me.id}/image`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/${me.id}/image`,
         fd,
         { headers: getAuthHeaders() }
       );
@@ -185,7 +185,7 @@ const Profile = () => {
     try {
       const headers = { ...getAuthHeaders() };
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/${me.id}/password`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/${me.id}/password`,
         {
           currentPassword: passwords.currentPassword,
           newPassword: passwords.newPassword,

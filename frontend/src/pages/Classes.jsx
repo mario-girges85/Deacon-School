@@ -32,8 +32,8 @@ const Classes = () => {
     try {
       setLoading(true);
       const [classesResponse, levelsResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes`),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/levels`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/classes`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/levels`),
       ]);
 
       if (
@@ -77,7 +77,7 @@ const Classes = () => {
     try {
       setLoadingTeacherClasses(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/teacher/${teacherId}/classes`,
+          `${import.meta.env.VITE_API_BASE_URL}/users/teacher/${teacherId}/classes`,
         { headers: getAuthHeaders() }
       );
 
@@ -130,7 +130,7 @@ const Classes = () => {
       setCreating(true);
       const headers = { ...getAuthHeaders() };
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${selectedClassId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${selectedClassId}`,
         {
           level_id: selectedLevelId,
         },

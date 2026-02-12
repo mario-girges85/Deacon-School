@@ -57,7 +57,7 @@ const LevelCurriculum = () => {
     const loadClass = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get(`/api/classes/${classId}/details`);
+        const res = await apiClient.get(`/classes/${classId}/details`);
         setClassMeta(res.data?.class || null);
       } catch (e) {
         setError("تعذر تحميل بيانات الفصل");
@@ -73,13 +73,13 @@ const LevelCurriculum = () => {
     const loadPresence = async () => {
       try {
         // Load curriculum for all subjects to get file presence
-        const res = await apiClient.get(`/api/classes/${classId}/curriculum`, {
+        const res = await apiClient.get(`/classes/${classId}/curriculum`, {
           params: { semester: selectedSemester },
         });
 
         // Load al7an curriculum separately to get hymns
         const al7anRes = await apiClient.get(
-          `/api/classes/${classId}/curriculum`,
+          `/classes/${classId}/curriculum`,
           { params: { semester: selectedSemester, subject: "al7an" } }
         );
         const rows = res.data?.curriculum || [];

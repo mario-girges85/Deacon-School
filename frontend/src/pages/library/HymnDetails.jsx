@@ -46,7 +46,7 @@ const HymnDetails = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${id}`
+        `${import.meta.env.VITE_API_BASE_URL}/hymns/${id}`
       );
       setHymn(response.data.hymn);
     } catch (error) {

@@ -44,7 +44,7 @@ const EventsManagement = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${apiBase}/api/events`);
+      const res = await axios.get(`${apiBase}/events`);
       setEvents(res.data.events || []);
     } catch (e) {
       console.error(e);
@@ -83,7 +83,7 @@ const EventsManagement = () => {
       const headers = { ...getAuthHeaders() };
       if (form.id) {
         await axios.put(
-          `${apiBase}/api/events/${form.id}`,
+          `${apiBase}/events/${form.id}`,
           {
             name: form.name_arabic,
             name_arabic: form.name_arabic,
@@ -92,7 +92,7 @@ const EventsManagement = () => {
         );
       } else {
         await axios.post(
-          `${apiBase}/api/events`,
+          `${apiBase}/events`,
           {
             name: form.name_arabic,
             name_arabic: form.name_arabic,
@@ -115,7 +115,7 @@ const EventsManagement = () => {
     if (!confirm("هل تريد حذف هذه المناسبة؟")) return;
     try {
       const headers = { ...getAuthHeaders() };
-      await axios.delete(`${apiBase}/api/events/${id}`, { headers });
+      await axios.delete(`${apiBase}/events/${id}`, { headers });
       await fetchEvents();
     } catch (e) {
       console.error(e);

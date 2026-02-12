@@ -29,7 +29,7 @@ const BulkAllStudents = () => {
     const fetchClasses = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/classes`
+          `${import.meta.env.VITE_API_BASE_URL}/classes`
         );
         const all = res.data.classes || [];
         // Keep only classes that are related to a level
@@ -188,7 +188,7 @@ const BulkAllStudents = () => {
       fd.append("file", file);
       // No classId in body here; each row must include الفصل
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/bulk-import`,
         fd,
         { 
           headers: getAuthHeaders(),

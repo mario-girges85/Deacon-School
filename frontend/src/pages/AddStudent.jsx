@@ -27,7 +27,7 @@ const AddStudent = () => {
   const fetchClassData = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
       );
       setClassData(response.data.class || response.data);
     } catch (error) {
@@ -64,7 +64,7 @@ const AddStudent = () => {
     try {
       // Get class data to extract level_id
       const classResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
       );
       const levelId = (classResponse.data.class || classResponse.data)
         ?.level_id;
@@ -87,7 +87,7 @@ const AddStudent = () => {
       if (imageFile) fd.append("image", imageFile);
 
       await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/register`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/register`,
         fd,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

@@ -50,7 +50,7 @@ const LoginForm = ({ isCompact = false, onLoginSuccess }) => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/users/login`;
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/users/login`;
 
         // Prepare login data
         const loginData = {

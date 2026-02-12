@@ -55,7 +55,7 @@ const AddEditHymn = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/events`
+        `${import.meta.env.VITE_API_BASE_URL}/events`
       );
       setEvents(response.data.events || []);
     } catch (error) {
@@ -67,7 +67,7 @@ const AddEditHymn = () => {
   const fetchHymn = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${id}`
+        `${import.meta.env.VITE_API_BASE_URL}/hymns/${id}`
       );
       setHymn(response.data.hymn);
     } catch (error) {
@@ -96,13 +96,13 @@ const AddEditHymn = () => {
       const headers = { ...getAuthHeaders() };
       if (isEdit) {
         response = await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/hymns/${id}`,
           hymnData,
           { headers }
         );
       } else {
         response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/hymns`,
+          `${import.meta.env.VITE_API_BASE_URL}/hymns`,
           hymnData,
           { headers }
         );
@@ -133,7 +133,7 @@ const AddEditHymn = () => {
       formData.append("audio", audioFile);
 
       await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns/${hymnId}/audio`,
+        `${import.meta.env.VITE_API_BASE_URL}/hymns/${hymnId}/audio`,
         formData,
         {
           headers: getAuthHeaders(),

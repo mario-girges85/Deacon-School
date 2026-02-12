@@ -68,10 +68,10 @@ const LecturePage = () => {
   const loadInfo = useCallback(async () => {
     try {
       const [curRes, classRes] = await Promise.all([
-        apiClient.get(`/api/classes/${classId}/curriculum`, {
+        apiClient.get(`/classes/${classId}/curriculum`, {
           params: { subject, semester },
         }),
-        apiClient.get(`/api/classes/${classId}/details`),
+        apiClient.get(`/classes/${classId}/details`),
       ]);
 
       const found = (curRes.data?.curriculum || []).find(
@@ -121,7 +121,7 @@ const LecturePage = () => {
       setUploading((prev) => ({ ...prev, [fileType]: true }));
       const url = `${
         import.meta.env.VITE_API_BASE_URL
-      }/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
+      }/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`;
       const res = await apiClient.post(url, form);
       setInfo(res.data?.curriculum || null);
       setFiles((prev) => ({ ...prev, [fileType]: null }));
@@ -150,7 +150,7 @@ const LecturePage = () => {
       console.log("Payload being sent:", payload);
 
       const response = await apiClient.put(
-        `/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
+        `/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
         { hymns: payload }
       );
 
@@ -187,7 +187,7 @@ const LecturePage = () => {
       const ok = window.confirm("هل أنت متأكد من حذف هذا الملف؟");
       if (!ok) return;
       const res = await apiClient.delete(
-        `/api/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
+        `/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
       );
       setInfo(res.data?.curriculum || null);
     } catch (e) {

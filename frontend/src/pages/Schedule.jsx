@@ -69,7 +69,7 @@ const Schedule = () => {
     const fetchTeachers = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/users/teachers-by-subject`,
+          `${import.meta.env.VITE_API_BASE_URL}/users/teachers-by-subject`,
           { headers: { ...getAuthHeaders() } }
         );
 
@@ -92,7 +92,7 @@ const Schedule = () => {
     const fetchExistingSchedule = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/schedule/current`,
+          `${import.meta.env.VITE_API_BASE_URL}/schedule/current`,
           { headers: { ...getAuthHeaders() } }
         );
         if (
@@ -151,7 +151,7 @@ const Schedule = () => {
       setEditedRows(null);
       const payload = { subjectTeachers: selectedTeachers };
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/generate`,
+        `${import.meta.env.VITE_API_BASE_URL}/schedule/generate`,
         payload,
         { headers: { ...getAuthHeaders() } }
       );
@@ -300,7 +300,7 @@ const Schedule = () => {
       
       // First validate (no persistence)
       const validationRes = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/apply`,
+        `${import.meta.env.VITE_API_BASE_URL}/schedule/apply`,
         { rows: editedRows },
         { headers: { ...getAuthHeaders() } }
       );
@@ -313,7 +313,7 @@ const Schedule = () => {
       
       // Then save
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/save`,
+        `${import.meta.env.VITE_API_BASE_URL}/schedule/save`,
         { rows: editedRows },
         { headers: { ...getAuthHeaders() } }
       );

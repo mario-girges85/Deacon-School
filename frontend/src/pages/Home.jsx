@@ -205,7 +205,7 @@ const SchoolStats = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/stats`
+        `${import.meta.env.VITE_API_BASE_URL}/users/stats`
       );
       if (response.data.success) {
         setStats(response.data.stats);

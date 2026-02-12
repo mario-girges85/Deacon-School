@@ -33,7 +33,7 @@ const Signup = () => {
     const loadLevels = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/levels`
+          `${import.meta.env.VITE_API_BASE_URL}/levels`
         );
         setLevels(res.data.levels || res.data || []);
       } catch (e) {
@@ -91,7 +91,7 @@ const Signup = () => {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/users/register`;
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/users/register`;
       const data = new FormData();
       const fields = [
         "name",

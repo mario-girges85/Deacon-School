@@ -43,7 +43,7 @@ const BulkStudentUpload = () => {
   const fetchClassData = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
       );
       setClassData(response.data.class || response.data);
     } catch (error) {
@@ -55,7 +55,7 @@ const BulkStudentUpload = () => {
   const fetchLevels = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/levels`
+        `${import.meta.env.VITE_API_BASE_URL}/levels`
       );
       setLevels(response.data.levels || response.data);
     } catch (error) {
@@ -171,7 +171,7 @@ const BulkStudentUpload = () => {
       formData.append("classId", classId);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/bulk-import`,
         formData,
         { 
           headers: getAuthHeaders(),

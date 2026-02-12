@@ -21,7 +21,7 @@ const HymnsLibrary = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/events`
+        `${import.meta.env.VITE_API_BASE_URL}/events`
       );
       setEvents(response.data.events || []);
     } catch (error) {
@@ -34,7 +34,7 @@ const HymnsLibrary = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/hymns`
+        `${import.meta.env.VITE_API_BASE_URL}/hymns`
       );
       setAllHymns(response.data.hymns || []);
     } catch (error) {

@@ -38,7 +38,7 @@ const ClassDetails = () => {
       setLoading(true);
 
       const classResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}/details`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${id}/details`
       );
       console.log("[ClassDetails] /api/classes/:id/details response:", classResponse.data);
 
@@ -79,7 +79,7 @@ const ClassDetails = () => {
         .put(
           `${
             import.meta.env.VITE_API_BASE_URL
-          }/api/classes/${id}/teacher-assignments`,
+          }/classes/${id}/teacher-assignments`,
           assignments
         )
         .then(() => {
@@ -113,7 +113,7 @@ const ClassDetails = () => {
         return;
       }
       await axios
-        .delete(`${import.meta.env.VITE_API_BASE_URL}/api/classes/${id}`, {
+        .delete(`${import.meta.env.VITE_API_BASE_URL}/classes/${id}`, {
           headers,
         })
         .then(() => {

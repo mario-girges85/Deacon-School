@@ -18,8 +18,8 @@ const Levels = () => {
     try {
       setLoading(true);
       const [levelsResponse, classesResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/levels`),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/classes`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/levels`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/classes`),
       ]);
 
       setLevels(levelsResponse.data?.levels || []);
@@ -73,7 +73,7 @@ const Levels = () => {
 
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/levels/${id}`
+        `${import.meta.env.VITE_API_BASE_URL}/levels/${id}`
       );
       fetchData(); // Refresh the list
     } catch (error) {

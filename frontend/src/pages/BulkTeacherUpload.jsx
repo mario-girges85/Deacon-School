@@ -141,7 +141,7 @@ const BulkTeacherUpload = () => {
       formData.append("file", file);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/bulk-import-teachers`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/bulk-import-teachers`,
         formData,
         { 
           headers: getAuthHeaders(),

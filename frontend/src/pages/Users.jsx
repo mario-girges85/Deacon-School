@@ -89,7 +89,7 @@ const Users = () => {
       try {
         const headers = getAuthHeaders();
         await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/api/users/delete/${userId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/users/delete/${userId}`,
           { headers }
         );
 
@@ -124,7 +124,7 @@ const Users = () => {
       const headers = getAuthHeaders();
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/users/get-users`,
+        `${import.meta.env.VITE_API_BASE_URL}/users/get-users`,
         { headers }
       );
 
@@ -161,7 +161,7 @@ const Users = () => {
       
       // Get current schedule
       const scheduleResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/schedule/current`,
+        `${import.meta.env.VITE_API_BASE_URL}/schedule/current`,
         { headers: getAuthHeaders() }
       );
 

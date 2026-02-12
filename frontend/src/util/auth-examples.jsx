@@ -27,7 +27,7 @@ import {
 export const LoginExample = () => {
   const handleLogin = async (credentials) => {
     try {
-      const response = await axios.post("/api/users/login", credentials, {
+      const response = await axios.post("/users/login", credentials, {
         headers: { "Content-Type": "application/json" },
       });
 
@@ -159,7 +159,7 @@ export const AuthenticatedAPI = () => {
     try {
       const headers = getAuthHeaders(); // Gets Authorization: Bearer <token>
 
-      const response = await axios.get("/api/users/profile", {
+      const response = await axios.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           ...headers,
@@ -327,7 +327,7 @@ export const AxiosWithAuth = () => {
   const fetchProtectedData = async () => {
     try {
       // No need to manually add headers - interceptor handles it
-      const response = await axios.get("/api/protected/data");
+      const response = await axios.get("/protected/data");
       console.log("Protected data:", response.data);
     } catch (error) {
       console.error("Failed to fetch protected data:", error);
