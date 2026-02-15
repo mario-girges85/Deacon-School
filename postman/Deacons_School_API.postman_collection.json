@@ -1,38 +1,38 @@
 {
   "info": {
-    "_postman_id": "deacons-school-api-collection",
+    "_postman_id": "46a00193-074e-46ee-9b9c-dc76a6ef3e89",
     "name": "Deacons School API",
-    "description": "Complete API collection for the Deacons School backend. Includes Users, Classes, Levels, Curriculum, Schedule, Events, and Hymns endpoints.\n\n## Authentication\nMost endpoints require JWT Bearer token. Use the Login request first to obtain a token, then set it in the Authorization header as `Bearer {{token}}`.\n\n## Base URL\nDefault: `http://localhost:3000` - Update the `baseUrl` variable for different environments.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "Complete API collection for the Deacons School backend. Includes Users, Classes, Levels, Curriculum, Schedule, Events, Hymns, and Contact endpoints. Use the **Login** request first to get a token, then set the collection variable `token` or use the Authorization header (Bearer) for protected routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38503217",
+    "_collection_link": "https://go.postman.co/collection/38503217-46a00193-074e-46ee-9b9c-dc76a6ef3e89?source=collection_link"
   },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:3000"
-    },
-    {
-      "key": "token",
-      "value": ""
-    }
-  ],
   "item": [
     {
-      "name": "Root",
+      "name": "Health",
       "item": [
         {
-          "name": "Health Check",
+          "name": "Root (Hello)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/",
-            "description": "Simple health check endpoint. Returns 'Hello school' to verify the server is running."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Simple health check. Returns a greeting to confirm the server is running."
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "Users",
-      "description": "User management: registration, login, profile, bulk import, teacher assignments, and school statistics.",
       "item": [
         {
           "name": "Login",
@@ -46,28 +46,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"admin\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"code\": \"admin\",\n  \"password\": \"000000\"\n}"
             },
-            "url": "{{baseUrl}}/users/login",
-            "description": "Authenticate user with code and password. Returns JWT token and user data. Use the token in subsequent requests via Authorization: Bearer <token>.\n\n**Required body:** code (string), password (string)",
-            "event": [
-              {
-                "listen": "test",
-                "script": {
-                  "exec": [
-                    "if (pm.response.code === 200) {",
-                    "    const json = pm.response.json();",
-                    "    if (json.token) {",
-                    "        pm.collectionVariables.set('token', json.token);",
-                    "        console.log('Token saved to collection variable');",
-                    "    }",
-                    "}"
-                  ],
-                  "type": "text/javascript"
-                }
-              }
-            ]
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "login"
+              ]
+            },
+            "description": "Authenticate with phone and password. Returns a JWT token. Use this token in the Authorization header (Bearer {{token}}) for protected endpoints. Copy the token into the collection variable `token` for other requests."
+          },
+          "response": []
         },
         {
           "name": "Register",
@@ -79,67 +72,74 @@
               "formdata": [
                 {
                   "key": "name",
-                  "value": "Student Name"
+                  "value": "Student Name",
+                  "type": "text"
                 },
                 {
                   "key": "phone",
-                  "value": "01285948011"
+                  "value": "01285978014",
+                  "type": "text"
                 },
                 {
                   "key": "password",
-                  "value": "password123"
-                },
-                {
-                  "key": "birthday",
-                  "value": "2010-01-15"
-                },
-                {
-                  "key": "gender",
-                  "value": "male"
+                  "value": "000000",
+                  "type": "text"
                 },
                 {
                   "key": "code",
-                  "value": "STU001"
-                },
-                {
-                  "key": "class_id",
-                  "value": "1"
-                },
-                {
-                  "key": "level_id",
-                  "value": "1"
+                  "value": "STUDENT_CODE",
+                  "type": "text"
                 },
                 {
                   "key": "role",
-                  "value": "student"
+                  "value": "student",
+                  "type": "text"
+                },
+                {
+                  "key": "birthday",
+                  "value": "2010-05-15",
+                  "type": "text",
+                  "uuid": "c1c763d6-5708-4aa2-9d6f-f5e74d105f10"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "type": "text",
+                  "uuid": "1ca5062e-d60e-452f-8888-1d8d6b821865"
+                },
+                {
+                  "key": "class_id",
+                  "value": "015befa6-c47e-4ffa-a817-244092093ef8",
+                  "type": "text"
+                },
+                {
+                  "key": "level_id",
+                  "value": "5d16fe05-1e3e-4751-a05e-5bddc028f077",
+                  "type": "text"
                 },
                 {
                   "key": "image",
                   "type": "file",
-                  "src": []
+                  "value": null
                 }
               ]
             },
-            "url": "{{baseUrl}}/users/register",
-            "description": "Register a new user (student, teacher, or admin). Use form-data with optional image file.\n\n**Required for all:** name, phone, password, birthday, gender, code\n**Required for students:** class_id, level_id (role defaults to student)\n**Required for teachers:** subject (taks|al7an|coptic)\n**Optional:** image (profile photo)"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "register"
+              ]
+            },
+            "description": "Register a new user (e.g. student). Send as multipart/form-data. Optional: image file for profile picture. Requires: name, phone, password, code, role, classId, levelId."
+          },
+          "response": []
         },
         {
-          "name": "Get School Stats",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": "{{baseUrl}}/users/stats",
-            "description": "Get school statistics: user counts by role (students, teachers, admins, supervisors), total classes, levels, and students per level."
-          }
-        },
-        {
-          "name": "Get All Users",
+          "name": "Get User by ID",
           "request": {
             "method": "GET",
             "header": [
@@ -149,22 +149,21 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/get-users?includeTeachingClasses=false",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "get-users"],
-              "query": [
-                {
-                  "key": "includeTeachingClasses",
-                  "value": "false",
-                  "description": "Set to true to include teaching classes for teachers"
-                }
+              "raw": "{{baseUrl}}/users/007bc0aa-96cc-415d-bb4a-52b56547e0f7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "007bc0aa-96cc-415d-bb4a-52b56547e0f7"
               ]
             },
-            "description": "Get all users. Requires admin role.\n\n**Query:** includeTeachingClasses (boolean) - include teacher class assignments"
-          }
+            "description": "Get a single user by ID. Requires authentication. Returns user profile (excluding password)."
+          },
+          "response": []
         },
         {
-          "name": "Get Teachers By Subject",
+          "name": "Get Users (Admin)",
           "request": {
             "method": "GET",
             "header": [
@@ -173,9 +172,62 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/users/teachers-by-subject",
-            "description": "Get teachers grouped by subject (taks, al7an, coptic). Requires staff (admin/teacher/supervisor) role."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/get-users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "get-users"
+              ]
+            },
+            "description": "List all users. Admin only. Use for user management and listing students/teachers."
+          },
+          "response": []
+        },
+        {
+          "name": "Teachers by Subject",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/teachers-by-subject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "teachers-by-subject"
+              ]
+            },
+            "description": "Get teachers grouped by subject. Staff or admin only. Useful for assigning teachers to classes."
+          },
+          "response": []
+        },
+        {
+          "name": "School Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "stats"
+              ]
+            },
+            "description": "Get school statistics (e.g. total students, classes, teachers). Public; no auth required."
+          },
+          "response": []
         },
         {
           "name": "Assign Classes to Teacher",
@@ -193,11 +245,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"classIds\": [1, 2, 3]\n}"
+              "raw": "{\n  \"userId\": \"0176da0b-22a1-4877-b31d-419a772cff1e\",\n  \"classIds\": [\"015befa6-c47e-4ffa-a817-244092093ef8\",\"02dab32f-0298-4a4e-bf36-86c4a55aabc7\", \"05134d63-d453-4eaf-ae3c-ea2b54c6c767\"]\n}"
             },
-            "url": "{{baseUrl}}/users/assign-classes",
-            "description": "Assign up to 3 classes to a teacher or supervisor.\n\n**Required body:** userId (number), classIds (array of numbers)"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/assign-classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "assign-classes"
+              ]
+            },
+            "description": "Assign one or more classes to a teacher. Body: userId, classIds array."
+          },
+          "response": []
         },
         {
           "name": "Get Teacher Classes",
@@ -209,9 +271,21 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/users/teacher/:userId/classes",
-            "description": "Get all classes assigned to a teacher or supervisor. Replace :userId with the user ID."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/teacher/0176da0b-22a1-4877-b31d-419a772cff1e/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "teacher",
+                "0176da0b-22a1-4877-b31d-419a772cff1e",
+                "classes"
+              ]
+            },
+            "description": "Get all classes assigned to a specific teacher. Replace 1 with the teacher's user ID.\n\nusers/teacher_id/classes"
+          },
+          "response": []
         },
         {
           "name": "Remove All Classes from Teacher",
@@ -223,12 +297,24 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/users/teacher/:userId/classes",
-            "description": "Remove all class assignments from a teacher or supervisor."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/teacher/1/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "teacher",
+                "1",
+                "classes"
+              ]
+            },
+            "description": "Remove all class assignments from a teacher. Replace 1 with the teacher's user ID."
+          },
+          "response": []
         },
         {
-          "name": "Get Teachers With Classes",
+          "name": "Teachers with Classes",
           "request": {
             "method": "GET",
             "header": [
@@ -237,79 +323,22 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/users/teachers-with-classes",
-            "description": "Get all teachers and supervisors with their assigned classes."
-          }
-        },
-        {
-          "name": "Bulk Import Students",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
-                },
-                {
-                  "key": "classId",
-                  "value": "1",
-                  "description": "Optional - assign all imported students to this class"
-                }
+            "url": {
+              "raw": "{{baseUrl}}/users/teachers-with-classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "teachers-with-classes"
               ]
             },
-            "url": "{{baseUrl}}/users/bulk-import",
-            "description": "Bulk import students from CSV or Excel. Requires admin. Field name: 'file'.\n\n**File columns:** name, phone, birthday, gender, code, class (or classId in body)\n**Optional body:** classId - assign all to this class"
-          }
+            "description": "Get all teachers with their assigned classes. Useful for schedules and dashboards."
+          },
+          "response": []
         },
         {
-          "name": "Bulk Import Teachers",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
-                }
-              ]
-            },
-            "url": "{{baseUrl}}/users/bulk-import-teachers",
-            "description": "Bulk import teachers from CSV or Excel. Requires admin.\n\n**File columns:** name, phone, birthday, gender, code, subject (taks|al7an|coptic)"
-          }
-        },
-        {
-          "name": "Get User By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": "{{baseUrl}}/users/:id",
-            "description": "Get single user by ID with class/level associations. Requires authentication."
-          }
-        },
-        {
-          "name": "Update User Profile Image",
+          "name": "Update User Image",
           "request": {
             "method": "PUT",
             "header": [
@@ -324,13 +353,24 @@
                 {
                   "key": "image",
                   "type": "file",
-                  "src": []
+                  "src": "/C:/Users/mario/Desktop/2.jpg"
                 }
               ]
             },
-            "url": "{{baseUrl}}/users/:id/image",
-            "description": "Update profile image for a user. Self or admin only."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/0176da0b-22a1-4877-b31d-419a772cff1e/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "0176da0b-22a1-4877-b31d-419a772cff1e",
+                "image"
+              ]
+            },
+            "description": "Update profile image for a user. Authenticated user can update own image; admin can update any. Send as multipart with 'image' file. Replace 1 with user ID.\n\n/users/user_id"
+          },
+          "response": []
         },
         {
           "name": "Change Password",
@@ -348,11 +388,95 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"old_password\",\n  \"newPassword\": \"new_password123\"\n}"
+              "raw": "{\n  \"currentPassword\": \"000000\",\n  \"newPassword\": \"000000\"\n}"
             },
-            "url": "{{baseUrl}}/users/:id/password",
-            "description": "Change user password. Self: requires currentPassword. Admin: can set newPassword directly."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/1/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                "password"
+              ]
+            },
+            "description": "Change password for a user. User can change own password; admin can change any. Replace 1 with user ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Import Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": null,
+                  "type": "file"
+                },
+                {
+                  "key": "classId",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/bulk-import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "bulk-import"
+              ]
+            },
+            "description": "Bulk import users from CSV or Excel. Admin only. Field name: 'file'. Optional body: classId for assigning imported users to a class."
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Import Teachers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": null,
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/bulk-import-teachers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "bulk-import-teachers"
+              ]
+            },
+            "description": "Bulk import teachers from CSV or Excel. Admin only. Field name: 'file'."
+          },
+          "response": []
         },
         {
           "name": "Delete User",
@@ -364,24 +488,83 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/users/delete/:id",
-            "description": "Delete a user. Requires admin role."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/delete/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "delete",
+                "1"
+              ]
+            },
+            "description": "Delete a user by ID. Admin only. Replace 1 with the user ID to delete."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "User registration, login, profile, bulk import, and admin user management."
     },
     {
       "name": "Classes",
-      "description": "Class management: create, list, update, delete classes; manage teacher assignments per subject.",
       "item": [
         {
           "name": "Get All Classes",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/classes",
-            "description": "Get all classes with level info, student count, and student preview."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes"
+              ]
+            },
+            "description": "List all classes. Public; no authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1"
+              ]
+            },
+            "description": "Get a single class by ID. Replace 1 with the class ID.\n\n/classes/calss id"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/details",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "details"
+              ]
+            },
+            "description": "Get detailed information for a class (e.g. level, students, curriculum). Replace 1 with the class ID.\n\n/ classes/class id/details"
+          },
+          "response": []
         },
         {
           "name": "Create Class",
@@ -399,29 +582,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"level_id\": 1,\n  \"location\": \"مبنى الأنبا كاراس – الدور الأول – فصل جديد\"\n}"
+              "raw": "{\n  \"location\": \"مبنى الأنبا كاراس – الدور الأول – فصل 8\",\n  \"level_id\": \"9cfaa3fb-88e3-42be-a5cc-78de114c10b4\"\n}"
             },
-            "url": "{{baseUrl}}/classes",
-            "description": "Create a new class. Requires admin.\n\n**Required body:** level_id (number), location (string)"
-          }
-        },
-        {
-          "name": "Get Class By ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/classes/:id",
-            "description": "Get single class by ID with level info."
-          }
-        },
-        {
-          "name": "Get Class Details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/classes/:id/details",
-            "description": "Get class with full details including students and teacher assignments."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes"
+              ]
+            },
+            "description": "Create a new class. Admin only. Body: location, levelId."
+          },
+          "response": []
         },
         {
           "name": "Update Class",
@@ -439,11 +613,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"level_id\": 1,\n  \"location\": \"مبنى الأنبا كاراس – الدور الأول – فصل محدث\"\n}"
+              "raw": "{\n  \"location\": \"Updated location\",\n  \"level_id\": \"002a29e0-5a1d-4aa1-a74f-5379819a76b0\"\n}"
             },
-            "url": "{{baseUrl}}/classes/:id",
-            "description": "Update a class. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/325979b8-e324-48ea-9c5e-d02a0c717316",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "325979b8-e324-48ea-9c5e-d02a0c717316"
+              ]
+            },
+            "description": "Update an existing class. Admin only. Replace 1 with the class ID.\n\n/classes/class id"
+          },
+          "response": []
         },
         {
           "name": "Delete Class",
@@ -455,18 +639,39 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/classes/:id",
-            "description": "Delete a class. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/325979b8-e324-48ea-9c5e-d02a0c717316",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "325979b8-e324-48ea-9c5e-d02a0c717316"
+              ]
+            },
+            "description": "Delete a class by ID. Admin only. Replace 1 with the class ID."
+          },
+          "response": []
         },
         {
           "name": "Get Class Teacher Assignments",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/classes/:id/teacher-assignments",
-            "description": "Get teacher assignments per subject (taks, al7an, coptic) for a class."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/teacher-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "teacher-assignments"
+              ]
+            },
+            "description": "Get teacher assignments per subject for a class. Replace 1 with the class ID.\n\n/classes/ class id/teacher_assignments"
+          },
+          "response": []
         },
         {
           "name": "Update Class Teacher Assignments",
@@ -484,26 +689,65 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"taks_teacher_id\": 1,\n  \"al7an_teacher_id\": 2,\n  \"coptic_teacher_id\": 3\n}"
+              "raw": "{\n  \"assignments\": [\n    { \"subject\": \"subject_key\", \"teacherId\": 1 }\n  ]\n}"
             },
-            "url": "{{baseUrl}}/classes/:id/teacher-assignments",
-            "description": "Update teacher assignments per subject for a class. Body: taks_teacher_id, al7an_teacher_id, coptic_teacher_id (can be null)."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/teacher-assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "teacher-assignments"
+              ]
+            },
+            "description": "Update which teachers teach which subjects for a class. Body: assignments array with subject and teacherId. Replace 1 with the class ID.\n\nclasses/class id/teacher-assignmentsEndFragment"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Class CRUD and teacher assignments per class."
     },
     {
       "name": "Levels",
-      "description": "Level management: CRUD for education levels (level + stage combinations).",
       "item": [
         {
           "name": "Get All Levels",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/levels",
-            "description": "Get all levels ( Preparatory 0, Levels 1–3, each with stages)."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/levels",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "levels"
+              ]
+            },
+            "description": "List all levels. Public; no authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Level by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/levels/002a29e0-5a1d-4aa1-a74f-5379819a76b0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "levels",
+                "002a29e0-5a1d-4aa1-a74f-5379819a76b0"
+              ]
+            },
+            "description": "Get a single level by ID. Replace 1 with the level ID.\n\n/levels/ level id"
+          },
+          "response": []
         },
         {
           "name": "Create Level",
@@ -519,18 +763,18 @@
               "mode": "raw",
               "raw": "{\n  \"level\": 1,\n  \"stage\": 1\n}"
             },
-            "url": "{{baseUrl}}/levels",
-            "description": "Create a new level.\n\n**Body:** level (0-3), stage (1-3)"
-          }
-        },
-        {
-          "name": "Get Level By ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/levels/:id",
-            "description": "Get single level by ID."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/levels",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "levels"
+              ]
+            },
+            "description": "Create a new level. Body: level (number), stage (number)."
+          },
+          "response": []
         },
         {
           "name": "Update Level",
@@ -544,29 +788,49 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"level\": 1,\n  \"stage\": 2\n}"
+              "raw": "{\n  \"level\": 1,\n  \"stage\": 3\n}"
             },
-            "url": "{{baseUrl}}/levels/:id",
-            "description": "Update a level."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/levels/002a29e0-5a1d-4aa1-a74f-5379819a76b0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "levels",
+                "002a29e0-5a1d-4aa1-a74f-5379819a76b0"
+              ]
+            },
+            "description": "Update an existing level. Replace 1 with the level ID."
+          },
+          "response": []
         },
         {
           "name": "Delete Level",
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{baseUrl}}/levels/:id",
-            "description": "Delete a level."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/levels/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "levels",
+                "1"
+              ]
+            },
+            "description": "Delete a level by ID. Replace 1 with the level ID."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Level (grade/stage) CRUD. Levels represent combinations of level and stage (e.g. Level 1 Stage 1)."
     },
     {
       "name": "Curriculum",
-      "description": "Curriculum management: list curriculum per class, upload lecture files (audio, PDF, video), manage hymns for al7an lectures.",
       "item": [
         {
-          "name": "Get Class Curriculum",
+          "name": "Get Curriculum for Class",
           "request": {
             "method": "GET",
             "header": [
@@ -576,29 +840,19 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/classes/:classId/curriculum?subject=&semester=&lecture=",
-              "host": ["{{baseUrl}}"],
-              "path": ["classes", ":classId", "curriculum"],
-              "query": [
-                {
-                  "key": "subject",
-                  "value": "",
-                  "description": "Filter: taks|al7an|coptic"
-                },
-                {
-                  "key": "semester",
-                  "value": "",
-                  "description": "Filter: 1|2"
-                },
-                {
-                  "key": "lecture",
-                  "value": "",
-                  "description": "Filter: 1-10"
-                }
+              "raw": "{{baseUrl}}/classes/1/curriculum",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum"
               ]
             },
-            "description": "List curriculum for a class. Optional filters: subject, semester, lecture."
-          }
+            "description": "Get curriculum for a class with optional filters (subject, semester). Authenticated users can view. Replace 1 with the class ID.\n\n/classes/classid/"
+          },
+          "response": []
         },
         {
           "name": "Upload Lecture File (Single)",
@@ -616,16 +870,32 @@
                 {
                   "key": "file",
                   "type": "file",
-                  "src": []
+                  "src": "/D:/Mario cv/Mario Gerges Issa cv.pdf"
                 }
               ]
             },
-            "url": "{{baseUrl}}/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture",
-            "description": "Upload single lecture file. Requires admin.\n\n**Path params:** classId, subject (taks|al7an|coptic), semester (1|2), lecture (1-10)\n**Body:** file"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/curriculum/subject_key/semesters/1/lectures/lecture_key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum",
+                "subject_key",
+                "semesters",
+                "1",
+                "lectures",
+                "lecture_key"
+              ]
+            },
+            "description": "Upload a single lecture file (legacy). Admin only. Path: classId, subject, semester, lecture. Form field: file. Prefer 'Upload Lecture Multiple Files' for audio/PDF/video.\n\nStartFragment\n\n| classes/1 | Class ID | Any valid class UUID |  \n| subject_key | Subject | taks, al7an, coptic |  \n| semesters/1 | Semester | 1 or 2 |  \n| lectures/lecture_key | Lecture number | 1–10 (integer) |\n\nEndFragment\n\nexample\n\n{{baseUrl}}/classes/05134d63-d453-4eaf-ae3ca2b54c6c767/curriculum/taks/semesters/1/lectures/3"
+          },
+          "response": []
         },
         {
-          "name": "Upload Multiple Lecture Files",
+          "name": "Upload Lecture Multiple Files",
           "request": {
             "method": "POST",
             "header": [
@@ -639,27 +909,44 @@
               "formdata": [
                 {
                   "key": "audio",
-                  "type": "file",
-                  "src": []
+                  "value": null,
+                  "type": "file"
                 },
                 {
                   "key": "pdf",
-                  "type": "file",
-                  "src": []
+                  "value": null,
+                  "type": "file"
                 },
                 {
                   "key": "video",
-                  "type": "file",
-                  "src": []
+                  "value": null,
+                  "type": "file"
                 }
               ]
             },
-            "url": "{{baseUrl}}/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/multiple",
-            "description": "Upload multiple files (audio, PDF, video) for a lecture. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/curriculum/subject_key/semesters/1/lectures/lecture_key/multiple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum",
+                "subject_key",
+                "semesters",
+                "1",
+                "lectures",
+                "lecture_key",
+                "multiple"
+              ]
+            },
+            "description": "Upload multiple files for a lecture (audio, PDF, video). Admin only. Replace classId (1), subject_key, semester (1), lecture_key. Send one or more of: audio, pdf, video."
+          },
+          "response": []
         },
         {
-          "name": "Upload Specific File Type",
+          "name": "Upload Lecture Specific File Type",
           "request": {
             "method": "POST",
             "header": [
@@ -673,17 +960,34 @@
               "formdata": [
                 {
                   "key": "file",
-                  "type": "file",
-                  "src": []
+                  "value": null,
+                  "type": "file"
                 }
               ]
             },
-            "url": "{{baseUrl}}/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
-            "description": "Upload specific file type (audio|pdf|video) for a lecture. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/curriculum/subject_key/semesters/1/lectures/lecture_key/audio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum",
+                "subject_key",
+                "semesters",
+                "1",
+                "lectures",
+                "lecture_key",
+                "audio"
+              ]
+            },
+            "description": "Upload a specific file type (audio, pdf, or video) for a lecture. Admin only. Replace last path segment with audio, pdf, or video. Form field: file."
+          },
+          "response": []
         },
         {
-          "name": "Delete Lecture File",
+          "name": "Delete Lecture File Type",
           "request": {
             "method": "DELETE",
             "header": [
@@ -692,9 +996,26 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/:fileType",
-            "description": "Delete specific file type (audio|pdf|video) for a lecture. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/curriculum/subject_key/semesters/1/lectures/lecture_key/audio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum",
+                "subject_key",
+                "semesters",
+                "1",
+                "lectures",
+                "lecture_key",
+                "audio"
+              ]
+            },
+            "description": "Delete a specific file type (audio, pdf, or video) for a lecture. Admin only. Replace last path segment with audio, pdf, or video."
+          },
+          "response": []
         },
         {
           "name": "Set Lecture Hymns",
@@ -712,17 +1033,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hymnIds\": [1, 2, 3]\n}"
+              "raw": "{\n  \"hymns\": [\n    { \"hymn_id\": \"a3a0df39-77dc-4832-a206-e2018a035eb2\",  \"lyrics_variants\": [\"arabic\", \"coptic\"], \"sort_order\": 1  }\n\n  ]\n}"
             },
-            "url": "{{baseUrl}}/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture/hymns",
-            "description": "Set hymns for an al7an lecture. Replaces existing set. Requires admin.\n\n**Body:** hymnIds (array of hymn IDs)"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/classes/1/curriculum/subject_key/semesters/1/lectures/lecture_key/hymns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "1",
+                "curriculum",
+                "subject_key",
+                "semesters",
+                "1",
+                "lectures",
+                "lecture_key",
+                "hymns"
+              ]
+            },
+            "description": "Set hymns for an al7an (الحان) lecture. Replaces existing hymn set. Admin only. Body: hymnIds array. Replace classId, subject_key, semester, lecture_key.\n\nclasses/class id/"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Curriculum and lecture materials per class: list, upload (single/multiple), delete files, set hymns for lectures."
     },
     {
       "name": "Schedule",
-      "description": "Schedule generation and management: generate schedule, validate, save, and fetch current schedule.",
       "item": [
         {
           "name": "Generate Schedule",
@@ -736,14 +1074,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classIds\": [1, 2, 3],\n  \"subjectTeachers\": {\n    \"taks\": [1],\n    \"al7an\": [2],\n    \"coptic\": [3]\n  }\n}"
+              "raw": "{\n  \"classIds\": [\"02dab32f-0298-4a4e-bf36-86c4a55aabc7\", \"05134d63-d453-4eaf-ae3c-ea2b54c6c767\" , \"181efb8d-bb5a-47b9-b68a-757e7c002f6a\"],\n  \"subjectTeachers\": {\n    \"taks\": [\"deedbe80-de51-466f-afda-ef8b6353bb95\",\n            \"b66ee153-3f4e-4143-9f99-5a1c9361c821\",\n            \"18d58a6b-2737-4f8b-8c76-0121557d89e0\"],\n    \"al7an\": [\"54e723d0-4f11-42fe-b6c3-7eb09c97e508\",\n                \"68859c8b-0ef1-4622-8161-a127fac69b66\",\n                \"fd113a3e-a221-4590-aac3-2aee12338a72\"],\n    \"coptic\": [\"0176da0b-22a1-4877-b31d-419a772cff1e\",\n                \"bacc5173-a1bf-41d2-a864-7654f7e2d6d8\",\n                \"649fb005-264f-4b0d-8815-2b320c119654\"]\n  }\n}"
             },
-            "url": "{{baseUrl}}/schedule/generate",
-            "description": "Generate a schedule for classes. Optional classIds filter. subjectTeachers can be omitted to auto-fill from DB.\n\n**Body:** classIds (optional array), subjectTeachers (optional: taks[], al7an[], coptic[] with teacher IDs)"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/schedule/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "generate"
+              ]
+            },
+            "description": "Generate a new schedule for the given classes. Body typically includes classIds and generation options. Returns generated schedule data.\n\n{  \n\"classIds\": \\[\"class-uuid-1\", \"class-uuid-2\"\\],  \n\"subjectTeachers\": {  \n\"taks\": \\[\"teacher-uuid-1\", \"teacher-uuid-2\"\\],  \n\"al7an\": \\[\"teacher-uuid-3\"\\],  \n\"coptic\": \\[\"teacher-uuid-4\"\\]  \n}  \n}"
+          },
+          "response": []
         },
         {
-          "name": "Apply Schedule (Validate)",
+          "name": "Apply Schedule",
           "request": {
             "method": "POST",
             "header": [
@@ -754,11 +1102,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rows\": [\n    {\n      \"class\": { \"id\": 1, \"location\": \"Class A\" },\n      \"A\": { \"subject\": \"taks\", \"teacherId\": 1 },\n      \"B\": { \"subject\": \"al7an\", \"teacherId\": 2 },\n      \"C\": { \"subject\": \"coptic\", \"teacherId\": 3 }\n    }\n  ]\n}"
+              "raw": "{\n  \"rows\": [\n    {\n      \"class\": { \"id\": \"class-uuid-1\", \"location\": \"فصل 1\", \"level\": { \"level\": 1, \"stage\": 1 } },\n      \"A\": { \"subject\": \"taks\", \"teacherId\": \"teacher-uuid-1\" },\n      \"B\": { \"subject\": \"al7an\", \"teacherId\": \"teacher-uuid-2\" },\n      \"C\": { \"subject\": \"coptic\", \"teacherId\": \"teacher-uuid-3\" }\n    },\n    {\n      \"class\": { \"id\": \"class-uuid-2\", \"location\": \"فصل 2\", \"level\": { \"level\": 1, \"stage\": 2 } },\n      \"A\": { \"subject\": \"al7an\", \"teacherId\": \"teacher-uuid-2\" },\n      \"B\": { \"subject\": \"coptic\", \"teacherId\": \"teacher-uuid-3\" },\n      \"C\": { \"subject\": \"taks\", \"teacherId\": \"teacher-uuid-1\" }\n    }\n  ]\n}"
             },
-            "url": "{{baseUrl}}/schedule/apply",
-            "description": "Validate a proposed schedule without persisting. Returns conflicts if any."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/schedule/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "apply"
+              ]
+            },
+            "description": "Validate and apply a proposed schedule. Body: rows array of { classId, slot, subject, teacherId }. Does not persist to DB; use Save Schedule to persist.\n\n{  \n\"rows\": \\[  \n{  \n\"class\": { \"id\": \"class-uuid-1\", \"location\": \"فصل 1\", \"level\": { \"level\": 1, \"stage\": 1 } },  \n\"A\": { \"subject\": \"taks\", \"teacherId\": \"teacher-uuid-1\" },  \n\"B\": { \"subject\": \"al7an\", \"teacherId\": \"teacher-uuid-2\" },  \n\"C\": { \"subject\": \"coptic\", \"teacherId\": \"teacher-uuid-3\" }  \n},  \n{  \n\"class\": { \"id\": \"class-uuid-2\", \"location\": \"فصل 2\", \"level\": { \"level\": 1, \"stage\": 2 } },  \n\"A\": { \"subject\": \"al7an\", \"teacherId\": \"teacher-uuid-2\" },  \n\"B\": { \"subject\": \"coptic\", \"teacherId\": \"teacher-uuid-3\" },  \n\"C\": { \"subject\": \"taks\", \"teacherId\": \"teacher-uuid-1\" }  \n}  \n\\]  \n}"
+          },
+          "response": []
         },
         {
           "name": "Save Schedule",
@@ -772,44 +1130,83 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rows\": [\n    {\n      \"class\": { \"id\": 1, \"location\": \"Class A\" },\n      \"A\": { \"subject\": \"taks\", \"teacherId\": 1 },\n      \"B\": { \"subject\": \"al7an\", \"teacherId\": 2 },\n      \"C\": { \"subject\": \"coptic\", \"teacherId\": 3 }\n    }\n  ]\n}"
+              "raw": "{\n  \"rows\": [\n    { \"classId\": \"a3a0df39-77dc-4832-a206-e2018a035eb2\", \"slot\": \"A\", \"subject\": \"taks\", \"teacherId\": \"0176da0b-22a1-4877-b31d-419a772cff1e\" },\n    { \"classId\": 1, \"slot\": \"B\", \"subject\": \"al7an\", \"teacherId\": 2 }\n  ]\n}"
             },
-            "url": "{{baseUrl}}/schedule/save",
-            "description": "Persist the schedule to DB. Body format same as apply. Validates before saving."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/schedule/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "save"
+              ]
+            },
+            "description": "Persist schedule to database (per-class subject teacher mapping). Body: rows array of { classId, slot, subject, teacherId }."
+          },
+          "response": []
         },
         {
           "name": "Get Current Schedule",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/schedule/current",
-            "description": "Get the currently saved schedule with class and teacher assignments."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/schedule/current",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "current"
+              ]
+            },
+            "description": "Get the currently active or saved schedule."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Generate, apply, save, and retrieve the current schedule."
     },
     {
       "name": "Events",
-      "description": "Event management for liturgical events (e.g. Liturgy, Vespers). Used to categorize hymns.",
       "item": [
         {
           "name": "Get All Events",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/events",
-            "description": "Get all active events (liturgical occasions)."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "List all events. Public; no authentication required."
+          },
+          "response": []
         },
         {
-          "name": "Get Event By ID",
+          "name": "Get Event by ID",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/events/:id",
-            "description": "Get single event by ID."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/events/134c4076-ec3f-4cd3-bffb-c02bbdbed0e5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "134c4076-ec3f-4cd3-bffb-c02bbdbed0e5"
+              ]
+            },
+            "description": "Get a single event by ID. Replace 1 with the event ID."
+          },
+          "response": []
         },
         {
           "name": "Create Event",
@@ -827,11 +1224,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \" liturgy\",\n  \"name_arabic\": \"القداس\",\n  \"description\": \"Divine Liturgy hymns\",\n  \"color\": \"#3B82F6\",\n  \"icon\": \"cross\"\n}"
+              "raw": "{\n  \"name\": \"Event name\",\n  \"name_arabic\": \"اسم المناسبة\",\n  \"description\": \"Description\",\n  \"color\": \"#3B82F6\",\n  \"icon\": \"icon-name\"\n}"
             },
-            "url": "{{baseUrl}}/events",
-            "description": "Create a new event. Requires admin.\n\n**Required:** name\n**Optional:** name_arabic, description, color (default #3B82F6), icon"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "Create a new event. Admin only. Body: name (required), name_arabic, description, color (default #3B82F6), icon."
+          },
+          "response": []
         },
         {
           "name": "Update Event",
@@ -849,11 +1255,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \" liturgy\",\n  \"name_arabic\": \"القداس\",\n  \"description\": \"Updated description\",\n  \"color\": \"#10B981\",\n  \"icon\": \"cross\",\n  \"is_active\": true\n}"
+              "raw": "{\n  \"name\": \"Updated name\",\n  \"name_arabic\": \"اسم محدث\",\n  \"description\": \"Updated description\",\n  \"color\": \"#10B981\",\n  \"icon\": \"icon-name\",\n  \"is_active\": true\n}"
             },
-            "url": "{{baseUrl}}/events/:id",
-            "description": "Update an event. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/events/134c4076-ec3f-4cd3-bffb-c02bbdbed0e5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "134c4076-ec3f-4cd3-bffb-c02bbdbed0e5"
+              ]
+            },
+            "description": "Update an existing event. Admin only. Body: name, name_arabic, description, color, icon, is_active. Replace 1 with the event ID."
+          },
+          "response": []
         },
         {
           "name": "Delete Event",
@@ -865,15 +1281,25 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/events/:id",
-            "description": "Delete an event. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/events/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "1"
+              ]
+            },
+            "description": "Delete an event by ID. Admin only. Replace 1 with the event ID."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "School events CRUD. Admin can create/update/delete; all can list and get by ID."
     },
     {
       "name": "Hymns",
-      "description": "Hymn management: CRUD for hymns, upload audio, filter by event.",
       "item": [
         {
           "name": "Get All Hymns",
@@ -881,33 +1307,36 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/hymns?event_id=&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["hymns"],
-              "query": [
-                {
-                  "key": "event_id",
-                  "value": "",
-                  "description": "Filter by event ID"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "description": "Search in title, lyrics (Arabic, Coptic)"
-                }
+              "raw": "{{baseUrl}}/hymns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns"
               ]
             },
-            "description": "Get all active hymns. Optional: event_id, search query."
-          }
+            "description": "List all hymns. Public; no authentication required."
+          },
+          "response": []
         },
         {
-          "name": "Get Hymn By ID",
+          "name": "Get Hymn by ID",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/hymns/:id",
-            "description": "Get single hymn by ID with event info."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/hymns/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns",
+                "1"
+              ]
+            },
+            "description": "Get a single hymn by ID. Replace 1 with the hymn ID."
+          },
+          "response": []
         },
         {
           "name": "Create Hymn",
@@ -925,11 +1354,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title_arabic\": \"ترنيمة القداس\",\n  \"event_id\": 1,\n  \"lyrics_arabic\": \"Arabic lyrics...\",\n  \"lyrics_coptic\": \"Coptic lyrics...\",\n  \"lyrics_arabic_coptic\": \"Mixed lyrics...\",\n  \"description\": \"Hymn description\",\n  \"duration\": 180\n}"
+              "raw": "{\n  \"title_arabic\": \"ترنيمة القداس\",\n  \"event_id\": \"134c4076-ec3f-4cd3-bffb-c02bbdbed0e5\",\n  \"lyrics_arabic\": \"كلمات عربية...\",\n  \"lyrics_coptic\": \"Coptic text...\",\n  \"lyrics_arabic_coptic\": \"Transliteration...\",\n  \"description\": \"وصف أو ملاحظات\",\n  \"duration\": 180\n}"
             },
-            "url": "{{baseUrl}}/hymns",
-            "description": "Create a new hymn. Requires admin.\n\n**Required:** title_arabic, event_id\n**Optional:** lyrics_arabic, lyrics_coptic, lyrics_arabic_coptic, description, duration"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/hymns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns"
+              ]
+            },
+            "description": "Create a new hymn. Admin only. Body fields depend on your Hymns model (e.g. title, content)."
+          },
+          "response": []
         },
         {
           "name": "Update Hymn",
@@ -947,11 +1385,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title_arabic\": \"ترنيمة محدثة\",\n  \"event_id\": 1,\n  \"lyrics_arabic\": \"Updated lyrics\",\n  \"is_active\": true\n}"
+              "raw": "{\n  \"title_arabic\": \"عنوان جديد\",\n  \"event_id\": \"134c4076-ec3f-4cd3-bffb-c02bbdbed0e5\",\n  \"lyrics_arabic\": \"...\",\n  \"lyrics_coptic\": \"...\",\n  \"description\": \"ملاحظات\",\n  \"duration\": 200,\n  \"is_active\": true\n}"
             },
-            "url": "{{baseUrl}}/hymns/:id",
-            "description": "Update a hymn. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/hymns/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns",
+                "1"
+              ]
+            },
+            "description": "Update an existing hymn. Admin only. Replace 1 with the hymn ID."
+          },
+          "response": []
         },
         {
           "name": "Delete Hymn",
@@ -963,9 +1411,19 @@
                 "value": "Bearer {{token}}"
               }
             ],
-            "url": "{{baseUrl}}/hymns/:id",
-            "description": "Delete a hymn. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/hymns/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns",
+                "1"
+              ]
+            },
+            "description": "Delete a hymn by ID. Admin only. Replace 1 with the hymn ID."
+          },
+          "response": []
         },
         {
           "name": "Upload Hymn Audio",
@@ -983,15 +1441,149 @@
                 {
                   "key": "audio",
                   "type": "file",
-                  "src": []
+                  "src": "/C:/Users/mario/Desktop/assessment.wav"
                 }
               ]
             },
-            "url": "{{baseUrl}}/hymns/:id/audio",
-            "description": "Upload audio file for a hymn. Field name: 'audio'. Requires admin."
-          }
+            "url": {
+              "raw": "{{baseUrl}}/hymns/ac55f2a0-97c5-4702-a4aa-06b2dd6486ed/audio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hymns",
+                "ac55f2a0-97c5-4702-a4aa-06b2dd6486ed",
+                "audio"
+              ]
+            },
+            "description": "Upload audio file for a hymn. Admin only. Form field name: audio. Replace 1 with the hymn ID.\n\nhumns/ hymn_id / audio"
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Hymns (ترانيم) CRUD and hymn audio upload. Admin for create/update/delete/upload; all can list and get by ID."
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Contact Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Subject\",\n  \"message\": \"Message body\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact"
+              ]
+            },
+            "description": "Submit a contact message. Requires authentication. Body: subject, message (adjust to match your contact controller fields)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact",
+                "messages"
+              ]
+            },
+            "description": "List all contact messages. Admin only."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Message as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/messages/1/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact",
+                "messages",
+                "1",
+                "read"
+              ]
+            },
+            "description": "Mark a contact message as read. Admin only. Replace 1 with the message ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Contact Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/messages/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact",
+                "messages",
+                "1"
+              ]
+            },
+            "description": "Delete a contact message. Admin only. Replace 1 with the message ID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Contact form: submit message (authenticated), list/mark read/delete (admin)."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
     }
   ]
 }

@@ -18,8 +18,8 @@ if (!process.env.JWT_SECRET) {
 const sequelize = require("../util/db");
 module.exports.register = async (req, res) => {
   try {
-    console.log("req.body", req.body);
-    console.log("req.file", req.file);
+    // console.log("req.body", req.body);
+    // console.log("req.file", req.file);
 
     const {
       name,
@@ -231,11 +231,10 @@ module.exports.register = async (req, res) => {
 };
 
 module.exports.login = async (req, res) => {
-  console.log(req.body);
+  const body = req.body || {};
+  const { code, password } = body;
 
-  const { code, password } = req.body;
   try {
-    // Basic validation
     if (!code || !password) {
       return res.status(400).json({
         success: false,
@@ -335,7 +334,7 @@ module.exports.login = async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    // console.error("Login error:", error);
     res.status(500).json({
       success: false,
       message: "server error",
@@ -1349,6 +1348,8 @@ module.exports.removeAllClassesFromTeacher = async (req, res) => {
 // Get all teachers/supervisors with their assigned classes
 module.exports.getTeachersWithClasses = async (req, res) => {
   try {
+    const { buildImageUrl, resolveTeacherClasses } = require("../util/userHelpers");
+
     const teachers = await User.findAll({
       where: {
         role: {
@@ -1372,13 +1373,17 @@ module.exports.getTeachersWithClasses = async (req, res) => {
       attributes: ["id", "name", "phone", "code", "role", "image"],
     });
 
-    // Process images to URLs
-    const teachersWithImages = await Promise.all(
+    // Resolve classes (M2M + subject assignments) and build image URLs
+    const teachersWithClasses = await Promise.all(
       teachers.map(async (teacher) => {
         const teacherData = teacher.toJSON();
+        teacherData.classes = await resolveTeacherClasses(
+          teacher.id,
+          teacherData.teachingClasses || []
+        );
+        delete teacherData.teachingClasses;
 
         if (teacherData.image) {
-          const { buildImageUrl } = require("../util/userHelpers");
           teacherData.image = buildImageUrl(req, teacherData.image);
         } else {
           teacherData.image = null;
@@ -1391,7 +1396,7 @@ module.exports.getTeachersWithClasses = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "تم جلب الخدام والمشرفين مع فصولهم بنجاح",
-      teachers: teachersWithImages,
+      teachers: teachersWithClasses,
     });
   } catch (error) {
     console.error("Error getting teachers with classes:", error);
