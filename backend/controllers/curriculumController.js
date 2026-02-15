@@ -404,9 +404,11 @@ module.exports = {
 function buildBaseUrl(req) {
   const envBase = process.env.PUBLIC_BASE_URL;
   if (envBase && envBase.trim().length > 0) return envBase.replace(/\/?$/, "");
+  // Prefer HTTPS when behind a reverse proxy (e.g. production) to avoid mixed content
   const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const resolved = protocol === "https" ? "https" : protocol;
   const host = req.get("host");
-  return `${protocol}://${host}`;
+  return `${resolved}://${host}`;
 }
 
 function toUrl(req, p) {
