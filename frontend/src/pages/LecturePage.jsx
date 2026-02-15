@@ -220,9 +220,17 @@ const LecturePage = () => {
     // If already an absolute URL, use it as is; else treat as relative path under API base
     const isAbsolute = /^(https?:)?\/\//i.test(String(filePathOrUrl));
     const normalized = String(filePathOrUrl);
-    const fullUrl = isAbsolute
+    let fullUrl = isAbsolute
       ? normalized
       : `${import.meta.env.VITE_API_BASE_URL}/${normalized.replace(/^\/+/, "")}`;
+    // Avoid mixed content: if the page is HTTPS, use HTTPS for the resource URL
+    if (
+      typeof window !== "undefined" &&
+      window.location?.protocol === "https:" &&
+      fullUrl.startsWith("http://")
+    ) {
+      fullUrl = fullUrl.replace(/^http:\/\//i, "https://");
+    }
 
     if (fileType === "pdf") {
       return (
