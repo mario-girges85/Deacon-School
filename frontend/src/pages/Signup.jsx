@@ -33,7 +33,7 @@ const Signup = () => {
     const loadLevels = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/levels`
+          `${import.meta.env.VITE_API_BASE_URL}/levels`,
         );
         setLevels(res.data.levels || res.data || []);
       } catch (e) {
@@ -133,7 +133,7 @@ const Signup = () => {
       <div className="max-w-xl w-full space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-primary mb-2">إنشاء حساب</h2>
-          <p className="text-gray-600 text-sm">للمدراء والمعلمين والمشرفين</p>
+          <p className="text-gray-600 text-sm">للمدراء والخدام والمشرفين</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
@@ -290,7 +290,7 @@ const Signup = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  الدور *
+                  المستخدم *
                 </label>
                 <select
                   name="role"
@@ -299,7 +299,7 @@ const Signup = () => {
                   className="w-full px-4 py-3 border rounded-lg text-right border-gray-300"
                 >
                   <option value="admin">مدير</option>
-                  <option value="teacher">معلم</option>
+                  <option value="teacher">خادم</option>
                   <option value="supervisor">مشرف</option>
                 </select>
               </div>
@@ -307,7 +307,7 @@ const Signup = () => {
               {formData.role === "teacher" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    التخصص (للمعلمين)
+                    التخصص (للخدام)
                   </label>
                   <select
                     name="subject"

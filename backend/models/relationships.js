@@ -7,6 +7,18 @@ const Hymns = require("./hymns");
 const CurriculumHymns = require("./curriculumHymns");
 const sequelize = require("../util/db");
 const TeacherSubjectAssignment = require("./teacherSubjectAssignment");
+const ContactMessage = require("./contactMessage");
+
+// User -> ContactMessage (One-to-Many)
+User.hasMany(ContactMessage, {
+  foreignKey: "user_id",
+  as: "contactMessages",
+  onDelete: "CASCADE",
+});
+ContactMessage.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "sender",
+});
 
 // Define relationships
 

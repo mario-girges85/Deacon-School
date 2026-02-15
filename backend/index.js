@@ -11,6 +11,7 @@ const curriculumRouter = require("./routes/curriculumRouter");
 const scheduleRouter = require("./routes/scheduleRouter");
 const eventsRouter = require("./routes/eventsRouter");
 const hymnsRouter = require("./routes/hymnsRouter");
+const contactRouter = require("./routes/contactRouter");
 
 // Import models and relationships
 const {
@@ -24,6 +25,7 @@ const {
 } = require("./models/relationships");
 // Ensure teacher subject assignment model is registered for syncing
 require("./models/teacherSubjectAssignment");
+require("./models/contactMessage");
 
 // Ensure all levels exist (seed on startup)
 const seedLevels = async () => {
@@ -276,6 +278,7 @@ app.use("/", curriculumRouter);
 app.use("/schedule", scheduleRouter);
 app.use("/events", eventsRouter);
 app.use("/hymns", hymnsRouter);
+app.use("/contact", contactRouter);
 
 // Serve uploads statically
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
@@ -290,6 +293,17 @@ const initializeServer = async () => {
     } catch (migrationError) {
       console.error(
         "Migration error (may be expected if already migrated):",
+        migrationError.message,
+      );
+    }
+
+    // Run migration for contact_messages (user_id schema)
+    try {
+      const migrateContactMessages = require("./migrations/migrateContactMessagesToUserId");
+      await migrateContactMessages();
+    } catch (migrationError) {
+      console.error(
+        "Contact messages migration error (may be expected if already migrated):",
         migrationError.message,
       );
     }

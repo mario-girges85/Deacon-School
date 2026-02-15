@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { isAuthenticated, isAdmin } from "../util/auth";
+import { isAuthenticated, isAdmin, getAuthHeaders } from "../util/auth";
 import { getCurrentUser } from "../util/auth";
 import axios from "axios";
 import logo from "../assets/logo.png";
 import LoginForm from "../components/LoginForm";
+
+const SUBJECT_LABELS = { taks: "طقس", al7an: "ألحان", coptic: "قبطي" };
 
 const UserData = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +21,7 @@ const UserData = () => {
 
         const userData = getCurrentUser();
         const storedUserData = JSON.parse(
-          localStorage.getItem("user") || "null"
+          localStorage.getItem("user") || "null",
         );
 
         setUser(userData);
@@ -63,31 +65,31 @@ const UserData = () => {
 
   const roleLabels = {
     student: "طالب",
-    teacher: "معلم",
+    teacher: "خادم",
     admin: "مسؤول",
     supervisor: "مشرف",
   };
 
   const classLabels = {
-    c01: "تمهيدي المرحلة الأولى",
-    c02: "تمهيدي المرحلة الثانية",
-    c11: "المستوى الأول المرحلة الأولى",
-    c12: "المستوى الأول المرحلة الثانية",
-    c13: "المستوى الأول المرحلة الثالثة",
-    c21: "المستوى الثاني المرحلة الأولى",
-    c22: "المستوى الثاني المرحلة الثانية",
-    c23: "المستوى الثاني المرحلة الثالثة",
-    c31: "المستوى الثالث المرحلة الأولى",
-    c32: "المستوى الثالث المرحلة الثانية",
-    c33: "المستوى الثالث المرحلة الثالثة",
+    c01: "تمهيدي السنة الأولى",
+    c02: "تمهيدي السنة الثانية",
+    c11: "المستوى الأول السنة الأولى",
+    c12: "المستوى الأول السنة الثانية",
+    c13: "المستوى الأول السنة الثالثة",
+    c21: "المستوى الثاني السنة الأولى",
+    c22: "المستوى الثاني السنة الثانية",
+    c23: "المستوى الثاني السنة الثالثة",
+    c31: "المستوى الثالث السنة الأولى",
+    c32: "المستوى الثالث السنة الثانية",
+    c33: "المستوى الثالث السنة الثالثة",
   };
 
   const genderLabel =
     user.gender === "male"
       ? "ذكر"
       : user.gender === "female"
-      ? "أنثى"
-      : user.gender || "";
+        ? "أنثى"
+        : user.gender || "";
 
   const formattedBirthday = user.birthday
     ? new Date(user.birthday).toLocaleDateString("ar-EG")
@@ -141,7 +143,7 @@ const UserData = () => {
 
             {user.role && (
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="text-xs text-gray-500 mb-1">الدور</div>
+                <div className="text-xs text-gray-500 mb-1">المستخدم</div>
                 <div className="text-gray-900 font-medium">
                   {roleLabels[user.role] || user.role}
                 </div>
@@ -162,7 +164,7 @@ const UserData = () => {
                 <div className="text-xs text-gray-500 mb-1">المستوى</div>
                 <div className="text-gray-900 font-medium">
                   {levelInfo
-                    ? `المستوى ${levelInfo.level} - المرحلة ${levelInfo.stage}`
+                    ? `المستوى ${levelInfo.level} - السنة ${levelInfo.stage}`
                     : `#${levelId}`}
                 </div>
               </div>
@@ -183,11 +185,131 @@ const UserData = () => {
                 </div>
               </div>
             )}
-
-            
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const TeacherSchedule = ({ user }) => {
+  const [schedule, setSchedule] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.id || (user.role !== "teacher" && user.role !== "supervisor"))
+        return;
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/schedule/current`,
+          { headers: getAuthHeaders() }
+        );
+        if (res.data?.success && res.data.rows) {
+          const list = [];
+          (res.data.rows || []).forEach((row) => {
+            (res.data.timeSlots || []).forEach((ts) => {
+              const cell = row[ts?.key];
+              if (cell?.teacherId === user.id) {
+                list.push({
+                  className: row.class?.location,
+                  level: row.class?.level,
+                  timeSlot: ts?.label || ts?.key,
+                  subject: cell.subject,
+                  subjectLabel: SUBJECT_LABELS[cell.subject] || cell.subject,
+                });
+              }
+            });
+          });
+          setSchedule(list);
+        } else {
+          setSchedule([]);
+        }
+      } catch (e) {
+        console.error("Error loading teacher schedule:", e);
+        setSchedule([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user?.id, user?.role]);
+
+  const getLevelText = (level) => {
+    if (!level) return "—";
+    const l = level.level;
+    const s = level.stage;
+    const levelNames = {
+      0: "تمهيدي",
+      1: "الأول",
+      2: "الثاني",
+      3: "الثالث",
+    };
+    return `المستوى ${levelNames[l] || l} - السنة ${s}`;
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 w-full max-w-2xl mx-auto mt-8">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span className="text-2xl">⏰</span>
+        جدول الحصص
+      </h2>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <p className="text-gray-500 mt-3">جاري تحميل الجدول...</p>
+        </div>
+      ) : schedule.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <div className="text-4xl mb-2">📅</div>
+          <p>لا يوجد جدول حصص محدد لك بعد</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-right px-3 py-2 font-semibold text-gray-700">
+                  الفصل
+                </th>
+                <th className="text-right px-3 py-2 font-semibold text-gray-700">
+                  المستوى
+                </th>
+                <th className="text-right px-3 py-2 font-semibold text-gray-700">
+                  الفترة
+                </th>
+                <th className="text-right px-3 py-2 font-semibold text-gray-700">
+                  المادة
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.map((item, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
+                  <td className="px-3 py-3 text-right font-medium">
+                    {item.className}
+                  </td>
+                  <td className="px-3 py-3 text-right text-gray-600">
+                    {getLevelText(item.level)}
+                  </td>
+                  <td className="px-3 py-3 text-right text-gray-600">
+                    {item.timeSlot}
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {item.subjectLabel}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
@@ -205,7 +327,7 @@ const SchoolStats = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/users/stats`
+        `${import.meta.env.VITE_API_BASE_URL}/users/stats`,
       );
       if (response.data.success) {
         setStats(response.data.stats);
@@ -369,7 +491,8 @@ const Home = () => {
     window.location.reload();
   };
 
-  const showUserData = authed && user?.role === "student";
+  const showUserData = authed && (user?.role === "student" || user?.role === "teacher" || user?.role === "supervisor");
+  const showTeacherSchedule = authed && (user?.role === "teacher" || user?.role === "supervisor");
   const showStats = isAdmin();
   const showLogin = !authed;
 
@@ -445,8 +568,10 @@ const Home = () => {
               className="h-20 w-auto mb-6 mx-auto opacity-90"
             />
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-4 leading-relaxed">
-              مرحباً بكم في موقع مدرسة<br className="block md:hidden" />
-              كنيسة القديسة دميانة بالهرم <br className="block md:hidden" />
+              مرحباً بكم في موقع مدرسة
+              <br className="block md:hidden" />
+              كنيسة القديسة دميانة بالهرم 
+              <br className="block md:hidden" />
               للشمامسة
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
@@ -464,10 +589,11 @@ const Home = () => {
           )}
         </div>
 
-        {/* Stats and User Data */}
+        {/* Stats, User Data, and Teacher Schedule */}
         <div className="w-full flex flex-col items-center justify-center">
           {showStats && <SchoolStats />}
           {showUserData && <UserData />}
+          {showTeacherSchedule && <TeacherSchedule user={user} />}
         </div>
       </div>
     </div>

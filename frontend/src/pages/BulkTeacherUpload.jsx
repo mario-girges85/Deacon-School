@@ -35,10 +35,17 @@ const BulkTeacherUpload = () => {
   const downloadTemplate = () => {
     // Create Excel template (Arabic headers) and set phone column as text
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("قالب المعلمين");
+    const worksheet = workbook.addWorksheet("قالب الخدام");
 
     // Add headers (Arabic)
-    const headers = ["الاسم", "الهاتف", "تاريخ الميلاد", "الجنس", "الكود", "التخصص"];
+    const headers = [
+      "الاسم",
+      "الهاتف",
+      "تاريخ الميلاد",
+      "الصف",
+      "الكود",
+      "التخصص",
+    ];
 
     worksheet.addRow(headers);
 
@@ -47,7 +54,7 @@ const BulkTeacherUpload = () => {
       column.width = 18;
       column.numFmt = "General";
     });
-    
+
     // Explicitly set phone column (2) format to text
     const phoneCol = worksheet.getColumn(2);
     phoneCol.numFmt = "@";
@@ -143,26 +150,29 @@ const BulkTeacherUpload = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/users/bulk-import-teachers`,
         formData,
-        { 
+        {
           headers: getAuthHeaders(),
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+              (progressEvent.loaded * 100) / progressEvent.total,
             );
             // Use the higher of simulated progress or actual upload progress, but cap at 85%
             setUploadProgress((prevProgress) => {
               const actualProgress = Math.min(percentCompleted, 85);
               const newProgress = Math.max(prevProgress, actualProgress);
-              
+
               // Calculate time remaining based on actual upload progress
               const elapsedTime = (Date.now() - startTime) / 1000;
-              const remaining = calculateTimeRemaining(newProgress, elapsedTime);
+              const remaining = calculateTimeRemaining(
+                newProgress,
+                elapsedTime,
+              );
               setTimeRemaining(remaining);
-              
+
               return newProgress;
             });
-          }
-        }
+          },
+        },
       );
 
       // Complete the progress bar
@@ -175,7 +185,6 @@ const BulkTeacherUpload = () => {
         setUploading(false);
         setUploadProgress(0);
       }, 1000);
-
     } catch (error) {
       clearInterval(progressInterval);
       console.error("Error uploading file:", error);
@@ -188,7 +197,7 @@ const BulkTeacherUpload = () => {
 
       if (error.response?.status === 403) {
         // Forbidden - not admin
-        setError("ليس لديك صلاحية لرفع المعلمين");
+        setError("ليس لديك صلاحية لرفع الخدام");
         return;
       }
 
@@ -201,7 +210,7 @@ const BulkTeacherUpload = () => {
 
   const formatTimeRemaining = (seconds) => {
     const roundedSeconds = Math.round(seconds);
-    
+
     if (roundedSeconds < 60) {
       return `${roundedSeconds} ثانية`;
     } else if (roundedSeconds < 3600) {
@@ -215,17 +224,17 @@ const BulkTeacherUpload = () => {
 
   const calculateTimeRemaining = (progress, elapsedTime) => {
     if (progress <= 0 || elapsedTime < 2) return null;
-    
+
     // Only calculate after we have meaningful progress (at least 5%)
     if (progress < 5) return null;
-    
+
     const estimatedTotalTime = (elapsedTime / progress) * 100;
     const remainingTime = estimatedTotalTime - elapsedTime;
-    
+
     // Cap the maximum estimated time to 10 minutes (600 seconds)
     const maxReasonableTime = 600;
     const cappedRemainingTime = Math.min(remainingTime, maxReasonableTime);
-    
+
     // Don't show time if it's less than 5 seconds
     return cappedRemainingTime > 5 ? cappedRemainingTime : null;
   };
@@ -251,10 +260,10 @@ const BulkTeacherUpload = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                إضافة مجموعة معلمين
+                إضافة مجموعة خدام
               </h1>
               <p className="text-gray-600">
-                رفع ملف CSV أو Excel يحتوي على بيانات المعلمين
+                رفع ملف CSV أو Excel يحتوي على بيانات الخدام
               </p>
             </div>
             <button
@@ -273,10 +282,11 @@ const BulkTeacherUpload = () => {
           </h3>
           <ol className="list-decimal list-inside text-blue-700 space-y-2">
             <li>قم بتحميل قالب Excel أدناه</li>
-            <li>املأ القالب ببيانات المعلمين مع مراعاة التنسيق التالي:</li>
+            <li>املأ القالب ببيانات الخدام مع مراعاة التنسيق التالي:</li>
             <div className="mr-6 mt-2 space-y-1 text-sm">
               <div>
-                <strong>الاسم:</strong> النص العربي أو الإنجليزي (مثال: أحمد محمد)
+                <strong>الاسم:</strong> النص العربي أو الإنجليزي (مثال: أحمد
+                محمد)
               </div>
               <div>
                 <strong>الهاتف:</strong> أرقام فقط، 11 رقم (مثال: 05012345678)
@@ -288,15 +298,15 @@ const BulkTeacherUpload = () => {
                 <strong>الجنس:</strong> male أو female
               </div>
               <div>
-                <strong>الكود:</strong> كود فريد للمعلم (مثال: T001)
+                <strong>الكود:</strong> كود فريد للخادم (مثال: T001)
               </div>
               <div>
                 <strong>التخصص:</strong> taks أو al7an أو coptic
               </div>
             </div>
-            <li>سيتم تعيين الدور تلقائياً كمعلم</li>
+            <li>سيتم تعيين الدور تلقائياً كخادم</li>
             <li>قم برفع الملف المملوء</li>
-            <li>سيتم إنشاء المعلمين في قاعدة البيانات</li>
+            <li>سيتم إنشاء الخدام في قاعدة البيانات</li>
           </ol>
         </div>
 
@@ -306,9 +316,9 @@ const BulkTeacherUpload = () => {
             تحميل قالب Excel
           </h3>
           <p className="text-gray-600 mb-4">
-            قم بتحميل القالب واملأه ببيانات المعلمين. القالب باللغة العربية، وتم
-            ضبط عمود الهاتف كـ نص للحفاظ على الصفر في بداية الرقم. الدور يتم
-            تعيينه تلقائياً كمعلم.
+            قم بتحميل القالب واملأه ببيانات الخدام. القالب باللغة العربية، وتم
+            ضبط عمود الهاتف كـ نص للحفاظ على الصفر في بداية الرقم. المستخدم يتم
+            تعيينه تلقائياً كخادم.
           </p>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <p className="text-yellow-800 text-sm">
@@ -318,8 +328,8 @@ const BulkTeacherUpload = () => {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-blue-800 text-sm">
-              <strong>ميزة جديدة:</strong> القالب يحتوي على قوائم منسدلة للجنس والتخصص،
-              وعمود الهاتف مضبوط كنصي للحفاظ على الأصفار البادئة
+              <strong>ميزة جديدة:</strong> القالب يحتوي على قوائم منسدلة للجنس
+              والتخصص، وعمود الهاتف مضبوط كنصي للحفاظ على الأصفار البادئة
             </p>
           </div>
           <button
@@ -385,8 +395,12 @@ const BulkTeacherUpload = () => {
               </div>
               <div className="mt-2 text-xs text-gray-500">
                 {uploadProgress < 30 && "جاري رفع الملف..."}
-                {uploadProgress >= 30 && uploadProgress < 70 && "جاري معالجة البيانات..."}
-                {uploadProgress >= 70 && uploadProgress < 100 && "جاري إنهاء المعالجة..."}
+                {uploadProgress >= 30 &&
+                  uploadProgress < 70 &&
+                  "جاري معالجة البيانات..."}
+                {uploadProgress >= 70 &&
+                  uploadProgress < 100 &&
+                  "جاري إنهاء المعالجة..."}
                 {uploadProgress >= 100 && "تم بنجاح!"}
               </div>
             </div>
@@ -413,7 +427,7 @@ const BulkTeacherUpload = () => {
                 <div className="text-2xl font-bold text-green-600">
                   {uploadResult.summary?.totalProcessed || 0}
                 </div>
-                <div className="text-sm text-green-700">إجمالي المعلمين</div>
+                <div className="text-sm text-green-700">إجمالي الخدام</div>
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
@@ -442,7 +456,7 @@ const BulkTeacherUpload = () => {
                   <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm mr-2">
                     ✓
                   </span>
-                  المعلمون المضافون بنجاح ({uploadResult.successful.length})
+                  الخادمون المضافون بنجاح ({uploadResult.successful.length})
                 </h4>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="overflow-x-auto">
@@ -500,69 +514,81 @@ const BulkTeacherUpload = () => {
             )}
 
             {/* Existing Teachers (Skipped) */}
-            {uploadResult.existingUsers && uploadResult.existingUsers.length > 0 && (
-              <div className="mb-8">
-                <h4 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
-                  <span className="w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm mr-2">
-                    ⚠
-                  </span>
-                  المعلمون الموجودون مسبقاً ({uploadResult.existingUsers.length})
-                </h4>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-yellow-200">
-                          <th className="text-right py-2 px-3 font-medium text-yellow-700">
-                            الصف
-                          </th>
-                          <th className="text-right py-2 px-3 font-medium text-yellow-700">
-                            البيانات الجديدة
-                          </th>
-                          <th className="text-right py-2 px-3 font-medium text-yellow-700">
-                            المعلم الموجود
-                          </th>
-                          <th className="text-right py-2 px-3 font-medium text-yellow-700">
-                            نوع التعارض
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-yellow-200">
-                        {uploadResult.existingUsers.map((item, index) => (
-                          <tr key={index} className="hover:bg-yellow-100">
-                            <td className="py-2 px-3 text-yellow-900">
-                              {item.row}
-                            </td>
-                            <td className="py-2 px-3 text-yellow-900">
-                              <div className="text-xs">
-                                <div>الاسم: {item.newData?.name || ""}</div>
-                                <div>الهاتف: {item.newData?.phone || ""}</div>
-                                <div>الكود: {item.newData?.code || ""}</div>
-                                <div>التخصص: {getSubjectName(item.newData?.subject || "")}</div>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-yellow-900">
-                              <div className="text-xs">
-                                <div>الاسم: {item.existingUser.name}</div>
-                                <div>الهاتف: {item.existingUser.phone}</div>
-                                <div>الكود: {item.existingUser.code}</div>
-                                <div>التخصص: {getSubjectName(item.existingUser.subject || "")}</div>
-                                <div>المعرف: {item.existingUser.id}</div>
-                              </div>
-                            </td>
-                            <td className="py-2 px-3 text-yellow-900">
-                              <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
-                                الكود
-                              </span>
-                            </td>
+            {uploadResult.existingUsers &&
+              uploadResult.existingUsers.length > 0 && (
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                    <span className="w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm mr-2">
+                      ⚠
+                    </span>
+                    الخادمون الموجودون مسبقاً (
+                    {uploadResult.existingUsers.length})
+                  </h4>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-yellow-200">
+                            <th className="text-right py-2 px-3 font-medium text-yellow-700">
+                              الصف
+                            </th>
+                            <th className="text-right py-2 px-3 font-medium text-yellow-700">
+                              البيانات الجديدة
+                            </th>
+                            <th className="text-right py-2 px-3 font-medium text-yellow-700">
+                              الخادم الموجود
+                            </th>
+                            <th className="text-right py-2 px-3 font-medium text-yellow-700">
+                              نوع التعارض
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-yellow-200">
+                          {uploadResult.existingUsers.map((item, index) => (
+                            <tr key={index} className="hover:bg-yellow-100">
+                              <td className="py-2 px-3 text-yellow-900">
+                                {item.row}
+                              </td>
+                              <td className="py-2 px-3 text-yellow-900">
+                                <div className="text-xs">
+                                  <div>الاسم: {item.newData?.name || ""}</div>
+                                  <div>الهاتف: {item.newData?.phone || ""}</div>
+                                  <div>الكود: {item.newData?.code || ""}</div>
+                                  <div>
+                                    التخصص:{" "}
+                                    {getSubjectName(
+                                      item.newData?.subject || "",
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-yellow-900">
+                                <div className="text-xs">
+                                  <div>الاسم: {item.existingUser.name}</div>
+                                  <div>الهاتف: {item.existingUser.phone}</div>
+                                  <div>الكود: {item.existingUser.code}</div>
+                                  <div>
+                                    التخصص:{" "}
+                                    {getSubjectName(
+                                      item.existingUser.subject || "",
+                                    )}
+                                  </div>
+                                  <div>المعرف: {item.existingUser.id}</div>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-yellow-900">
+                                <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
+                                  الكود
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Errors */}
             {uploadResult.failed && uploadResult.failed.length > 0 && (
@@ -587,24 +613,35 @@ const BulkTeacherUpload = () => {
                                 الصف {error.row}
                               </span>
                               <span className="text-red-800 font-medium">
-                                {error.field === "required_fields" && "الحقول المطلوبة فارغة"}
+                                {error.field === "required_fields" &&
+                                  "الحقول المطلوبة فارغة"}
                                 {error.field === "gender" && "خطأ في الجنس"}
                                 {error.field === "subject" && "خطأ في التخصص"}
                                 {error.field === "phone" && "خطأ في رقم الهاتف"}
-                                {error.field === "birthday" && "خطأ في تاريخ الميلاد"}
-                                {error.field === "system_error" && "خطأ في النظام"}
-                                {!["required_fields", "gender", "subject", "phone", "birthday", "system_error"].includes(error.field) && error.field}
+                                {error.field === "birthday" &&
+                                  "خطأ في تاريخ الميلاد"}
+                                {error.field === "system_error" &&
+                                  "خطأ في النظام"}
+                                {![
+                                  "required_fields",
+                                  "gender",
+                                  "subject",
+                                  "phone",
+                                  "birthday",
+                                  "system_error",
+                                ].includes(error.field) && error.field}
                               </span>
                             </div>
                             <p className="text-red-700 text-sm mb-2">
                               {error.message}
                             </p>
-                            {error.data && Object.keys(error.data).length > 0 && (
-                              <div className="text-xs text-red-600 bg-red-100 p-2 rounded">
-                                <strong>البيانات:</strong>{" "}
-                                {JSON.stringify(error.data, null, 2)}
-                              </div>
-                            )}
+                            {error.data &&
+                              Object.keys(error.data).length > 0 && (
+                                <div className="text-xs text-red-600 bg-red-100 p-2 rounded">
+                                  <strong>البيانات:</strong>{" "}
+                                  {JSON.stringify(error.data, null, 2)}
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -619,17 +656,17 @@ const BulkTeacherUpload = () => {
               <div className="text-sm text-gray-600">
                 {uploadResult.summary?.successful > 0 && (
                   <span className="text-green-600">
-                    ✓ تم إضافة {uploadResult.summary.successful} معلم بنجاح
+                    ✓ تم إضافة {uploadResult.summary.successful} خادم بنجاح
                   </span>
                 )}
                 {uploadResult.summary?.skipped > 0 && (
                   <span className="text-yellow-600 mr-4">
-                    ⚠ تم تخطي {uploadResult.summary.skipped} معلم
+                    ⚠ تم تخطي {uploadResult.summary.skipped} خادم
                   </span>
                 )}
                 {uploadResult.summary?.failed > 0 && (
                   <span className="text-red-600 mr-4">
-                    ✗ فشل في إضافة {uploadResult.summary.failed} معلم
+                    ✗ فشل في إضافة {uploadResult.summary.failed} خادم
                   </span>
                 )}
               </div>
@@ -680,7 +717,7 @@ const BulkTeacherUpload = () => {
               <tbody className="divide-y divide-gray-200">
                 <tr>
                   <td className="py-2 px-3 text-gray-900">name</td>
-                  <td className="py-2 px-3 text-gray-600">اسم المعلم</td>
+                  <td className="py-2 px-3 text-gray-600">اسم الخادم</td>
                   <td className="py-2 px-3 text-gray-600">نعم</td>
                   <td className="py-2 px-3 text-gray-600">أحمد محمد</td>
                 </tr>

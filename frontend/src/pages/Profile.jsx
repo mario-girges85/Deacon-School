@@ -117,11 +117,11 @@ const Profile = () => {
 
   const getStageName = (stage, level) => {
     const stages = {
-      1: "المرحلة الأولى",
-      2: "المرحلة الثانية",
-      3: "المرحلة الثالثة"
+      1: "السنة الأولى",
+      2: "السنة الثانية",
+      3: "السنة الثالثة"
     };
-    return stages[stage] || `المرحلة ${stage}`;
+    return stages[stage] || `السنة ${stage}`;
   };
 
   const handleImageChange = async (e) => {

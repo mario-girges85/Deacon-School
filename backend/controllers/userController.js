@@ -6,11 +6,14 @@ const fs = require("fs");
 const path = require("path");
 const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret_change_in_production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "default_secret_change_in_production";
 
 if (!process.env.JWT_SECRET) {
   console.warn("⚠️  WARNING: JWT_SECRET is not set in environment variables!");
-  console.warn("⚠️  Using default secret. Please set JWT_SECRET in your .env file for production!");
+  console.warn(
+    "⚠️  Using default secret. Please set JWT_SECRET in your .env file for production!",
+  );
 }
 const sequelize = require("../util/db");
 module.exports.register = async (req, res) => {
@@ -32,7 +35,14 @@ module.exports.register = async (req, res) => {
     } = req.body;
 
     // Validate required fields for all roles
-    const requiredFields = ["name", "phone", "password", "birthday", "gender", "code"];
+    const requiredFields = [
+      "name",
+      "phone",
+      "password",
+      "birthday",
+      "gender",
+      "code",
+    ];
 
     // For students, class_id and level_id are also required
     if (role === "student") {
@@ -47,7 +57,7 @@ module.exports.register = async (req, res) => {
         }
         return res.status(400).json({
           success: false,
-          message: "يجب تحديد تخصص المعلم: taks أو al7an أو coptic",
+          message: "يجب تحديد تخصص الخادم: taks أو al7an أو coptic",
         });
       }
     }
@@ -205,8 +215,8 @@ module.exports.register = async (req, res) => {
         pathField === "phone"
           ? "رقم الهاتف"
           : pathField === "code"
-          ? "الكود"
-          : "الحقل";
+            ? "الكود"
+            : "الحقل";
       return res.status(409).json({
         success: false,
         message: `${field} مستخدم بالفعل`,
@@ -283,7 +293,7 @@ module.exports.login = async (req, res) => {
         code: user.code,
         role: user.role,
       },
-      JWT_SECRET
+      JWT_SECRET,
     );
 
     // Prepare user data for response
@@ -489,8 +499,8 @@ module.exports.getUsers = async (req, res) => {
     const { buildUserResponse } = require("../util/userHelpers");
     const usersWithImages = await Promise.all(
       users.map(async (u) =>
-        buildUserResponse(req, u, { includeTeachingClasses: includeTeaching })
-      )
+        buildUserResponse(req, u, { includeTeachingClasses: includeTeaching }),
+      ),
     );
 
     res.status(200).json({
@@ -576,7 +586,7 @@ module.exports.getUserById = async (req, res) => {
 
       const mmIds = new Set(mmClasses.map((c) => c.id));
       const missingIds = Array.from(
-        new Set((assignmentRows || []).map((r) => r.class_id))
+        new Set((assignmentRows || []).map((r) => r.class_id)),
       ).filter((cid) => !mmIds.has(cid));
 
       let fetchedClasses = [];
@@ -675,7 +685,7 @@ module.exports.getTeachersBySubject = async (req, res) => {
     console.error("Error fetching teachers by subject:", error);
     res.status(500).json({
       success: false,
-      message: "حدث خطأ أثناء جلب المعلمين",
+      message: "حدث خطأ أثناء جلب الخدام",
     });
   }
 };
@@ -769,12 +779,12 @@ module.exports.bulkImport = async (req, res) => {
       if (typeof value === "number") {
         const baseDate = new Date(Date.UTC(1899, 11, 30));
         const result = new Date(
-          baseDate.getTime() + value * 24 * 60 * 60 * 1000
+          baseDate.getTime() + value * 24 * 60 * 60 * 1000,
         );
         return new Date(
           result.getFullYear(),
           result.getMonth(),
-          result.getDate()
+          result.getDate(),
         );
       }
       if (value && typeof value === "object" && value.text) {
@@ -787,7 +797,7 @@ module.exports.bulkImport = async (req, res) => {
       try {
         const required = ["name", "phone", "birthday", "gender", "code"]; // role defaults
         const missing = required.filter(
-          (f) => !rowObj[f] || String(rowObj[f]).trim() === ""
+          (f) => !rowObj[f] || String(rowObj[f]).trim() === "",
         );
         if (missing.length > 0) {
           results.failed.push({
@@ -808,7 +818,7 @@ module.exports.bulkImport = async (req, res) => {
             row: rowIndex,
             field: "role",
             message:
-              "غير مسموح بإدخال الدور في الملف. يتم تعيين الدور تلقائياً 'student'",
+              "غير مسموح بإدخال المستخدم في الملف. يتم تعيين دور المستخدم تلقائياً 'student'",
             data: rowObj,
           });
           return;
@@ -891,11 +901,11 @@ module.exports.bulkImport = async (req, res) => {
         let classIdToUse = bodyClassId;
         let levelIdToUse = bodyLevelId;
         if (!classIdToUse) {
-          // Expect 'class' column (Arabic: الفصل/الموقع) with location string
+          // Expect 'class' column (Arabic: الفصل/المكان) with location string
           const classLocation =
             rowObj.class ||
             rowObj.الفصل ||
-            rowObj.الموقع ||
+            rowObj.المكان ||
             rowObj.class_location ||
             null;
           if (!classLocation) {
@@ -928,7 +938,7 @@ module.exports.bulkImport = async (req, res) => {
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(
           rowObj.password ? String(rowObj.password) : String(rowObj.code),
-          saltRounds
+          saltRounds,
         );
 
         const newUser = await User.create({
@@ -949,8 +959,7 @@ module.exports.bulkImport = async (req, res) => {
       } catch (e) {
         // Gracefully handle DB unique constraint errors
         if (e && e.name === "SequelizeUniqueConstraintError") {
-          const pathField =
-            (e.errors && e.errors[0] && e.errors[0].path) || "";
+          const pathField = (e.errors && e.errors[0] && e.errors[0].path) || "";
 
           if (String(pathField).includes("phone")) {
             // Treat as existing by phone if DB still has unique(phone)
@@ -1021,7 +1030,7 @@ module.exports.bulkImport = async (req, res) => {
         الجنس: "gender",
         الكود: "code",
         الفصل: "class",
-        الموقع: "class",
+        المكان: "class",
       };
       return map[trimmed] || map[lower] || lower; // fallback to lower for English headers
     };
@@ -1039,13 +1048,13 @@ module.exports.bulkImport = async (req, res) => {
       const headers = rawHeaders.map((h) => normalizeHeader(h));
       const requiredHeaders = ["name", "phone", "birthday", "gender", "code"]; // class column optional if body classId is present
       const missingHeaders = requiredHeaders.filter(
-        (f) => !headers.includes(f)
+        (f) => !headers.includes(f),
       );
       if (missingHeaders.length > 0) {
         return res.status(400).json({
           success: false,
           message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
-            ", "
+            ", ",
           )}`,
         });
       }
@@ -1074,13 +1083,13 @@ module.exports.bulkImport = async (req, res) => {
       const headers = headerRow.values.slice(1).map((v) => normalizeHeader(v));
       const requiredHeaders = ["name", "phone", "birthday", "gender", "code"]; // class column optional if body classId is present
       const missingHeaders = requiredHeaders.filter(
-        (f) => !headers.includes(f)
+        (f) => !headers.includes(f),
       );
       if (missingHeaders.length > 0) {
         return res.status(400).json({
           success: false,
           message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
-            ", "
+            ", ",
           )}`,
         });
       }
@@ -1146,7 +1155,7 @@ module.exports.assignClassesToTeacher = async (req, res) => {
     if (classIds.length > 3) {
       return res.status(400).json({
         success: false,
-        message: "لا يمكن تعيين أكثر من 3 فصول للمعلم/المشرف",
+        message: "لا يمكن تعيين أكثر من 3 فصول للخادم/المشرف",
       });
     }
 
@@ -1162,7 +1171,7 @@ module.exports.assignClassesToTeacher = async (req, res) => {
     if (!["teacher", "supervisor"].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: "يمكن فقط تعيين فصول للمعلمين والمشرفين",
+        message: "يمكن فقط تعيين فصول للخدام والمشرفين",
       });
     }
 
@@ -1193,7 +1202,7 @@ module.exports.assignClassesToTeacher = async (req, res) => {
         raw: true,
       });
     const subjectClassIds = Array.from(
-      new Set((subjectRows || []).map((r) => r.class_id))
+      new Set((subjectRows || []).map((r) => r.class_id)),
     );
 
     // Compute union between requested classIds and existing subject-linked classes
@@ -1201,7 +1210,7 @@ module.exports.assignClassesToTeacher = async (req, res) => {
     if (unionCount > 3) {
       return res.status(400).json({
         success: false,
-        message: "إجمالي الفصول المرتبطة بالمعلم يتجاوز الحد الأقصى (3)",
+        message: "إجمالي الفصول المرتبطة بالخادم يتجاوز الحد الأقصى (3)",
         detail: {
           requested: classIds.length,
           existingSubjectAssignments: subjectClassIds.length,
@@ -1274,13 +1283,16 @@ module.exports.getTeacherClasses = async (req, res) => {
     if (!["teacher", "supervisor"].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: "يمكن فقط عرض فصول المعلمين والمشرفين",
+        message: "يمكن فقط عرض فصول الخدام والمشرفين",
       });
     }
 
     // Get subject-based assignments as well
     const { resolveTeacherClasses } = require("../util/userHelpers");
-    const allClasses = await resolveTeacherClasses(userId, user.teachingClasses || []);
+    const allClasses = await resolveTeacherClasses(
+      userId,
+      user.teachingClasses || [],
+    );
 
     res.status(200).json({
       success: true,
@@ -1313,7 +1325,7 @@ module.exports.removeAllClassesFromTeacher = async (req, res) => {
     if (!["teacher", "supervisor"].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: "يمكن فقط إزالة فصول من المعلمين والمشرفين",
+        message: "يمكن فقط إزالة فصول من الخدام والمشرفين",
       });
     }
 
@@ -1373,19 +1385,19 @@ module.exports.getTeachersWithClasses = async (req, res) => {
         }
 
         return teacherData;
-      })
+      }),
     );
 
     res.status(200).json({
       success: true,
-      message: "تم جلب المعلمين والمشرفين مع فصولهم بنجاح",
+      message: "تم جلب الخدام والمشرفين مع فصولهم بنجاح",
       teachers: teachersWithImages,
     });
   } catch (error) {
     console.error("Error getting teachers with classes:", error);
     res.status(500).json({
       success: false,
-      message: "حدث خطأ أثناء جلب المعلمين والمشرفين",
+      message: "حدث خطأ أثناء جلب الخدام والمشرفين",
       error: error.message,
     });
   }
@@ -1459,12 +1471,12 @@ module.exports.bulkImportTeachers = async (req, res) => {
       if (typeof value === "number") {
         const baseDate = new Date(Date.UTC(1899, 11, 30));
         const result = new Date(
-          baseDate.getTime() + value * 24 * 60 * 60 * 1000
+          baseDate.getTime() + value * 24 * 60 * 60 * 1000,
         );
         return new Date(
           result.getFullYear(),
           result.getMonth(),
-          result.getDate()
+          result.getDate(),
         );
       }
       if (value && typeof value === "object" && value.text) {
@@ -1475,9 +1487,16 @@ module.exports.bulkImportTeachers = async (req, res) => {
 
     const upsertFromRow = async (rowObj, rowIndex) => {
       try {
-        const required = ["name", "phone", "birthday", "gender", "code", "subject"];
+        const required = [
+          "name",
+          "phone",
+          "birthday",
+          "gender",
+          "code",
+          "subject",
+        ];
         const missing = required.filter(
-          (f) => !rowObj[f] || String(rowObj[f]).trim() === ""
+          (f) => !rowObj[f] || String(rowObj[f]).trim() === "",
         );
         if (missing.length > 0) {
           results.failed.push({
@@ -1499,7 +1518,7 @@ module.exports.bulkImportTeachers = async (req, res) => {
           });
           return;
         }
-        
+
         const birthday = ensureBirthday(rowObj.birthday);
         if (!birthday || isNaN(birthday.getTime())) {
           results.failed.push({
@@ -1510,7 +1529,7 @@ module.exports.bulkImportTeachers = async (req, res) => {
           });
           return;
         }
-        
+
         const gender = String(rowObj.gender || "").toLowerCase();
         if (!["male", "female"].includes(gender)) {
           results.failed.push({
@@ -1541,7 +1560,7 @@ module.exports.bulkImportTeachers = async (req, res) => {
         if (existingUser) {
           results.existing.push({
             row: rowIndex,
-            reason: `المعلم موجود بالفعل (${existingUser.role})`,
+            reason: `الخادم موجود بالفعل (${existingUser.role})`,
             conflictType: "code",
             newData: {
               name: String(rowObj.name || ""),
@@ -1565,7 +1584,7 @@ module.exports.bulkImportTeachers = async (req, res) => {
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(
           rowObj.password ? String(rowObj.password) : String(rowObj.code),
-          saltRounds
+          saltRounds,
         );
 
         const newUser = await User.create({
@@ -1584,13 +1603,12 @@ module.exports.bulkImportTeachers = async (req, res) => {
         results.successful.push({ row: rowIndex, user: userResponse });
       } catch (e) {
         if (e && e.name === "SequelizeUniqueConstraintError") {
-          const pathField =
-            (e.errors && e.errors[0] && e.errors[0].path) || "";
+          const pathField = (e.errors && e.errors[0] && e.errors[0].path) || "";
 
           if (String(pathField).includes("code")) {
             results.existing.push({
               row: rowIndex,
-              reason: "المعلم موجود بالفعل (code)",
+              reason: "الخادم موجود بالفعل (code)",
               conflictType: "code",
               newData: {
                 name: String(rowObj.name || ""),
@@ -1647,15 +1665,22 @@ module.exports.bulkImportTeachers = async (req, res) => {
       }
       const rawHeaders = lines[0].split(",").map((h) => h.trim());
       const headers = rawHeaders.map((h) => normalizeHeader(h));
-      const requiredHeaders = ["name", "phone", "birthday", "gender", "code", "subject"];
+      const requiredHeaders = [
+        "name",
+        "phone",
+        "birthday",
+        "gender",
+        "code",
+        "subject",
+      ];
       const missingHeaders = requiredHeaders.filter(
-        (f) => !headers.includes(f)
+        (f) => !headers.includes(f),
       );
       if (missingHeaders.length > 0) {
         return res.status(400).json({
           success: false,
           message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
-            ", "
+            ", ",
           )}`,
         });
       }
@@ -1682,15 +1707,22 @@ module.exports.bulkImportTeachers = async (req, res) => {
       }
       const headerRow = worksheet.getRow(1);
       const headers = headerRow.values.slice(1).map((v) => normalizeHeader(v));
-      const requiredHeaders = ["name", "phone", "birthday", "gender", "code", "subject"];
+      const requiredHeaders = [
+        "name",
+        "phone",
+        "birthday",
+        "gender",
+        "code",
+        "subject",
+      ];
       const missingHeaders = requiredHeaders.filter(
-        (f) => !headers.includes(f)
+        (f) => !headers.includes(f),
       );
       if (missingHeaders.length > 0) {
         return res.status(400).json({
           success: false,
           message: `الحقول المطلوبة مفقودة في الملف: ${missingHeaders.join(
-            ", "
+            ", ",
           )}`,
         });
       }
@@ -1726,7 +1758,7 @@ module.exports.bulkImportTeachers = async (req, res) => {
       failed: results.failed,
       existing: results.existing,
       existingUsers: results.existing,
-      note: "جميع المستخدمين المرفوعين يتم تعيينهم كمعلمين تلقائياً",
+      note: "جميع المستخدمين المرفوعين يتم تعيينهم كخدام تلقائياً",
     });
   } catch (error) {
     console.error("bulkImportTeachers error:", error);

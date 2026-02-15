@@ -223,7 +223,7 @@ const Users = () => {
       2: "السنة الثانية",
       3: "السنة الثالثة"
     };
-    return stages[stage] || `المرحلة ${stage}`;
+    return stages[stage] || `السنة ${stage}`;
   };
 
   if (loading) {
@@ -484,7 +484,7 @@ const Users = () => {
 
                 <div className="w-full lg:w-48">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    الدور
+                    المستخدم
                   </label>
                   <select
                     value={filterRole}

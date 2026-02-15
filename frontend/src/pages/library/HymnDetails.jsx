@@ -212,7 +212,7 @@ const HymnDetails = () => {
                       />
                     </svg>
                     <span className="text-sm font-medium text-blue-800">
-                      من المحاضرة - النصوص المختارة:{" "}
+                      من الدرس - النصوص المختارة:{" "}
                       {selectedLyricsVariants
                         .map((v) =>
                           v === "arabic"

@@ -80,17 +80,20 @@ const Navbar = () => {
 
   // Navigation items with icons
   const isStudent = user?.role === "student";
+  const isTeacher = user?.role === "teacher";
+  const showLevels = !isStudent && !isTeacher; // admin and supervisor only
   const navigationItems = [
     { path: "/", label: "الرئيسية", icon: "🏠" },
-    { path: "/levels", label: "المستويات", icon: "📚" },
+    ...(showLevels ? [{ path: "/levels", label: "المستويات", icon: "📚" }] : []),
     { path: "/classes", label: "الفصول", icon: "👥" },
     ...(isAdmin()
-      ? [{ path: "/schedule", label: "جدول المعلمين", icon: "📅" }]
+      ? [{ path: "/schedule", label: "جدول الخدام", icon: "📅" }]
       : []),
-    ...(!isStudent ? [{ path: "/hymns", label: "مكتبة الألحان", icon: "🎵" }] : []),
+    ...(isAdmin() ? [{ path: "/hymns", label: "مكتبة الألحان", icon: "🎵" }] : []),
     // Only show Users link for admins
     ...(isAdmin() ? [{ path: "/users", label: "المستخدمين", icon: "👤" }] : []),
-    { path: "/contact", label: "تواصل معنا", icon: "📞" },
+    ...(isAdmin() ? [{ path: "/contact-messages", label: "رسائل التواصل", icon: "📩" }] : []),
+    ...(!isAdmin() ? [{ path: "/contact", label: "تواصل معنا", icon: "📞" }] : []),
   ];
 
   return (
@@ -143,7 +146,7 @@ const Navbar = () => {
                       {user?.role === "student"
                         ? "طالب"
                         : user?.role === "teacher"
-                        ? "معلم"
+                        ? "خادم"
                         : user?.role === "admin"
                         ? "ادمن"
                         : user?.role === "supervisor"
@@ -293,7 +296,7 @@ const Navbar = () => {
                           {user?.role === "student"
                             ? "طالب"
                             : user?.role === "teacher"
-                            ? "معلم"
+                            ? "خادم"
                             : user?.role === "admin"
                             ? "مدير"
                             : user?.role === "supervisor"
@@ -336,9 +339,9 @@ const Navbar = () => {
           <div className="grid grid-cols-5 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
             {[
               { path: "/", label: "الرئيسية", icon: "🏠" },
-              { path: "/levels", label: "المستويات", icon: "📚" },
+              ...(showLevels ? [{ path: "/levels", label: "المستويات", icon: "📚" }] : []),
               { path: "/classes", label: "الفصول", icon: "👥" },
-              ...(!isStudent ? [{ path: "/hymns", label: "الألحان", icon: "🎵" }] : []),
+              ...(isAdmin() ? [{ path: "/hymns", label: "الألحان", icon: "🎵" }] : []),
               isAuthenticated()
                 ? { path: "/profile", label: "حسابي", icon: "👤" }
                 : { path: "/login", label: "دخول", icon: "🔑" },

@@ -262,7 +262,7 @@ const LevelCurriculum = () => {
                 {" "}
                 &nbsp;| &nbsp; <span className="font-medium">المستوى:</span>{" "}
                 {classMeta.level.level} &nbsp;| &nbsp;{" "}
-                <span className="font-medium">المرحلة:</span>{" "}
+                <span className="font-medium">السنة:</span>{" "}
                 {classMeta.level.stage}
               </>
             )}
@@ -360,7 +360,7 @@ const LevelCurriculum = () => {
                           } ${SUBJECT_STYLES[subj.key]?.chipText}`}
                         >
                           <span>{SUBJECT_STYLES[subj.key]?.icon}</span>
-                          <span>محاضرة {lec}</span>
+                          <span>درس {lec}</span>
                         </span>
                       </span>
                       <div className="flex items-center">

@@ -55,13 +55,13 @@ const LecturePage = () => {
   const getStageName = (stg) => {
     switch (Number(stg)) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
-        return "المرحلة الثالثة";
+        return "السنة الثالثة";
       default:
-        return `المرحلة ${stg}`;
+        return `السنة ${stg}`;
     }
   };
 
@@ -75,7 +75,7 @@ const LecturePage = () => {
       ]);
 
       const found = (curRes.data?.curriculum || []).find(
-        (c) => Number(c.lecture) === Number(lecture)
+        (c) => Number(c.lecture) === Number(lecture),
       );
       setInfo(found || null);
       setClassMeta(classRes.data?.class || null);
@@ -105,12 +105,16 @@ const LecturePage = () => {
 
     // If a file already exists for this type, ask for confirmation to overwrite
     const existingUrl =
-      (fileType === "audio" && (info?.audio_url || info?.audio_path || info?.path)) ||
+      (fileType === "audio" &&
+        (info?.audio_url || info?.audio_path || info?.path)) ||
       (fileType === "pdf" && (info?.pdf_url || info?.pdf_path || info?.path)) ||
-      (fileType === "video" && (info?.video_url || info?.video_path || info?.path)) ||
+      (fileType === "video" &&
+        (info?.video_url || info?.video_path || info?.path)) ||
       null;
     if (existingUrl) {
-      const ok = window.confirm("يوجد ملف لهذا النوع بالفعل. هل تريد استبداله؟");
+      const ok = window.confirm(
+        "يوجد ملف لهذا النوع بالفعل. هل تريد استبداله؟",
+      );
       if (!ok) return;
     }
 
@@ -151,7 +155,7 @@ const LecturePage = () => {
 
       const response = await apiClient.put(
         `/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/hymns`,
-        { hymns: payload }
+        { hymns: payload },
       );
 
       console.log("Backend response:", response.data);
@@ -174,7 +178,7 @@ const LecturePage = () => {
   const handleRemoveHymn = async (hymnToRemove) => {
     try {
       const updatedHymns = selectedHymns.filter(
-        (h) => h.hymn_id !== hymnToRemove.hymn_id
+        (h) => h.hymn_id !== hymnToRemove.hymn_id,
       );
       await handleHymnSelection(updatedHymns);
     } catch (e) {
@@ -187,7 +191,7 @@ const LecturePage = () => {
       const ok = window.confirm("هل أنت متأكد من حذف هذا الملف؟");
       if (!ok) return;
       const res = await apiClient.delete(
-        `/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`
+        `/classes/${classId}/curriculum/${subject}/semesters/${semester}/lectures/${lecture}/${fileType}`,
       );
       setInfo(res.data?.curriculum || null);
     } catch (e) {
@@ -205,7 +209,8 @@ const LecturePage = () => {
     if (!lower) return null;
     if (type === "audio" && lower.endsWith(".mp3")) return p;
     if (type === "pdf" && lower.endsWith(".pdf")) return p;
-    if (type === "video" && (lower.endsWith(".mkv") || lower.endsWith(".webm"))) return p;
+    if (type === "video" && (lower.endsWith(".mkv") || lower.endsWith(".webm")))
+      return p;
     return null;
   };
 
@@ -328,7 +333,7 @@ const LecturePage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            {`المحاضرة ${lecture} - ${humanize(subject)} - الفصل ${semester}`}
+            {`الدرس ${lecture} - ${humanize(subject)} - الفصل ${semester}`}
           </h1>
           <button
             onClick={() => navigate(-1)}
@@ -347,7 +352,7 @@ const LecturePage = () => {
                   {" "}
                   | <span className="font-medium">المستوى:</span>{" "}
                   {getLevelName(classMeta.level.level)} |{" "}
-                  <span className="font-medium">المرحلة:</span>{" "}
+                  <span className="font-medium">السنة:</span>{" "}
                   {getStageName(classMeta.level.stage)} |{" "}
                 </>
               )}
@@ -355,41 +360,69 @@ const LecturePage = () => {
           )}
           <span className="font-medium">المادة:</span> {humanize(subject)} |{" "}
           <span className="font-medium">الفصل الدراسي:</span> {semester} |{" "}
-          <span className="font-medium">المحاضرة:</span> {lecture}
+          <span className="font-medium">الدرس:</span> {lecture}
         </div>
 
         {/* Hymns for al7an - visible to all; controls only for admins */}
         {subject === "al7an" && (
           <div className="mb-6 bg-white p-4 rounded shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">الحان المحاضرة</h3>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h3 className="text-lg font-semibold">الحان الدرس</h3>
               {isAdmin() && (
-                <button
-                  onClick={() => setShowHymnSelection(true)}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={fileInputRefs.pdf}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={(e) => handleFileChange("pdf", e)}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefs.pdf.current?.click()}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-2"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  إضافة الحان من المكتبة
-                </button>
+                    <span>📄</span>
+                    إضافة ملف PDF
+                  </button>
+                  {files.pdf && (
+                    <button
+                      onClick={() => onUpload("pdf")}
+                      disabled={uploading.pdf}
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors"
+                    >
+                      {uploading.pdf
+                        ? "جاري الرفع..."
+                        : `رفع ${files.pdf.name}`}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowHymnSelection(true)}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    إضافة الحان من المكتبة
+                  </button>
+                </div>
               )}
             </div>
 
             {selectedHymns.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">🎵</div>
-                <p>لم يتم اختيار أي الحان لهذه المحاضرة</p>
+                <p>لم يتم اختيار أي الحان لهذا الدرس</p>
                 {isAdmin() && (
                   <p className="text-sm">
                     انقر على "إضافة الحان من المكتبة" لاختيار الالحان
@@ -442,7 +475,7 @@ const LecturePage = () => {
             {renderUploadSection(
               "video",
               "ملف فيديو (MKV)",
-              ".mkv,video/x-matroska,video/webm"
+              ".mkv,video/x-matroska,video/webm",
             )}
           </div>
         )}

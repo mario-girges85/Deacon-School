@@ -119,7 +119,7 @@ const requireTeacher = (req, res, next) => {
   if (req.user.role !== "teacher") {
     return res.status(403).json({
       success: false,
-      message: "هذه الصفحة متاحة للمعلمين فقط",
+      message: "هذه الصفحة متاحة للخدام فقط",
     });
   }
 

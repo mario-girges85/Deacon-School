@@ -76,7 +76,7 @@ const getAllClasses = async (req, res) => {
             id: s.id,
             name: s.name,
             image: s.image ? buildImageUrl(req, s.image) : null,
-          }))
+          })),
         );
 
         return {
@@ -84,7 +84,7 @@ const getAllClasses = async (req, res) => {
           students_count: studentCount,
           students_preview,
         };
-      })
+      }),
     );
 
     res.json({ success: true, classes: classesWithStudentCount });
@@ -163,7 +163,7 @@ const getClassDetails = async (req, res) => {
             },
           ],
         };
-      })
+      }),
     );
 
     // Get all teachers and supervisors for assignment dropdowns
@@ -196,7 +196,9 @@ const getClassDetails = async (req, res) => {
       // Compute class index among all leveled classes (sorted like schedule)
       const allClasses = await Classes.findAll({
         where: { level_id: { [Op.ne]: null } },
-        include: [{ model: Levels, as: "level", attributes: ["level", "stage"] }],
+        include: [
+          { model: Levels, as: "level", attributes: ["level", "stage"] },
+        ],
         order: [
           [{ model: Levels, as: "level" }, "level", "ASC"],
           [{ model: Levels, as: "level" }, "stage", "ASC"],
@@ -208,7 +210,11 @@ const getClassDetails = async (req, res) => {
         const slotMap = getSubjectSlotForClassIndex(idx);
         const assign = await TeacherSubjectAssignment.findOne({
           where: { class_id: id },
-          attributes: ["taks_teacher_id", "al7an_teacher_id", "coptic_teacher_id"],
+          attributes: [
+            "taks_teacher_id",
+            "al7an_teacher_id",
+            "coptic_teacher_id",
+          ],
         });
         if (assign) {
           const teacherForSubject = (subj) => {
@@ -333,7 +339,7 @@ const deleteClass = async (req, res) => {
       console.warn(
         "Warning: failed to unlink teachers for class",
         id,
-        e.message
+        e.message,
       );
     }
 
@@ -343,7 +349,7 @@ const deleteClass = async (req, res) => {
       console.warn(
         "Warning: failed to remove subject assignments for class",
         id,
-        e.message
+        e.message,
       );
     }
 
@@ -421,9 +427,9 @@ module.exports.updateClassTeacherAssignments = async (req, res) => {
     const validateTeacher = async (userId) => {
       if (!userId) return null;
       const user = await User.findByPk(userId);
-      if (!user) return "المعلم غير موجود";
+      if (!user) return "الخادم غير موجود";
       if (!["teacher", "supervisor"].includes(user.role))
-        return "المستخدم ليس معلماً أو مشرفاً";
+        return "المستخدم ليس خادماً أو مشرفاً";
       return null;
     };
 
@@ -499,9 +505,9 @@ module.exports.updateClassTeacherAssignments = async (req, res) => {
         countClassesForTeacher(teacherId),
       ]);
       if (currentCount >= 3) {
-        const teacherName = teacher?.name || "المعلم";
+        const teacherName = teacher?.name || "الخادم";
         overLimitMessages.push(
-          `${teacherName} مرتبط بالفعل بـ ${currentCount} فصول (الحد الأقصى 3)`
+          `${teacherName} مرتبط بالفعل بـ ${currentCount} فصول (الحد الأقصى 3)`,
         );
       }
     }
@@ -541,7 +547,7 @@ module.exports.updateClassTeacherAssignments = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "تم تحديث تعيين المعلمين بنجاح",
+      message: "تم تحديث تعيين الخدام بنجاح",
       assignments: {
         taks_teacher_id: row.taks_teacher_id,
         al7an_teacher_id: row.al7an_teacher_id,

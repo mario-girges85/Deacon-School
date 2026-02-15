@@ -32,7 +32,7 @@ const HymnSelectionPanel = ({
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/events`
+        `${import.meta.env.VITE_API_BASE_URL}/events`,
       );
       setEvents(response.data.events || []);
     } catch (error) {
@@ -50,7 +50,7 @@ const HymnSelectionPanel = ({
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/hymns`,
-        { params }
+        { params },
       );
       setHymns(response.data.hymns || []);
     } catch (error) {
@@ -108,7 +108,7 @@ const HymnSelectionPanel = ({
           return { ...h, lyrics_variants: newVariants };
         }
         return h;
-      })
+      }),
     );
   };
 
@@ -134,9 +134,7 @@ const HymnSelectionPanel = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              اختيار الالحان
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900">اختيار الالحان</h2>
             <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
@@ -168,7 +166,7 @@ const HymnSelectionPanel = ({
                     />
                   </svg>
                 </div>
-                <span>موجود في المحاضرة</span>
+                <span>موجود في الدرس</span>
               </div>
             </div>
           </div>
@@ -266,8 +264,8 @@ const HymnSelectionPanel = ({
                       {selectedEvent
                         ? "لا توجد الحان لهذا الحدث"
                         : searchTerm
-                        ? "لم يتم العثور على الحان تطابق البحث"
-                        : "لم يتم إضافة أي الحان بعد"}
+                          ? "لم يتم العثور على الحان تطابق البحث"
+                          : "لم يتم إضافة أي الحان بعد"}
                     </p>
                   </div>
                 ) : (
@@ -306,7 +304,7 @@ const HymnSelectionPanel = ({
                             <div className="absolute top-2 left-2">
                               <div
                                 className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center"
-                                title="موجود في المحاضرة"
+                                title="موجود في الدرس"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -375,7 +373,7 @@ const HymnSelectionPanel = ({
               {selectedHymns.length > 0 && (
                 <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <h4 className="text-sm font-medium text-green-800 mb-2">
-                    الالحان الموجودة في المحاضرة ({selectedHymns.length})
+                    الالحان الموجودة في الدرس ({selectedHymns.length})
                   </h4>
                   <div className="space-y-2">
                     {selectedHymns.map((hymn) => (
@@ -393,8 +391,8 @@ const HymnSelectionPanel = ({
                                   v === "arabic"
                                     ? "العربية"
                                     : v === "coptic"
-                                    ? "القبطية"
-                                    : "العربية القبطية"
+                                      ? "القبطية"
+                                      : "العربية القبطية",
                                 )
                                 .join(", ")
                             : "العربية"}
@@ -445,7 +443,7 @@ const HymnSelectionPanel = ({
                                 onChange={() =>
                                   handleLyricsVariantToggle(
                                     selectedHymn.hymn_id,
-                                    variant.value
+                                    variant.value,
                                   )
                                 }
                                 className="rounded border-gray-300 text-primary focus:ring-primary"

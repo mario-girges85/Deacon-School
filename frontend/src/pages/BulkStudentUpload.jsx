@@ -43,7 +43,7 @@ const BulkStudentUpload = () => {
   const fetchClassData = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`,
       );
       setClassData(response.data.class || response.data);
     } catch (error) {
@@ -55,7 +55,7 @@ const BulkStudentUpload = () => {
   const fetchLevels = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/levels`
+        `${import.meta.env.VITE_API_BASE_URL}/levels`,
       );
       setLevels(response.data.levels || response.data);
     } catch (error) {
@@ -69,7 +69,7 @@ const BulkStudentUpload = () => {
     const worksheet = workbook.addWorksheet("قالب الطلاب");
 
     // Add headers (Arabic)
-    const headers = ["الاسم", "الهاتف", "تاريخ الميلاد", "الجنس", "الكود"]; // الدور غير مطلوب
+    const headers = ["الاسم", "الهاتف", "تاريخ الميلاد", "الجنس", "الكود"]; // المستخدم غير مطلوب
 
     worksheet.addRow(headers);
 
@@ -120,7 +120,7 @@ const BulkStudentUpload = () => {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `students_template_${classData?.location || "class"}.xlsx`
+        `students_template_${classData?.location || "class"}.xlsx`,
       );
       link.style.visibility = "hidden";
       document.body.appendChild(link);
@@ -173,26 +173,29 @@ const BulkStudentUpload = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/users/bulk-import`,
         formData,
-        { 
+        {
           headers: getAuthHeaders(),
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+              (progressEvent.loaded * 100) / progressEvent.total,
             );
             // Use the higher of simulated progress or actual upload progress, but cap at 85%
             setUploadProgress((prevProgress) => {
               const actualProgress = Math.min(percentCompleted, 85);
               const newProgress = Math.max(prevProgress, actualProgress);
-              
+
               // Calculate time remaining based on actual upload progress
               const elapsedTime = (Date.now() - startTime) / 1000;
-              const remaining = calculateTimeRemaining(newProgress, elapsedTime);
+              const remaining = calculateTimeRemaining(
+                newProgress,
+                elapsedTime,
+              );
               setTimeRemaining(remaining);
-              
+
               return newProgress;
             });
-          }
-        }
+          },
+        },
       );
 
       // Complete the progress bar
@@ -205,7 +208,6 @@ const BulkStudentUpload = () => {
         setUploading(false);
         setUploadProgress(0);
       }, 1000);
-
     } catch (error) {
       clearInterval(progressInterval);
       console.error("Error uploading file:", error);
@@ -247,19 +249,19 @@ const BulkStudentUpload = () => {
   const getStageName = (stage, level) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
-        return level === 0 ? "مرحلة غير صحيحة" : "المرحلة الثالثة";
+        return level === 0 ? "مرحلة غير صحيحة" : "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
   const formatTimeRemaining = (seconds) => {
     const roundedSeconds = Math.round(seconds);
-    
+
     if (roundedSeconds < 60) {
       return `${roundedSeconds} ثانية`;
     } else if (roundedSeconds < 3600) {
@@ -273,17 +275,17 @@ const BulkStudentUpload = () => {
 
   const calculateTimeRemaining = (progress, elapsedTime) => {
     if (progress <= 0 || elapsedTime < 2) return null;
-    
+
     // Only calculate after we have meaningful progress (at least 5%)
     if (progress < 5) return null;
-    
+
     const estimatedTotalTime = (elapsedTime / progress) * 100;
     const remainingTime = estimatedTotalTime - elapsedTime;
-    
+
     // Cap the maximum estimated time to 10 minutes (600 seconds)
     const maxReasonableTime = 600;
     const cappedRemainingTime = Math.min(remainingTime, maxReasonableTime);
-    
+
     // Don't show time if it's less than 5 seconds
     return cappedRemainingTime > 5 ? cappedRemainingTime : null;
   };
@@ -329,7 +331,7 @@ const BulkStudentUpload = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <span className="text-gray-600">الموقع:</span>
+              <span className="text-gray-600">المكان:</span>
               <span className="font-medium mr-2">{classData.location}</span>
             </div>
             <div>
@@ -341,7 +343,7 @@ const BulkStudentUpload = () => {
               </span>
             </div>
             <div>
-              <span className="text-gray-600">المرحلة:</span>
+              <span className="text-gray-600">السنة:</span>
               <span className="font-medium mr-2">
                 {classData.level
                   ? getStageName(classData.level.stage, classData.level.level)
@@ -398,7 +400,7 @@ const BulkStudentUpload = () => {
           </h3>
           <p className="text-gray-600 mb-4">
             قم بتحميل القالب واملأه ببيانات الطلاب. القالب باللغة العربية، وتم
-            ضبط عمود الهاتف كـ نص للحفاظ على الصفر في بداية الرقم. الدور يتم
+            ضبط عمود الهاتف كـ نص للحفاظ على الصفر في بداية الرقم. المستخدم يتم
             تعيينه تلقائياً كطالب.
           </p>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
@@ -476,8 +478,12 @@ const BulkStudentUpload = () => {
               </div>
               <div className="mt-2 text-xs text-gray-500">
                 {uploadProgress < 30 && "جاري رفع الملف..."}
-                {uploadProgress >= 30 && uploadProgress < 70 && "جاري معالجة البيانات..."}
-                {uploadProgress >= 70 && uploadProgress < 100 && "جاري إنهاء المعالجة..."}
+                {uploadProgress >= 30 &&
+                  uploadProgress < 70 &&
+                  "جاري معالجة البيانات..."}
+                {uploadProgress >= 70 &&
+                  uploadProgress < 100 &&
+                  "جاري إنهاء المعالجة..."}
                 {uploadProgress >= 100 && "تم بنجاح!"}
               </div>
             </div>
@@ -708,7 +714,7 @@ const BulkStudentUpload = () => {
                                 {error.field === "required_fields" &&
                                   "الحقول المطلوبة فارغة"}
                                 {error.field === "gender" && "خطأ في الجنس"}
-                                {error.field === "role" && "خطأ في الدور"}
+                                {error.field === "role" && "خطأ في المستخدم"}
                                 {error.field === "phone" && "خطأ في رقم الهاتف"}
                                 {error.field === "birthday" &&
                                   "خطأ في تاريخ الميلاد"}

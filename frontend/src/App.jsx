@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 
@@ -23,17 +23,9 @@ import HymnsLibrary from "./pages/library/HymnsLibrary";
 import HymnDetails from "./pages/library/HymnDetails";
 import AddEditHymn from "./pages/library/AddEditHymn";
 import EventsManagement from "./pages/library/EventsManagement";
+import ContactMessages from "./pages/ContactMessages";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { isAuthenticated, getCurrentUser } from "./util/auth";
-
-const LibraryGuard = ({ element }) => {
-  const viewer = isAuthenticated() ? getCurrentUser() : null;
-  if (viewer?.role === "student") {
-    return <Navigate to="/" replace />;
-  }
-  return element;
-};
 
 const App = () => {
   return (
@@ -50,6 +42,10 @@ const App = () => {
         <Route
           path="/users"
           element={<ProtectedRoute requireAdmin element={<Users />} />}
+        />
+        <Route
+          path="/contact-messages"
+          element={<ProtectedRoute requireAdmin element={<ContactMessages />} />}
         />
         <Route path="/users/:userId" element={<UserDetails />} />
         <Route path="/classes" element={<Classes />} />
@@ -96,12 +92,18 @@ const App = () => {
           path="/classes/:classId/curriculum/:subject/semesters/:semester/lectures/:lecture"
           element={<LecturePage />}
         />
-        <Route path="/hymns" element={<LibraryGuard element={<HymnsLibrary />} />} />
+        <Route
+          path="/hymns"
+          element={<ProtectedRoute requireAdmin element={<HymnsLibrary />} />}
+        />
         <Route
           path="/hymns/add"
           element={<ProtectedRoute requireAdmin element={<AddEditHymn />} />}
         />
-        <Route path="/hymns/:id" element={<HymnDetails />} />
+        <Route
+          path="/hymns/:id"
+          element={<ProtectedRoute requireAdmin element={<HymnDetails />} />}
+        />
         <Route
           path="/hymns/:id/edit"
           element={<ProtectedRoute requireAdmin element={<AddEditHymn />} />}

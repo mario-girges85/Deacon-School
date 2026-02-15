@@ -27,7 +27,7 @@ const AddStudent = () => {
   const fetchClassData = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`,
       );
       setClassData(response.data.class || response.data);
     } catch (error) {
@@ -64,7 +64,7 @@ const AddStudent = () => {
     try {
       // Get class data to extract level_id
       const classResponse = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`
+        `${import.meta.env.VITE_API_BASE_URL}/classes/${classId}`,
       );
       const levelId = (classResponse.data.class || classResponse.data)
         ?.level_id;
@@ -89,7 +89,7 @@ const AddStudent = () => {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/users/register`,
         fd,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
 
       // Navigate back to class details
@@ -124,13 +124,13 @@ const AddStudent = () => {
   const getStageName = (stage, level) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
-        return level === 0 ? "مرحلة غير صحيحة" : "المرحلة الثالثة";
+        return level === 0 ? "مرحلة غير صحيحة" : "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
@@ -175,7 +175,7 @@ const AddStudent = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <span className="text-gray-600">الموقع:</span>
+              <span className="text-gray-600">المكان:</span>
               <span className="font-medium mr-2">{classData.location}</span>
             </div>
             <div>
@@ -187,7 +187,7 @@ const AddStudent = () => {
               </span>
             </div>
             <div>
-              <span className="text-gray-600">المرحلة:</span>
+              <span className="text-gray-600">السنة:</span>
               <span className="font-medium mr-2">
                 {classData.level
                   ? getStageName(classData.level.stage, classData.level.level)

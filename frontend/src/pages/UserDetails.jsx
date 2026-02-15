@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../util/axiosConfig";
-import { isAuthenticated, getCurrentUser } from "../util/auth";
+import { isAuthenticated, getCurrentUser, isAdmin } from "../util/auth";
 
 const UserDetails = () => {
   const { userId } = useParams();
@@ -101,7 +101,7 @@ const UserDetails = () => {
       case "student":
         return "طالب";
       case "teacher":
-        return "معلم";
+        return "خادم";
       case "admin":
         return "مدير";
       case "supervisor":
@@ -129,14 +129,14 @@ const UserDetails = () => {
   const getStageName = (stage, level) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
         if (level === 0) return "مرحلة غير صحيحة";
-        return "المرحلة الثالثة";
+        return "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
@@ -205,62 +205,73 @@ const UserDetails = () => {
 
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center gap-4">
-            <label
-              className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-200 cursor-pointer group"
-              title="تغيير الصورة"
-            >
-              {user.image ? (
-                <img
-                  src={user.image}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="absolute bottom-0 right-0 m-0.5 px-1.5 py-0.5 rounded bg-white/85 border border-gray-200 shadow-sm flex items-center gap-1 text-gray-700 text-[10px] opacity-90 group-hover:opacity-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-3.5 h-3.5"
-                >
-                  <path d="M9 2.25a.75.75 0 00-.53.22L7.06 3.88H5.25A2.25 2.25 0 003 6.13v10.5A2.25 2.25 0 005.25 18.9h13.5A2.25 2.25 0 0021 16.63V6.13A2.25 2.25 0 0018.75 3.88h-1.81l-1.41-1.41a.75.75 0 00-.53-.22H9zM12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 1.5a3 3 0 100 6 3 3 0 000-6z" />
-                </svg>
-                <span>{uploadingImage ? "..." : "رفع"}</span>
-              </div>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.heic"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    setUploadingImage(true);
-                    const form = new FormData();
-                    form.append("image", file);
-                    const res = await apiClient.put(
-                      `/users/${user.id}/image`,
-                      form
-                    );
-                    if (res.data?.success && res.data?.image) {
-                      setUser((prev) => ({ ...prev, image: res.data.image }));
-                    } else {
-                      alert(res.data?.message || "فشل تحديث الصورة");
-                    }
-                  } catch (err) {
-                    alert("تعذر رفع الصورة حالياً");
-                  } finally {
-                    setUploadingImage(false);
-                  }
-                }}
-              />
-            </label>
+            {(() => {
+              const viewer = getCurrentUser();
+              const canChangeImage = isAdmin() || (viewer && String(viewer.id) === String(user.id));
+              const AvatarWrap = canChangeImage ? "label" : "div";
+              const avatarProps = canChangeImage
+                ? { className: "relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-200 cursor-pointer group", title: "تغيير الصورة" }
+                : { className: "relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-200" };
+              return (
+                <AvatarWrap {...avatarProps}>
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  {canChangeImage && (
+                    <>
+                      <div className="absolute bottom-0 right-0 m-0.5 px-1.5 py-0.5 rounded bg-white/85 border border-gray-200 shadow-sm flex items-center gap-1 text-gray-700 text-[10px] opacity-90 group-hover:opacity-100">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="w-3.5 h-3.5"
+                        >
+                          <path d="M9 2.25a.75.75 0 00-.53.22L7.06 3.88H5.25A2.25 2.25 0 003 6.13v10.5A2.25 2.25 0 005.25 18.9h13.5A2.25 2.25 0 0021 16.63V6.13A2.25 2.25 0 0018.75 3.88h-1.81l-1.41-1.41a.75.75 0 00-.53-.22H9zM12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 1.5a3 3 0 100 6 3 3 0 000-6z" />
+                        </svg>
+                        <span>{uploadingImage ? "..." : "رفع"}</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.heic"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setUploadingImage(true);
+                            const form = new FormData();
+                            form.append("image", file);
+                            const res = await apiClient.put(
+                              `/users/${user.id}/image`,
+                              form
+                            );
+                            if (res.data?.success && res.data?.image) {
+                              setUser((prev) => ({ ...prev, image: res.data.image }));
+                            } else {
+                              alert(res.data?.message || "فشل تحديث الصورة");
+                            }
+                          } catch (err) {
+                            alert("تعذر رفع الصورة حالياً");
+                          } finally {
+                            setUploadingImage(false);
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                </AvatarWrap>
+              );
+            })()}
             <div className="flex-1">
               <h2 className="text-2xl font-semibold text-gray-900">
                 {user.name}
@@ -351,7 +362,7 @@ const UserDetails = () => {
                             {row.class.location}
                           </div>
                           <div className="text-xs text-gray-500">
-                            المستوى {row.class.level?.level} - المرحلة{" "}
+                            المستوى {row.class.level?.level} - السنة{" "}
                             {row.class.level?.stage}
                           </div>
                         </td>
@@ -367,7 +378,7 @@ const UserDetails = () => {
                             </div>
                             <div className="text-xs text-gray-600">
                               {row[ts.key]?.teacherId
-                                ? `معلم: ${row[ts.key].teacherId}`
+                                ? `خادم: ${row[ts.key].teacherId}`
                                 : "غير معيّن"}
                             </div>
                           </td>
@@ -396,7 +407,7 @@ const UserDetails = () => {
             ) : teacherSchedule.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">📅</div>
-                <p>لا يوجد جدول حصص محدد لهذا المعلم بعد</p>
+                <p>لا يوجد جدول حصص محدد لهذا الخادم بعد</p>
               </div>
             ) : (
               <div className="overflow-x-auto">

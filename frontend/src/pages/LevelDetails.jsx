@@ -51,13 +51,13 @@ const LevelDetails = () => {
   const getStageName = (stage) => {
     switch (stage) {
       case 1:
-        return "المرحلة الأولى";
+        return "السنة الأولى";
       case 2:
-        return "المرحلة الثانية";
+        return "السنة الثانية";
       case 3:
-        return "المرحلة الثالثة";
+        return "السنة الثالثة";
       default:
-        return `المرحلة ${stage}`;
+        return `السنة ${stage}`;
     }
   };
 
@@ -144,7 +144,7 @@ const LevelDetails = () => {
               <div className="text-2xl font-bold text-primary">
                 {level.stage}
               </div>
-              <div className="text-sm text-gray-600">المرحلة</div>
+              <div className="text-sm text-gray-600">السنة</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-primary">
@@ -154,7 +154,6 @@ const LevelDetails = () => {
             </div>
           </div>
         </div>
-
 
         {/* Classes Section (hidden for students) */}
         {!isStudentViewer && (

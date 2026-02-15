@@ -465,7 +465,7 @@ async function deleteLectureFile(req, res) {
     });
 
     if (!entry) {
-      return res.status(404).json({ error: "المحاضرة غير موجودة" });
+      return res.status(404).json({ error: "الدرس غير موجود" });
     }
 
     // Determine existing file considering legacy 'path' field

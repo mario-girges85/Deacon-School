@@ -94,7 +94,7 @@ const BulkAllStudents = () => {
         allowBlank: false,
         formulae: [`=${range}`],
         promptTitle: "اختر الفصل",
-        prompt: "اختر موقع الفصل من القائمة",
+        prompt: "اختر مكان الفصل من القائمة",
         errorTitle: "قيمة غير صحيحة",
         error: "يرجى اختيار فصل من القائمة",
       });
